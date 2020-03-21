@@ -1,0 +1,2 @@
+module mahjong_testing {
+}
