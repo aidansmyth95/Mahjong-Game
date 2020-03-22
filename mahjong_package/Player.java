@@ -33,8 +33,8 @@ public class Player {
 	
 	
 	// check for win
-	public boolean mahjong() {
-		return this.hand.checkWin();
+	public boolean checkMahjong(Tile t) {
+		return this.hand.checkMahjong(t);
 	}
 	
 	// check for Pong given a potential tile

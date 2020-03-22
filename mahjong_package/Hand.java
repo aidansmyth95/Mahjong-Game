@@ -25,7 +25,9 @@ public class Hand {
 		this.free_idx = this.hand_size-1;
 	}
 	
-	// create a hand of tiles
+	/*
+	 *  Create a hand of tiles from an array of tiles drawn
+	 */
 	public void createHand(Tile[] tiles_drawn) {
 		
 		// check size of tiles_drawn[] input is correct
@@ -44,12 +46,15 @@ public class Hand {
 		}
 	}
 	
-	// draw tile and place in empty spot
+	
+	/*
+	 * Add a tile to the empty space in hand
+	 */
 	public void addToHand(Tile tile) {
 		// if no free space to place drawn tile
 		if (this.free_idx == -1) {
 			System.out.println("Error: No free space to place drawn tile. Code check required!\n");
-			return;
+			System.exit(0);
 		}
 		else {
 			// assign tile to free space in idx
@@ -61,7 +66,9 @@ public class Hand {
 	}
 	
 	
-	// discard tile function
+	/*
+	 *  Discard a tile of a specified hand index
+	 */
 	public Tile discardTile(int idx) {
 		
 		// verify index is valid
@@ -85,12 +92,15 @@ public class Hand {
 	//TODO: what if you already have 3 in your hand? Check 4 of a kind...
 
 	
-	// check for a Pong with prospective a new tile as an argument
+	/*
+	 *  Check for a Pong with prospective a new tile as an argument
+	 */
 	public boolean checkPong(Tile t) {
         ArrayList<Tile> tmp_list = new ArrayList<Tile>();
+        Collections.addAll(tmp_list, this.hand);
+        
         ArrayList<Tile> triple_tiles= new ArrayList<Tile>();
         ArrayList<Tile> seq_tiles= new ArrayList<Tile>();
-        Collections.addAll(tmp_list, this.hand);
         
         Tile tmp_tile = new Tile();
         int num_match = 0;
@@ -172,50 +182,7 @@ public class Hand {
         return false;
 	}
 	
-	
-	// check for triple in hand
-	public boolean checkTriple() {
-        ArrayList<Tile> tmp_list = new ArrayList<Tile>();
-        Collections.addAll(tmp_list, this.hand);
 
-        Tile tmp_tile;
-        int num_match = 0;	// number of triples matched
-        int count = 0;		// number of a tile found
-
-        // need at least 3 tiles
-        while (tmp_list.size() > 2) {
-            // Draw a tile to compare to the others for a match
-            tmp_tile = tmp_list.remove(0);
-            count = 0;
-
-            // check list for a triple
-        	for (int i=0; i<tmp_list.size()-1; i++) {
-        		        		
-        		Tile t = tmp_list.get(i);
-        		
-                // compare String descriptor for match
-                if(t != null && t.descriptor.equals(tmp_tile.descriptor)) {
-                    // remove matched item from list
-                    tmp_list.remove(t);
-                    count++;
-                    // if triple found, time to check for another match
-                    if (count == 2) {
-                    	num_match++;
-                    	break;
-                    }
-                }
-                //something here
-            }
-        }
-        
-        if (num_match > 0) {
-        	System.out.println("Number of triples is " + num_match + "\n");
-        	return true;
-        }
-        else {
-        	return false;
-        }
-	}
 	
 	
 	// check for three in a row sequence for Suits
@@ -263,14 +230,69 @@ public class Hand {
         return 0;
 	}
 	
-	// check win
-	//TODO: temporarily - a win is getting a triple. Copy idea of matches i Tiles.java
-	public boolean checkWin() {
-		return this.checkTriple();
+		
+	/*
+	 *  Check for a Pong - three of a kind
+	 */
+	public boolean checkMahjong(Tile t) {
+		//( 4 * sets of 3 ) + a double
+		int n = 36;
+		
+        ArrayList<Tile> tmp_list = new ArrayList<Tile>();
+        Collections.addAll(tmp_list, this.hand);
+        tmp_list.add(t); 
+                
+		int num_set_3 = 0;
+		boolean isDouble = false;
+		int count_arr[];
+		count_arr = new int [36];
+		count_arr = this.countHand(tmp_list);
+		
+		// count number of doubles in hand - should be only one
+		for (int i=0; i<n; i++) {
+			// first double found is true
+			if (count_arr[i] == 2 && isDouble == false) {
+				isDouble = true;
+			} else if (count_arr[i] == 2 && isDouble == true) {
+				// there are two doubles, this is not a Mahjong
+				return false;
+			} else if (count_arr[i] == 3) {
+				// count triples
+				num_set_3++;
+			}
+		}
+		
+		// if no doubles were found, no Mahjong
+		if (isDouble == false) {
+			return false;
+		}
+		
+		int bamboo_count[], dot_count[], char_count[];
+		bamboo_count = this.countSuits(tmp_list, 1);
+		dot_count = this.countSuits(tmp_list, 2);
+		char_count = this.countSuits(tmp_list, 3);
+		
+		// count number of sequence 3s
+		for (int i=0; i<9-2; i++) {
+			if (bamboo_count[i] == 1 && bamboo_count[i+1] == 1 && bamboo_count[i+2] == 1) {
+				num_set_3++;
+			}
+			if (dot_count[i] == 1 && dot_count[i+1] == 1 && dot_count[i+2] == 1) {
+				num_set_3++;
+			}
+			if (char_count[i] == 1 && char_count[i+1] == 1 && char_count[i+2] == 1) {
+				num_set_3++;
+			}
+		}
+		
+		if (num_set_3 == 4 && isDouble == true) {
+			System.out.println("MAHJONG!");
+			return true;
+		}
+		
+		return false;
 	}
 	
-	// check for a Pong - three of a kind
-	//public boolean checkPong()
 	
 	// display a hand's contents
 	public void showHand() {
@@ -295,5 +317,164 @@ public class Hand {
 	}
 	
 	
+    // poll tiles list
+    public int[] countHand(ArrayList<Tile> tiles) {
+    	    	
+    	int count[];
+    	int N = 36;
+    	count = new int [N];
+    	
+    	int dot_ranks[];
+    	dot_ranks = new int [9];
+    	
+    	int bamboo_ranks[];
+    	bamboo_ranks = new int [9];
+    	
+    	int char_ranks[];
+    	char_ranks = new int[9];
+    	
+    	int wind_ranks[];
+    	wind_ranks = new int[4];
+    	
+    	int dragon_ranks[];
+    	dragon_ranks = new int[3];
+    	
+    	int flower_ranks[];
+    	flower_ranks = new int[4];
+    	
+    	int season_ranks[];
+    	season_ranks = new int[4];
+    	
+    	Honors tmp_h;
+    	Bonus tmp_b;
+    	Suits tmp_s;
+    	
+    	bamboo_ranks = this.countSuits(tiles, 1);
+    	dot_ranks = this.countSuits(tiles, 2);
+    	char_ranks = this.countSuits(tiles, 3);
+    	 	 	
+    	// for all elements in list, increment respective ranks and types
+    	for(Tile tmp : tiles) {
+    	    // if honor
+    		if (tmp instanceof Honors) {
+    			tmp_h = (Honors) tmp;
+    			if (tmp_h.getType() == 1) {
+    				wind_ranks[tmp_h.getRank()-1]++;
+    			}
+    			else if (tmp_h.getType() == 2) {
+    				dragon_ranks[tmp_h.getRank()-1]++;
+    			}
+    		}
+    		// if bonus
+    		else if (tmp instanceof Bonus) {
+    			tmp_b = (Bonus) tmp;
+    			if (tmp_b.getType() == 1) {
+    				season_ranks[tmp_b.getRank()-1]++;
+    			}
+    			else if (tmp_b.getType() == 2) {
+    				flower_ranks[tmp_b.getRank()-1]++;
+    			}
+    		}    		
+    		// if suit
+    		else if (tmp instanceof Suits) {
+    			tmp_s = (Suits) tmp;
+    			if (tmp_s.getType() == 1) {
+    				bamboo_ranks[tmp_s.getRank()-1]++;
+    			}
+    			else if (tmp_s.getType() == 2) {
+    				dot_ranks[tmp_s.getRank()-1]++;
+    			}
+    			else if (tmp_s.getType() == 3 ) {
+    				char_ranks[tmp_s.getRank()-1]++;
+    			}
+    		}
+    	}
+    	
+    	for (int i=0; i<N; i++) {
+    		if (i<9) {
+    			count[i] = dot_ranks[i];
+    		} else if (i>=9 && i<18) {
+    			count[i] = bamboo_ranks[i-9];
+    		} else if (i>=18 && i<21) {
+    			count[i] = char_ranks[i-18];
+    		} else if (i>=21 && i<24) {
+    			count[i] = wind_ranks[i-21];
+    		} else if (i>=24 && i>27) {
+    			count[i] = dragon_ranks[i-24];
+    		} else if (i>=27 && i<31) {
+    			count[i] = flower_ranks[i-27];
+    		} else {
+    			count[i] = season_ranks[i-31];
+    		}
+    	}
+    	
+    	return count;
+    	
+    	/*
+		String s;
+		s = "";
+		s += "Bamboo:\n";
+		for (int i=1; i<=9; i++)
+			s += "\t" + i + " -> " + bamboo_ranks[i-1] + "\n";
+		s += "Dots:\n";
+		for (int i=1; i<=9; i++)
+			s += "\t" + i + " -> " + dot_ranks[i-1] + "\n";   
+		s += "Characters:\n";
+		for (int i=1; i<=9; i++)
+			s += "\t" + i + " -> " + char_ranks[i-1] + "\n";
+		s += "Winds:\n";
+		s += "\tNorth -> " + wind_ranks[0] + "\n";
+		s += "\tEast -> " + wind_ranks[1] + "\n";
+		s += "\tSouth -> " + wind_ranks[2] + "\n";
+		s += "\tWest -> " + wind_ranks[3] + "\n";
+		s += "Dragons:\n";
+		s += "\tRed -> " + dragon_ranks[0] + "\n";
+		s += "\tGreen -> " + dragon_ranks[1] + "\n";
+		s += "\tWhite -> " + dragon_ranks[2] + "\n";
+		s += "Seasons:\n";
+		s += "\tSpring -> " + season_ranks[0] + "\n";
+		s += "\tSummer -> " + season_ranks[1] + "\n";
+		s += "\tAutumn -> " + season_ranks[2] + "\n";
+		s += "\tWinter -> " + season_ranks[3] + "\n";
+		s += "Flowers:\n";
+		s += "\tPlum -> " + flower_ranks[0] + "\n";
+		s += "\tOrchid -> " + flower_ranks[1] + "\n";
+		s += "\tChrysanthemum -> " + flower_ranks[2] + "\n";
+		s += "\tBamboo -> " + flower_ranks[3] + "\n";
+    	
+    	System.out.println(s);
+    	return s;
+    	*/
+    	
+    }
+    
+
+    
+    /*
+     * Count number of suits in ArrayList for a given suit type
+     */
+    public int[] countSuits(ArrayList<Tile> tiles, int type) {
+    	
+    	// dots 2, bamboo 1, chars 3
+    	
+    	int ranks[];
+    	ranks = new int[9];
+    	
+    	Suits tmp_s;
+    	
+    	// for all elements in list, increment respective ranks and types
+    	for(Tile tmp : tiles) {
+    	    // if Suits
+    		if (tmp instanceof Suits) {
+    			tmp_s = (Suits) tmp;
+    			if (tmp_s.getType() == type) {
+    				ranks[tmp_s.getRank()-1]++;
+    			}
+    		}
+    	}
+    	
+    	return ranks;
+    }
+
 	
 }

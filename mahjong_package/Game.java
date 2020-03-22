@@ -6,11 +6,7 @@ import java.util.Scanner;
 public class Game {
 	
 	private final int num_players = 4;
-	
-	private final int game_timeout_ms = 1000*1000;
-	
-	private long start_time, run_time;
-	
+		
 	// Scanner for player interaction with game
 	private Scanner scan = new Scanner(System.in);
 	
@@ -77,26 +73,25 @@ public class Game {
 		
 		// hard set tile to be discarded to be index 13 (14th and last tile)
 		int discard_idx = 13;
-		
-		// a timer for the game		
-		this.start_time = System.currentTimeMillis();
-		
+				
 		// while no winner and still hidden tiles
 		while (this.winner_idx == -1 && this.tiles.tilesLeft() == true) {
 			
 			// chance for all players to interrupt
 			//TODO: implement concurrently, not in for loop. Unfair on last player
-			if (this.interrupt_chance == 1)
-			{
+			if (this.interrupt_chance == 1) {
 				this.interrupt_idx = -1;
 				
 				for (int i=0; i<this.num_players; i++) {
 					// player cannot interrupt their own turn
 					if (i != this.player_turn) {
 						// TODO: check for a potential Mahjong
-						
-						// check for a potential Pong
-						if (this.player[i].pong(latest)) {
+						if (this.player[i].checkMahjong(latest) == true) {
+							this.interrupt_idx = i;
+							this.interrupt_type = PlayerInterruptStates.MAHJONG;
+							break;
+						} else if (this.player[i].pong(latest)) {
+							// check for a potential Pong
 							System.out.println("\nPlayer " + i + ": Pong? (y/n)");
 							String resp = this.scan.nextLine();
 							if (resp.toLowerCase().equals("y") || resp.toLowerCase().equals("yes")) {
@@ -117,6 +112,9 @@ public class Game {
 					// draw a tile
 					System.out.println("Player " + this.player_turn + " drawing tile");
 					this.tile_drawn = this.tiles.revealTile();
+					
+					//TODO: check for a Mahjong
+					
 					this.player[this.player_turn].addToHand(tile_drawn);
 					// perform an action based on tile drawn
 					this.player[this.player_turn].state = PlayerState.DISCARDING_TILE;
@@ -149,7 +147,7 @@ public class Game {
 					
 				// a player just interrupted. Process their request here
 				case PROCESS_INTERRUPT:
-					// take most recent tile
+					// take most recent tile for player's hand
 					Tile claimed = this.tiles.claimLatestTile();
 					//error check
 					if (claimed.descriptor.equals(latest.descriptor)) {
@@ -165,14 +163,18 @@ public class Game {
 					}
 					
 					// was it a Mahjong or a Pong?
-					if (this.player[this.player_turn].mahjong() == true) {
+					if (this.interrupt_type == PlayerInterruptStates.MAHJONG) {
 						this.player[this.player_turn].state = PlayerState.WINNER;
 						//TODO: who is the loser? Who gave player the tile to win? 
-					} else {
+					} else if (this.interrupt_type == PlayerInterruptStates.PONG){
 						// they will need to discard if they did not win
+						//TODO: pong must reveal tiles
 						this.player[this.player_turn].state = PlayerState.DISCARDING_TILE;
-						//TODO: Pong function
-						//TODO: error if neither
+					} else if (this.interrupt_type == PlayerInterruptStates.TSE) {
+						//TODO: Tse functionality - any needed once tile already claimed?
+					} else {
+						System.out.println("Interrupt state not supported");
+						System.exit(0);
 					}
 					break;
 					
@@ -195,9 +197,6 @@ public class Game {
 					// ERROR, message containing state
 					break;
 			}
-			
-			// update timer
-			this.run_time = System.currentTimeMillis() - this.start_time;			
 		}
 		
 		return this.winner_idx;
