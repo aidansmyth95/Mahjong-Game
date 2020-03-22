@@ -345,11 +345,8 @@ public class Tiles {
     	return s;
     }
     
-    
-	/*
-	 * {  if
-	 * (this.doubleMatch() == 1 && this.tripleMatch() == 4) {
-	 * System.out.println("MAHJONG! GAME OVER\n"); return true; } return false; }
-	 */
+    public boolean tilesLeft() {
+    	return !this.hidden_tiles.isEmpty();
+    }
     
 }

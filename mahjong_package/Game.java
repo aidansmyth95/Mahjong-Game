@@ -30,6 +30,7 @@ public class Game {
 	private int interrupt_chance;
 	// Player ID who interrupted
 	private int interrupt_idx;
+	private PlayerInterruptStates interrupt_type;
 	
 	// player who wins and player who gives them tile to win
 	private int winner_idx;
@@ -47,6 +48,7 @@ public class Game {
 		this.loser_idx = -1;
 		this.interrupt_chance = 0;
 		this.interrupt_idx = -1;
+		this.interrupt_type = PlayerInterruptStates.NONE;
 		
 		// reset and shuffle deck
 		this.tiles.shuffleTiles();
@@ -65,7 +67,9 @@ public class Game {
 	}
 	
 	
-	// the game - returns idx of winner
+	/*
+	 * Return player index of winner.
+	 */
 	public int playGame() {
 		
 		// most recently discarded Tile
@@ -74,18 +78,11 @@ public class Game {
 		// hard set tile to be discarded to be index 13 (14th and last tile)
 		int discard_idx = 13;
 		
-		
-		////////////////////////////////////////////////////////////////////////////
-		// should be a state machine for all players to interact
-		
-		// a while no win or timeout loop
-		// in loop, state machine for each player
-		// constantly check for a player to interrupt and do something
-		
+		// a timer for the game		
 		this.start_time = System.currentTimeMillis();
 		
-		
-		while (this.winner_idx == -1 && this.run_time < this.game_timeout_ms) {
+		// while no winner and still hidden tiles
+		while (this.winner_idx == -1 && this.tiles.tilesLeft() == true) {
 			
 			// chance for all players to interrupt
 			//TODO: implement concurrently, not in for loop. Unfair on last player
@@ -96,15 +93,20 @@ public class Game {
 				for (int i=0; i<this.num_players; i++) {
 					// player cannot interrupt their own turn
 					if (i != this.player_turn) {
-						System.out.println("\nPlayer " + i + ": Interrupt? (y/n)");
-						String resp = this.scan.nextLine();
-						if (resp.toLowerCase().equals("y") || resp.toLowerCase().equals("yes")) {
-							this.interrupt_idx = i;
-							break;
+						// TODO: check for a potential Mahjong
+						
+						// check for a potential Pong
+						if (this.player[i].pong(latest)) {
+							System.out.println("\nPlayer " + i + ": Pong? (y/n)");
+							String resp = this.scan.nextLine();
+							if (resp.toLowerCase().equals("y") || resp.toLowerCase().equals("yes")) {
+								this.interrupt_idx = i;
+								this.interrupt_type = PlayerInterruptStates.PONG;
+								break;
+							}
 						}
 					}
 				}
-				
 				this.interrupt_chance = 0;
 			}
 			
@@ -129,24 +131,24 @@ public class Game {
 					this.player[this.player_turn].state = PlayerState.WAITING;
 					break;
 					
-				case WAITING:
-					// all players have had a chance to claim discarded tile
-					
-					// the current player will wait here until they are given their turn again or interrupt
-					
+				// the current player will wait here until they are given their turn again or interrupt
+				// all players have had a chance to claim discarded tile
+				case WAITING:					
 					// next player's turn determined by interrupt or not
 					if (this.interrupt_idx != -1) {
 						this.player_turn = this.interrupt_idx;
 						this.player[this.player_turn].state = PlayerState.PROCESS_INTERRUPT;
 					} else {
 						this.player_turn = (this.player_turn + 1) % this.num_players;
+						
+						//TODO: a TSE state
+						
 						this.player[this.player_turn].state = PlayerState.DRAWING_TILE;
 					}					
 					break;
 					
+				// a player just interrupted. Process their request here
 				case PROCESS_INTERRUPT:
-					// a player just interrupted. Process their request here
-					
 					// take most recent tile
 					Tile claimed = this.tiles.claimLatestTile();
 					//error check
@@ -203,7 +205,9 @@ public class Game {
 	
 	
 	
-		
+	/*
+	 * Main function
+	 */
 	public static void main(String[] args) {
 		
 		// Create game
@@ -218,4 +222,3 @@ public class Game {
 	}
 }
 
-//https://www.youtube.com/watch?v=7WzRaig8P8Y 

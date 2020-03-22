@@ -37,6 +37,11 @@ public class Player {
 		return this.hand.checkWin();
 	}
 	
+	// check for Pong given a potential tile
+	public boolean pong(Tile t) {
+		return this.hand.checkPong(t);
+	}
+	
 	public void showHand() {
 		this.hand.showHand();
 	}

@@ -82,6 +82,97 @@ public class Hand {
 	}
 	
 	
+	//TODO: what if you already have 3 in your hand? Check 4 of a kind...
+
+	
+	// check for a Pong with prospective a new tile as an argument
+	public boolean checkPong(Tile t) {
+        ArrayList<Tile> tmp_list = new ArrayList<Tile>();
+        ArrayList<Tile> triple_tiles= new ArrayList<Tile>();
+        ArrayList<Tile> seq_tiles= new ArrayList<Tile>();
+        Collections.addAll(tmp_list, this.hand);
+        
+        Tile tmp_tile = new Tile();
+        int num_match = 0;
+        int num_seq = 0;
+
+        // check for 3 in a row:
+        // do 2 others have the same descriptor as incoming tile?
+        while (tmp_list.size() > 0) {
+        	tmp_tile = tmp_list.remove(0);
+        	if (tmp_tile.descriptor == t.descriptor) {
+        		num_match++;
+        		triple_tiles.add(tmp_tile);
+        	}
+        }
+        
+        if (num_match == 2) {
+        	// we have three of a kind
+        	return true;
+        } else {
+        	triple_tiles.clear();
+        }
+        
+        // refresh list of tiles
+        tmp_list.clear();
+        Collections.addAll(tmp_list, this.hand);
+        
+        // check for sequence - Suits only
+        if (t instanceof Suits) {
+        	// remove all non suits
+            for (int i=0; i<this.hand_size; i++) {
+            	if (tmp_list.get(i) instanceof Suits) {
+            		// do nothing
+            	} else {
+            		// not needed if not suit, remove from list
+            		tmp_list.remove(i);
+            	}
+            }
+            
+            // add new tile to list of suits
+            tmp_list.add(t);
+            
+            // sort by rank
+            Collections.sort(tmp_list, new RankComparator());
+            
+            // Tile to be compared
+            Tile t1, t2, t3 = new Tile();
+            
+            // check if 3 with 1 difference in rank in hand
+            for (int i=0; i<tmp_list.size()-3; i++) {
+            	t1 = tmp_list.get(i);
+            	t2 = tmp_list.get(i+1);
+            	t3 = tmp_list.get(i+2);
+            	// three same types in a row
+            	if (t1.type == tmp_list.get(i+1).type && t2.type == t3.type) {
+            		// difference of 2 between first and last sorted tiles
+            		if (Math.abs(t1.rank - t3.rank) == 2) {
+            			// one of these tiles is the potential pong tile
+            			if (
+            					t.descriptor.equals(t1.descriptor) || 
+            					t.descriptor.equals(t2.descriptor) ||
+            					t.descriptor.equals(t3.descriptor)
+    					)	{
+        						seq_tiles.add(t1);
+        						seq_tiles.add(t2);
+        						seq_tiles.add(t3);
+        						num_seq++;
+        					}
+            		}
+            	}
+            }
+            
+        }
+        
+        if (num_seq > 0) {
+        	return true;
+        }
+        
+        seq_tiles.clear();
+        return false;
+	}
+	
+	
 	// check for triple in hand
 	public boolean checkTriple() {
         ArrayList<Tile> tmp_list = new ArrayList<Tile>();
@@ -178,6 +269,8 @@ public class Hand {
 		return this.checkTriple();
 	}
 	
+	// check for a Pong - three of a kind
+	//public boolean checkPong()
 	
 	// display a hand's contents
 	public void showHand() {
