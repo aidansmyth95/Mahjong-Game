@@ -1,15 +1,11 @@
 package mahjong_package;
 
-import java.util.Scanner;
-
 
 public class Game {
 	
-	private final int num_players = 4;
-		
-	// Scanner for player interaction with game
-	private Scanner scan = new Scanner(System.in);
-	
+	// Number of players playing the game
+	private int num_players;
+			
 	// Players playing game
 	private Player player[] = new Player[4];
 	
@@ -32,13 +28,14 @@ public class Game {
 	private int winner_idx;
 	private int loser_idx;
 	
-	// constructor	//TODO: num_players defined here?
-	public Game() {
+	// constructor
+	public Game(int n_players) {
 		// temporary array for hand tiles drawn
 		Tile start_tiles[] = new Tile[13];
 
 		// player IDs and winner assigned
 		//TODO:random initial player turn
+		this.num_players = n_players;
 		this.player_turn = 0;
 		this.winner_idx = -1;
 		this.loser_idx = -1;
@@ -85,20 +82,17 @@ public class Game {
 				for (int i=0; i<this.num_players; i++) {
 					// player cannot interrupt their own turn
 					if (i != this.player_turn) {
-						// TODO: check for a potential Mahjong
-						if (this.player[i].checkMahjong(latest) == true) {
+						// check for Mahjong
+						if (this.player[i].Mahjong(latest) == true) {
 							this.interrupt_idx = i;
 							this.interrupt_type = PlayerInterruptStates.MAHJONG;
 							break;
 						} else if (this.player[i].pong(latest)) {
-							// check for a potential Pong
-							System.out.println("\nPlayer " + i + ": Pong? (y/n)");
-							String resp = this.scan.nextLine();
-							if (resp.toLowerCase().equals("y") || resp.toLowerCase().equals("yes")) {
-								this.interrupt_idx = i;
-								this.interrupt_type = PlayerInterruptStates.PONG;
-								break;
-							}
+							this.interrupt_idx = i;
+							this.interrupt_type = PlayerInterruptStates.PONG;
+							break;
+						} else {
+							// no interrupt from this player, move on
 						}
 					}
 				}
@@ -113,7 +107,10 @@ public class Game {
 					System.out.println("Player " + this.player_turn + " drawing tile");
 					this.tile_drawn = this.tiles.revealTile();
 					
-					//TODO: check for a Mahjong
+					// check for a Mahjong
+					if (this.player[this.player_turn].Mahjong(this.tile_drawn) == true) {
+						this.interrupt_type = PlayerInterruptStates.MAHJONG;
+					}
 					
 					this.player[this.player_turn].addToHand(tile_drawn);
 					// perform an action based on tile drawn
@@ -139,7 +136,15 @@ public class Game {
 					} else {
 						this.player_turn = (this.player_turn + 1) % this.num_players;
 						
-						//TODO: a TSE state
+						// ask player if they want the recently uncovered/discarded tile
+						System.out.printf("Player %d: Tse? [y/n]\n", this.player_turn);
+						String resp = this.player[this.player_turn].scan.nextLine();
+						if (resp.toLowerCase().equals("y")) {
+							// proceed with Tse - update latest discarded tile
+							latest = this.player[this.player_turn].tse(latest);
+						} else {
+							// no tse 
+						}
 						
 						this.player[this.player_turn].state = PlayerState.DRAWING_TILE;
 					}					
@@ -168,10 +173,15 @@ public class Game {
 						//TODO: who is the loser? Who gave player the tile to win? 
 					} else if (this.interrupt_type == PlayerInterruptStates.PONG){
 						// they will need to discard if they did not win
-						//TODO: pong must reveal tiles
 						this.player[this.player_turn].state = PlayerState.DISCARDING_TILE;
 					} else if (this.interrupt_type == PlayerInterruptStates.TSE) {
-						//TODO: Tse functionality - any needed once tile already claimed?
+						// Player has interrupted with Tse
+						latest = this.player[this.player_turn].tse(latest);
+						this.tiles.uncovered_tiles.add(latest);
+						System.out.printf("Player %d: discarding %s\n", this.player_turn, latest.descriptor);
+						this.interrupt_chance = 1;
+						this.player[this.player_turn].state = PlayerState.WAITING;
+						break;
 					} else {
 						System.out.println("Interrupt state not supported");
 						System.exit(0);
@@ -210,7 +220,7 @@ public class Game {
 	public static void main(String[] args) {
 		
 		// Create game
-		Game game = new Game();
+		Game game = new Game(4);
 		
 		// Play the game
 		int win;

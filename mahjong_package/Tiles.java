@@ -5,6 +5,9 @@ import java.util.Collections;
 
 public class Tiles {
 
+    // number of total Mahjong tiles in this deck = 160
+    //private final int total_tiles = 160;
+    
     // ArrayList of all tiles in game (n)
     public ArrayList<Tile> hidden_tiles = new ArrayList<>();
     public ArrayList<Tile> uncovered_tiles = new ArrayList<>();
@@ -19,8 +22,6 @@ public class Tiles {
     // (4 seasons) * 4 = 16
     public Bonus[] bonus = new Bonus[24];
 
-    // number of total Mahjong tiles in this deck = 160
-    public final int n = 160;
 
     public Tiles() {
         reset();
@@ -104,7 +105,6 @@ public class Tiles {
         Tile t = this.hidden_tiles.remove(0);
 
         // check this is actually a legitimate tile
-        //TODO: not needed past initial debug, delete
         if (t instanceof Suits || t instanceof Honors || t instanceof Bonus) {
             // all is good
         	//System.out.println(t.descriptor + " tile uncovered.\n");
@@ -120,128 +120,6 @@ public class Tiles {
         return t;
     }
 
-
-    // function to return number of pairs matched
-    //TODO: test more
-    public int doubleMatch() {
-        // populate a tmp list.
-        // start with first value, and remove all matching tiles from list. If count == 2, we have a pair.
-        // ID will be different obviously
-        ArrayList<Tile> tmp_list = new ArrayList<Tile>(this.uncovered_tiles);
-
-        Tile tmp_tile;
-        int num_match = 0;
-
-        while (tmp_list.size() > 1) {
-            // Draw a tile
-            tmp_tile = tmp_list.remove(0);
-
-            // check list for a pair tile
-        	for (int i=0; i< tmp_list.size(); i++) {
-        		Tile t = tmp_list.get(i);
-                // compare String descriptor for match
-                if(t.descriptor != null && t.descriptor.equals(tmp_tile.descriptor)) {
-                    // remove matched item from list
-                    tmp_list.remove(t);
-                    num_match++;
-                    //now to check for another match
-                    break;
-                }
-                //something here
-            }
-        }
-        
-        if (num_match > 0) {
-        	System.out.println("Number of doubles is " + num_match + "\n");
-        }
-
-        return num_match;
-    }
-    
-    
-    // function to return number of triples matched
-    public int tripleMatch() {
-        // populate a tmp list.
-        // start with first value, and remove all matching tiles from list. If count == 2, we have a pair.
-        // ID will be different obviously
-        ArrayList<Tile> tmp_list = new ArrayList<Tile>(this.uncovered_tiles);
-
-        Tile tmp_tile;
-        int num_match = 0;	// number of triples matched
-        int count = 0;		// number of a tile found
-
-        while (tmp_list.size() > 2) {
-            // Draw a tile
-            tmp_tile = tmp_list.remove(0);
-            count = 0;
-
-            // check list for a triple tile
-        	for (int i=0; i< tmp_list.size(); i++) {
-        		Tile t = tmp_list.get(i);
-        		
-                // compare String descriptor for match
-                if(t.descriptor != null && t.descriptor.equals(tmp_tile.descriptor)) {
-                    // remove matched item from list
-                    tmp_list.remove(t);
-                    count++;
-                    // if triple found, time to check for another match
-                    if (count == 2) {
-                    	num_match++;
-                    	break;
-                    }
-                }
-                //something here
-            }
-        }
-        
-        if (num_match > 0) {
-        	System.out.println("Number of triples is " + num_match + "\n");
-        }
-
-        return num_match;
-    }
-    
-    
-    // function to return number of triples matched
-    public int quadMatch() {
-        // populate a tmp list.
-        // start with first value, and remove all matching tiles from list. If count == 2, we have a pair.
-        // ID will be different obviously
-        ArrayList<Tile> tmp_list = new ArrayList<Tile>(this.uncovered_tiles);
-        
-        Tile tmp_tile;
-        int num_match = 0;	// number of triples matched
-        int count = 0;		// number of a tile found
-
-        while (tmp_list.size() > 3) {
-            // Draw a tile
-            tmp_tile = tmp_list.remove(0);
-            count = 0;
-
-            // check list for a pair tile
-        	for (int i=0; i< tmp_list.size(); i++) {
-        		Tile t = tmp_list.get(i);
-                // compare String descriptor for match
-                if(t.descriptor != null && t.descriptor.equals(tmp_tile.descriptor)) {
-                    // remove matched item from list
-                    tmp_list.remove(t);
-                    count++;
-                    // if triple found, time to check for another match
-                    if (count == 3) {
-                    	num_match++;
-                    	break;
-                    }
-                }
-                //something here
-            }
-        }
-        
-        if (num_match > 0) {
-        	System.out.println("Number of quadruples is " + num_match + "\n");
-        }
-
-        return num_match;
-    }
     
     
     // poll tiles list
