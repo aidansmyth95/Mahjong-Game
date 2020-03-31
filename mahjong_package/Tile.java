@@ -9,6 +9,7 @@ public class Tile {
     public int type;
     public String descriptor;
 
+    
     // Constructor for tile
     public Tile(int ID) {
         this.hidden = 1;
@@ -18,8 +19,9 @@ public class Tile {
         this.type = -1;
     }
     
+    
     // Constructor for tile (for one of kind tiles with no need of ID)
-    public Tile() {
+    public Tile() {	
         this.hidden = 1;
         this.ID = -1;
         this.descriptor = "No tile";
@@ -27,6 +29,7 @@ public class Tile {
         this.type = -1;
     }
 
+    
     public String describeTile() {
         return this.descriptor;
     }

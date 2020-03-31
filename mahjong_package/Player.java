@@ -1,6 +1,7 @@
 package mahjong_package;
 
 import java.util.ArrayList;
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class Player {
@@ -47,39 +48,77 @@ public class Player {
 	
 	// check for win
 	public boolean Mahjong(Tile t) {
-		
-		boolean mj = false;
-		mj = this.hand.checkMahjong(t);
-		
+
+		boolean mj = this.hand.checkMahjong(t);
+
 		// if Mahjong, add tile to hand and reveal all tiles
 		if (mj == true) {
 			this.hand.addToHand(t);
 			this.hand.revealTiles();
-			return true;
 		}
-		
-		return false;
+		return mj;
 	}
 	
 	
-	// check for Pong given a potential tile
+	// check for Kong given a potential tile - Four-of-a-kind.
+	public boolean kong(Tile t) {
+		
+		ArrayList<int[]> kongs = new ArrayList<int[]>();
+		kongs = this.hand.checkKong(t);
+
+		// if no Pong arrays in this ArrayList (size 0), return false
+		if (kongs.size() == 0) {
+			return false;
+		}
+		
+		this.hand.showHand();
+		
+		//TODO: ask user would they like to Kong - assuming now that they would want to
+		
+		// reveal selected Kong
+		System.out.println("Kong!\n");
+		this.hand.addToHand(t);
+		int hand_idx[] = new int[4];
+		hand_idx[0] = kongs.get(0)[0];
+		hand_idx[1] = kongs.get(0)[1];
+		hand_idx[2] = kongs.get(0)[2];
+		hand_idx[3] = this.hand.num_hidden-1;
+		this.hand.revealTiles(hand_idx, 4);	
+		
+		return true;
+	}
+	
+	
+	// check for Pong given a potential tile - Three-of-a-kind or a sequence of three.
 	public boolean pong(Tile t) {
+
 		ArrayList<int[]> pongs = new ArrayList<int[]>();
 		pongs = this.hand.checkPong(t);
-		
+
 		// if no Pong arrays in this ArrayList (size 0), return false
 		if (pongs.size() == 0) {
 			return false;
 		}
 		
-		// if Pong option(s), list options & ask user to choose pong, or decline
+		// if Pong option(s), list options & ask user to choose Pong, or decline
 		this.hand.showHand();
-		System.out.println("You can pong. Please choose an option:");
+		System.out.println("You can pong for " + t.descriptor + ".\nPlease choose an option to pong with:");
 		for (int i=0; i<pongs.size(); i++) {
-			System.out.printf("\t%d. idx {%d %d %d}\n", i, pongs.get(i)[0], pongs.get(i)[1], pongs.get(i)[2]);
+			System.out.printf("\t%d. idx {%d %d}\n", i, pongs.get(i)[0], pongs.get(i)[1]);
 		}
 		System.out.printf("\t%d. Skip pong\n", pongs.size());
-		int resp = this.scan.nextInt();
+		
+		//TODO: a while loop for a correct response. Currently defaults to skip Pong response.
+		int resp;
+		try {
+			resp = Integer.parseInt(this.scan.nextLine());
+		} catch (InputMismatchException ex){
+			// in case not a valid integer idx
+			resp = pongs.size();
+		} catch (NumberFormatException e) {
+			e.printStackTrace();
+			resp = pongs.size();
+		}
 		
 		// if last idx, no Pong
 		if (resp == pongs.size()) {
@@ -88,28 +127,26 @@ public class Player {
 		
 		// reveal selected Pong
 		System.out.println("Pong!\n");
-		this.hand.revealTiles(pongs.get(resp), 3);	
+		this.hand.addToHand(t);
+		int hand_idx[] = new int[3];
+		hand_idx[0] = pongs.get(resp)[0];
+		hand_idx[1] = pongs.get(resp)[1];
+		hand_idx[2] = this.hand.num_hidden-1;
+		this.hand.revealTiles(hand_idx, 3);	
 		return true;
 	}
 	
 	
-	// a tse has been called. Add tile and discard a chosen tile.
+	// a Tse has been called. Add tile and discard a chosen tile.
 	public Tile tse(Tile t) {
 		
 		// check which tile to discard
 		System.out.println("Discard tile with index: ");
-		int discard_idx = -1;
-		
-		while (discard_idx >= this.hand.num_hidden || discard_idx < 0) {
-			discard_idx = this.scan.nextInt();
-			if (discard_idx >= this.hand.num_hidden || discard_idx < 0) {
-				System.out.println("Please choose a valid discard_idx\n");
-			}
-		}
+		int discard_idx = getUserDiscardIdx();
 		
 		// if user will discard a tile of discard_idx from their hand
 		Tile out = new Tile();
-		out = this.discardTile(discard_idx);
+		out = this.hand.discardTile(discard_idx);
 		
 		// add Tse claimed tile to hand
 		this.addToHand(t);
@@ -132,18 +169,44 @@ public class Player {
 	
 	
 	// discard tile from hand
-	public Tile discardTile(int idx) {
-		return this.hand.discardTile(idx);
+	public Tile discardTile() {
+		
+		this.hand.showHand();
+		
+		System.out.println("Discard tile with index: ");
+		int discard_idx = getUserDiscardIdx();
+		
+		return this.hand.discardTile(discard_idx);
+	}
+	
+	
+	// scan User input for discard idx
+	public int getUserDiscardIdx() {
+		
+		int discard_idx = -1;
+		
+		while (discard_idx >= this.hand.num_hidden || discard_idx < 0) {
+			try {
+				discard_idx = Integer.parseInt(this.scan.nextLine());
+			} catch (InputMismatchException ex){
+				// in case not a valid integer idx
+				discard_idx = -1;
+			} catch (NumberFormatException e) {
+				e.printStackTrace();
+				discard_idx = -1;
+			}
+			if (discard_idx >= this.hand.num_hidden || discard_idx < 0) {
+				System.out.println("Please choose a valid discard_idx\n");
+			}
+		}
+		
+		return discard_idx;
 	}
 	
 }
 
 
+
 //TODO: these
-// a player has a hand of hand_size tiles at start
-
-// a player can draw a tile from the deck. When drawing player can choose to keep or discard tile
-
 // player scores hand's likeliness of producing a win, or hand's closeness to a win
-
 // player also has an aim based on probability for different combinations of triples, pairs and sequences

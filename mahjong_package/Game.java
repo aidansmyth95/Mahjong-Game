@@ -65,28 +65,34 @@ public class Game {
 	 */
 	public int playGame() {
 		
+		// first player will start in Drawing tile state
+		this.player[this.player_turn].state = PlayerState.DRAWING_TILE;
+		
 		// most recently discarded Tile
 		Tile latest = new Tile();
-		
-		// hard set tile to be discarded to be index 13 (14th and last tile)
-		int discard_idx = 13;
-				
+						
 		// while no winner and still hidden tiles
 		while (this.winner_idx == -1 && this.tiles.tilesLeft() == true) {
 			
 			// chance for all players to interrupt
 			//TODO: implement concurrently, not in for loop. Unfair on last player
 			if (this.interrupt_chance == 1) {
+				System.out.println("Checking for interrupt...");
 				this.interrupt_idx = -1;
 				
 				for (int i=0; i<this.num_players; i++) {
 					// player cannot interrupt their own turn
 					if (i != this.player_turn) {
 						// check for Mahjong
-						if (this.player[i].Mahjong(latest) == true) {
+						System.out.printf("Player %d: Checking MJ and pong\n", i);
+						if (this.player[i].Mahjong(latest)) {
 							this.interrupt_idx = i;
+							this.loser_idx = this.player_turn;
 							this.interrupt_type = PlayerInterruptStates.MAHJONG;
 							break;
+						} else if (this.player[i].kong(latest)){
+							this.interrupt_idx = i;
+							this.interrupt_type = PlayerInterruptStates.KONG;
 						} else if (this.player[i].pong(latest)) {
 							this.interrupt_idx = i;
 							this.interrupt_type = PlayerInterruptStates.PONG;
@@ -119,9 +125,9 @@ public class Game {
 					
 				case DISCARDING_TILE:
 					// Discard a tile
-					latest = this.player[this.player_turn].discardTile(discard_idx);
+					latest = this.player[this.player_turn].discardTile();
 					this.tiles.uncovered_tiles.add(latest);
-					System.out.println("Player " + this.player_turn + " discarding " + latest.descriptor);
+					System.out.println("Player " + this.player_turn + " discarded " + latest.descriptor);
 					this.interrupt_chance = 1;
 					this.player[this.player_turn].state = PlayerState.WAITING;
 					break;
@@ -170,7 +176,10 @@ public class Game {
 					// was it a Mahjong or a Pong?
 					if (this.interrupt_type == PlayerInterruptStates.MAHJONG) {
 						this.player[this.player_turn].state = PlayerState.WINNER;
-						//TODO: who is the loser? Who gave player the tile to win? 
+						this.player[this.loser_idx].state = PlayerState.LOSER;
+					} else if (this.interrupt_type == PlayerInterruptStates.KONG) {
+						// they will need to draw a tile before discarding a tile
+						this.player[this.player_turn].state = PlayerState.DRAWING_TILE;
 					} else if (this.interrupt_type == PlayerInterruptStates.PONG){
 						// they will need to discard if they did not win
 						this.player[this.player_turn].state = PlayerState.DISCARDING_TILE;

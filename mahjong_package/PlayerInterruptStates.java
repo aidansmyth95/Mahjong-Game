@@ -5,5 +5,6 @@ public enum PlayerInterruptStates {
 	NONE,
 	TSE,
 	PONG,
+	KONG,
 	MAHJONG
 }
