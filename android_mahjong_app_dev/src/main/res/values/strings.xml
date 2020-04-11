@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Mahjong</string>
+    <string name="hello_mahjong">Hello Mahjong!!!</string>
+    <string name="button_to_accept_user_input">Button to accept user input</string>
+    <string name="text_box_to_accept_user_input">Text box to accept user input</string>
+    <string name="button_send">Send</string>
+    <string name="button_clear">Clear</string>
+    <string name="name">Name</string>
+    <string name="your_input_here">Your input here</string>
+    <string name="response_to_button">Send button pressed. Received the following input: %1$s. Cleared the input text field.</string>
+    <string name="empty_edit_text">The input text fied is empty. Please enter text and try again.</string>
+</resources>
