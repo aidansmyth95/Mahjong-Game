@@ -9,26 +9,26 @@ public class Tiles {
     //private final int total_tiles = 160;
     
     // ArrayList of all tiles in game (n)
-    public ArrayList<Tile> hidden_tiles = new ArrayList<>();
-    public ArrayList<Tile> uncovered_tiles = new ArrayList<>();
+	private ArrayList<Tile> hidden_tiles = new ArrayList<>();
+    ArrayList<Tile> uncovered_tiles = new ArrayList<>();
 
     // (3 x 9 suits) * 4 = 108
-    public Suits[] suits = new Suits[108];
+	private Suits[] suits = new Suits[108];
 
     // (3 dragons + 4 winds) * 4 = 28
-    public Honors[] honors = new Honors[28];
+	private Honors[] honors = new Honors[28];
 
     // (4 flowers) * 2 = 8
     // (4 seasons) * 4 = 16
-    public Bonus[] bonus = new Bonus[24];
+	private Bonus[] bonus = new Bonus[24];
 
 
-    public Tiles() {
+    Tiles() {
         reset();
         shuffleTiles();
     }
 
-    public void reset() {
+    private void reset() {
         // generate all Suits, Honors and Bonus tiles
         // Suits
         int i=0;
@@ -82,19 +82,19 @@ public class Tiles {
     }
 
     // shuffle tiles
-    public void shuffleTiles() {
+	void shuffleTiles() {
         Collections.shuffle(hidden_tiles);
     }
     
     // claim a tile by popping from uncovered tiles
-    public Tile claimLatestTile() {
+	Tile claimLatestTile() {
     	// remove from uncovered tiles and return
     	int pop_idx = this.uncovered_tiles.size() - 1;
     	return this.uncovered_tiles.remove(pop_idx);
     }
 
     // reveal tile
-    public Tile revealTile() {
+	Tile revealTile() {
 
         if (this.hidden_tiles.isEmpty()) {
             System.out.println("\nNo hidden tiles in deck left to uncover. Please restart the game :)");
@@ -125,25 +125,25 @@ public class Tiles {
     // poll tiles list
     public String listTiles(ArrayList<Tile> tiles) {
 
-    	int dot_ranks[];
+    	int[] dot_ranks;
     	dot_ranks = new int [9];
     	
-    	int bamboo_ranks[];
+    	int[] bamboo_ranks;
     	bamboo_ranks = new int [9];
     	
-    	int char_ranks[];
+    	int[] char_ranks;
     	char_ranks = new int[9];
     	
-    	int wind_ranks[];
+    	int[] wind_ranks;
     	wind_ranks = new int[4];
     	
-    	int dragon_ranks[];
+    	int[] dragon_ranks;
     	dragon_ranks = new int[3];
     	
-    	int flower_ranks[];
+    	int[] flower_ranks;
     	flower_ranks = new int[4];
     	
-    	int season_ranks[];
+    	int[] season_ranks;
     	season_ranks = new int[4];
     	
     	Honors tmp_h;
@@ -188,42 +188,42 @@ public class Tiles {
     		}
     	}
     	
-		String s;
-		s = "";
-		s += "Bamboo:\n";
+		StringBuilder s;
+		s = new StringBuilder();
+		s.append("Bamboo:\n");
 		for (int i=1; i<=9; i++)
-			s += "\t" + i + " -> " + bamboo_ranks[i-1] + "\n";
-		s += "Dots:\n";
+			s.append("\t").append(i).append(" -> ").append(bamboo_ranks[i - 1]).append("\n");
+		s.append("Dots:\n");
 		for (int i=1; i<=9; i++)
-			s += "\t" + i + " -> " + dot_ranks[i-1] + "\n";   
-		s += "Characters:\n";
+			s.append("\t").append(i).append(" -> ").append(dot_ranks[i - 1]).append("\n");
+		s.append("Characters:\n");
 		for (int i=1; i<=9; i++)
-			s += "\t" + i + " -> " + char_ranks[i-1] + "\n";
-		s += "Winds:\n";
-		s += "\tNorth -> " + wind_ranks[0] + "\n";
-		s += "\tEast -> " + wind_ranks[1] + "\n";
-		s += "\tSouth -> " + wind_ranks[2] + "\n";
-		s += "\tWest -> " + wind_ranks[3] + "\n";
-		s += "Dragons:\n";
-		s += "\tRed -> " + dragon_ranks[0] + "\n";
-		s += "\tGreen -> " + dragon_ranks[1] + "\n";
-		s += "\tWhite -> " + dragon_ranks[2] + "\n";
-		s += "Seasons:\n";
-		s += "\tSpring -> " + season_ranks[0] + "\n";
-		s += "\tSummer -> " + season_ranks[1] + "\n";
-		s += "\tAutumn -> " + season_ranks[2] + "\n";
-		s += "\tWinter -> " + season_ranks[3] + "\n";
-		s += "Flowers:\n";
-		s += "\tPlum -> " + flower_ranks[0] + "\n";
-		s += "\tOrchid -> " + flower_ranks[1] + "\n";
-		s += "\tChrysanthemum -> " + flower_ranks[2] + "\n";
-		s += "\tBamboo -> " + flower_ranks[3] + "\n";
+			s.append("\t").append(i).append(" -> ").append(char_ranks[i - 1]).append("\n");
+		s.append("Winds:\n");
+		s.append("\tNorth -> ").append(wind_ranks[0]).append("\n");
+		s.append("\tEast -> ").append(wind_ranks[1]).append("\n");
+		s.append("\tSouth -> ").append(wind_ranks[2]).append("\n");
+		s.append("\tWest -> ").append(wind_ranks[3]).append("\n");
+		s.append("Dragons:\n");
+		s.append("\tRed -> ").append(dragon_ranks[0]).append("\n");
+		s.append("\tGreen -> ").append(dragon_ranks[1]).append("\n");
+		s.append("\tWhite -> ").append(dragon_ranks[2]).append("\n");
+		s.append("Seasons:\n");
+		s.append("\tSpring -> ").append(season_ranks[0]).append("\n");
+		s.append("\tSummer -> ").append(season_ranks[1]).append("\n");
+		s.append("\tAutumn -> ").append(season_ranks[2]).append("\n");
+		s.append("\tWinter -> ").append(season_ranks[3]).append("\n");
+		s.append("Flowers:\n");
+		s.append("\tPlum -> ").append(flower_ranks[0]).append("\n");
+		s.append("\tOrchid -> ").append(flower_ranks[1]).append("\n");
+		s.append("\tChrysanthemum -> ").append(flower_ranks[2]).append("\n");
+		s.append("\tBamboo -> ").append(flower_ranks[3]).append("\n");
     	
     	System.out.println(s);
-    	return s;
+    	return s.toString();
     }
     
-    public boolean tilesLeft() {
+    boolean tilesLeft() {
     	return !this.hidden_tiles.isEmpty();
     }
     

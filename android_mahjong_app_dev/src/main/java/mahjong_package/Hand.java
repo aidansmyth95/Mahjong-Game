@@ -13,42 +13,36 @@ public class Hand {
 	private final int max_hand_size = 14;
 	
 	// hand of hidden and revealed tiles - empty unassigned Tile
-	private Tile hidden_hand[] = new Tile[max_hand_size];
-	private Tile revealed_hand[] = new Tile[max_hand_size];
-	public int revealed_put;
-	public int num_hidden;
+	private Tile[] hidden_hand = new Tile[max_hand_size];
+	private Tile[] revealed_hand = new Tile[max_hand_size];
+	private int revealed_put;
+	int num_hidden;
 		
 	// user input if incorrect discard idx
 	private Scanner scan = new Scanner(System.in);
 
 	
 	// constructor
-	public Hand() {
+	Hand() {
 		
 		this.num_hidden = this.max_hand_size-1;
 		this.revealed_put = 0;
-		this.num_hidden = this.max_hand_size-1;
 	}
 	
 	/*
 	 *  Create a hand of tiles from an array of tiles drawn
 	 */
-	public void createHand(Tile[] tiles_drawn) {
+	void createHand(Tile[] tiles_drawn) {
 		
 		// check size of tiles_drawn[] input is correct
-		if (tiles_drawn.length == this.max_hand_size-1) {
-			// all is good
-		}
-		else {
+		if (tiles_drawn.length != this.max_hand_size-1) {
 			// all is not good
 			System.err.println("Unexpected number of tiles in hand created: " + tiles_drawn.length + "\n");
 			System.exit(0);;
 		}
 		
 		// assign to hand[]
-		for (int i=0; i<this.max_hand_size-1; i++) {
-			this.hidden_hand[i] = tiles_drawn[i];
-		}
+		System.arraycopy(tiles_drawn, 0, this.hidden_hand, 0, this.max_hand_size - 1);
 		
 		// last tile is empty
 		this.hidden_hand[this.max_hand_size-1] = new Tile();
@@ -58,7 +52,7 @@ public class Hand {
 	/*
 	 * Add a tile to the empty space in hand
 	 */
-	public void addToHand(Tile tile) {
+	void addToHand(Tile tile) {
 		// if no free space to place drawn tile
 		if (this.num_hidden >= 14) {
 			System.out.println("Error: No free space to place drawn tile. Code check required!\n");
@@ -77,7 +71,7 @@ public class Hand {
 	/*
 	 *  Discard a tile of a specified hand index
 	 */
-	public Tile discardTile(int idx) {
+	Tile discardTile(int idx) {
 		
 		// verify index is valid
 		while (idx < 0 || idx >= this.num_hidden) {
@@ -85,7 +79,7 @@ public class Hand {
 			try {
 				idx = scan.nextInt();
 			} catch (InputMismatchException ex){
-				
+				//TODO: catch print here
 			}
 		}
 		
@@ -113,7 +107,7 @@ public class Hand {
 	
 	
 	// add n tiles to revealed
-	public void revealTiles(Tile tiles[], int n) {
+	public void revealTiles(Tile[] tiles, int n) {
 		
 		// should be at least two tiles per time
 		if (n > 2) {
@@ -122,16 +116,14 @@ public class Hand {
 		}
 		
 		// put tiles in revealed from revealed index
-		for (int i=0; i<n; i++) {
-			this.revealed_hand[this.revealed_put+i] = tiles[i];
-		}
+		if (n >= 0) System.arraycopy(tiles, 0, this.revealed_hand, this.revealed_put, n);
 		
 		this.revealed_put += n;
 	}
 	
 	
 	// reveal all tiles in hidden hand
-	public void revealTiles() {
+	void revealTiles() {
 		
 		// tmp list of tiles that will be discarded from hidden hand
 		Tile tmp_tile = new Tile();
@@ -148,7 +140,7 @@ public class Hand {
 	
 	
 	// reveal tiles of hand given a hidden_hand idx
-	public void revealTiles(int hand_idx[], int n) {
+	void revealTiles(int[] hand_idx, int n) {
 		
 		Tile tmp_tile = new Tile();
 		
@@ -172,17 +164,17 @@ public class Hand {
 	 *  Check for a Kong with prospective a new tile as an argument
 	 *  Index refers to hand index of potential Kong
 	 */
-	public ArrayList<int[]> checkKong(Tile t) {
+	ArrayList<int[]> checkKong(Tile t) {
 		
 		// ArrayList of integers for hidden hand index  of Kongs
 		ArrayList<int[]> kongs = new ArrayList<int[]>();
 		
 		// arrays of Kong matches
-		int match_idx[] = new int[3];
+		int[] match_idx = new int[3];
 		
 		// find hand idx of four-of-a-kind matches if any
 		int len = 0;
-		int hand_idx[] = new int[this.max_hand_size];
+		int[] hand_idx = new int[this.max_hand_size];
 		hand_idx = this.findHiddenIndex(t);
 		for (int i=0; i<this.num_hidden; i++) {
 			if (hand_idx[i] > 0 && i < 3) {
@@ -204,18 +196,18 @@ public class Hand {
 	 *  Check for a Pong with prospective a new tile as an argument
 	 *  Index refers to hand index of potential Pong
 	 */
-	public ArrayList<int[]> checkPong(Tile t) {
+	ArrayList<int[]> checkPong(Tile t) {
 		
 		// ArrayList of integers for hidden hand index combos of pongs
 		ArrayList<int[]> pongs = new ArrayList<int[]>();
 		
 		// arrays of pong matches or sequences in the hidden hand
-		int match_idx[] = new int[2];
-		int seq_idx[] = new int[2];
+		int[] match_idx = new int[2];
+		int[] seq_idx = new int[2];
 		
 		// find hand idx of triple matches if any
 		int len = 0;
-		int hand_idx[] = new int[this.max_hand_size];
+		int[] hand_idx = new int[this.max_hand_size];
 		hand_idx = this.findHiddenIndex(t);
 		for (int i=0; i<this.num_hidden; i++) {
 			if (hand_idx[i] > 0 && i < 2) {
@@ -258,7 +250,7 @@ public class Hand {
         Collections.sort(tmp_list, new RankComparator());
 
         // Tile to be compared
-        Tile tn[] = new Tile[3];
+        Tile[] tn = new Tile[3];
             
         // check if 3 with 1 difference in rank in hand
         for (int i=0; i<tmp_list.size()-2; i++) {
@@ -299,7 +291,7 @@ public class Hand {
 	/*
 	 *  Check for a Mahjong - (4 * sets of 3) + a double
 	 */
-	public boolean checkMahjong(Tile t) {
+	boolean checkMahjong(Tile t) {
 		
 		// list for purpose of counting suits in hand
 		ArrayList<Tile> tmp_list = new ArrayList<Tile>();
@@ -316,16 +308,16 @@ public class Hand {
 		
 		// get histogram of all possible tiles for hand
 		int n = 36;
-		int count_arr[];
+		int[] count_arr;
 		count_arr = new int [n];
 		count_arr = this.countHand(tmp_list);
 		
 		// count number of doubles in hand - should be only one
 		for (int i=0; i<n; i++) {
 			// first double found is true
-			if (count_arr[i] == 2 && isDouble == false) {
+			if (count_arr[i] == 2 && !isDouble) {
 				isDouble = true;
-			} else if (count_arr[i] == 2 && isDouble == true) {
+			} else if (count_arr[i] == 2 && isDouble) {
 				// there are two doubles, this is not a Mahjong
 				return false;
 			} else if (count_arr[i] == 3) {
@@ -335,11 +327,13 @@ public class Hand {
 		}
 		
 		// if no doubles were found, no Mahjong
-		if (isDouble == false) {
+		if (!isDouble) {
 			return false;
 		}
 		
-		int bamboo_count[], dot_count[], char_count[];
+		int[] bamboo_count;
+		int[] dot_count;
+		int[] char_count;
 		bamboo_count = this.countSuits(tmp_list, 1);
 		dot_count = this.countSuits(tmp_list, 2);
 		char_count = this.countSuits(tmp_list, 3);
@@ -357,7 +351,7 @@ public class Hand {
 			}
 		}
 		
-		if (num_set_3 == 4 && isDouble == true) {
+		if (num_set_3 == 4) {
 			System.out.println("MAHJONG!");
 			return true;
 		}
@@ -367,7 +361,7 @@ public class Hand {
 	
 	
 	// display a hand's contents
-	public void showHand() {
+	void showHand() {
 		System.out.println("\nHand: ");
 		// for all tiles in hand, print a tile descriptor
 		for (int i=0; i<this.max_hand_size; i++) {
@@ -377,31 +371,31 @@ public class Hand {
 	
 	
     // poll tiles list
-    public int[] countHand(ArrayList<Tile> tiles) {
+	private int[] countHand(ArrayList<Tile> tiles) {
     	    	
-    	int count[];
+    	int[] count;
     	int N = 42;
     	count = new int [N];
     	
-    	int dot_ranks[];
+    	int[] dot_ranks;
     	dot_ranks = new int [9];	//0-8
     	
-    	int bamboo_ranks[];
+    	int[] bamboo_ranks;
     	bamboo_ranks = new int [9];	//8-17
     	
-    	int char_ranks[];
+    	int[] char_ranks;
     	char_ranks = new int[9];	//18-26
     	
-    	int wind_ranks[];
+    	int[] wind_ranks;
     	wind_ranks = new int[4];	//26-29
     	
-    	int dragon_ranks[];
+    	int[] dragon_ranks;
     	dragon_ranks = new int[3];	//30-33
     	
-    	int flower_ranks[];
+    	int[] flower_ranks;
     	flower_ranks = new int[4];	//33-37
     	
-    	int season_ranks[];
+    	int[] season_ranks;
     	season_ranks = new int[4];	//38-42
     	
     	Honors tmp_h;
@@ -452,15 +446,15 @@ public class Hand {
     	for (int i=0; i<N; i++) {
     		if (i<9) {
     			count[i] = dot_ranks[i];
-    		} else if (i>=9 && i<18) {
+    		} else if (i < 18) {
     			count[i] = bamboo_ranks[i-9];
-    		} else if (i>=18 && i<27) {
+    		} else if (i < 27) {
     			count[i] = char_ranks[i-18];
-    		} else if (i>=27 && i<31) {
+    		} else if (i < 31) {
     			count[i] = wind_ranks[i-27];
-    		} else if (i>=31 && i<34) {
+    		} else if (i < 34) {
     			count[i] = dragon_ranks[i-31];
-    		} else if (i>=34 && i<38) {
+    		} else if (i < 38) {
     			count[i] = flower_ranks[i-34];
     		} else {
     			count[i] = season_ranks[i-38];
@@ -510,11 +504,11 @@ public class Hand {
     /*
      * Count number of suits in ArrayList for a given suit type
      */
-    public int[] countSuits(ArrayList<Tile> tiles, int type) {
+	private int[] countSuits(ArrayList<Tile> tiles, int type) {
     	
     	// dots 2, bamboo 1, chars 3
     	
-    	int ranks[];
+    	int[] ranks;
     	ranks = new int[9];
     	
     	Suits tmp_s;
@@ -534,10 +528,10 @@ public class Hand {
 
     
     // find index of a tile in hand
-    public int[] findHiddenIndex(Tile t) {
+	private int[] findHiddenIndex(Tile t) {
     	
     	// index of matches to be returned
-    	int idx[] = new int[this.max_hand_size];
+    	int[] idx = new int[this.max_hand_size];
     	
     	// add every match to array
     	int num_found = 0;

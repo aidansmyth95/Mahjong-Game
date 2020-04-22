@@ -52,6 +52,7 @@
         android:layout_marginRight="162dp"
         android:layout_marginBottom="124dp"
         android:background="#009688"
+        android:onClick="sendMessage"
         android:text="@string/button_send"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />

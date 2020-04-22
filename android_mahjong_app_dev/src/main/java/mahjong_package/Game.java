@@ -1,26 +1,23 @@
 package mahjong_package;
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.PrintStream;
+import android.widget.TextView;
+
+//TODO: I know this is not good practce for TextView access in classes. But it's a start for now. Improve this with interface later
 
 public class Game {
-	
-	//reroute stdout
-    FileOutputStream f;
-	
+
+	// text updater
+	TextView text;
+
 	// Number of players playing the game
 	private int num_players;
 			
 	// Players playing game
-	private Player player[] = new Player[4];
+	private Player[] player = new Player[4];
 	
 	// tile deck
 	private Tiles tiles = new Tiles();
-	
-	// last tile drawn
-	private Tile tile_drawn = new Tile();
-	
+
 	// player's turn to discard etc
 	private int player_turn;
 	
@@ -33,20 +30,24 @@ public class Game {
 	// player who wins and player who gives them tile to win
 	private int winner_idx;
 	private int loser_idx;
-	
+
+
+/*	public void write(String s, Object ...args) {
+		String s_final = String.format(s, args);
+		this.text.setText(s_final);
+	}
+
+	public void write(String s) {
+		this.text.setText(s);
+	}
+	*/
 	// constructor
-	public Game(int n_players) {
-		//
-		try {
-			this.f = new FileOutputStream("game_system_out.txt");
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	    System.setOut(new PrintStream(f));
+	public Game(int n_players, TextView tv) {
+
+		this.text = tv;
 
 		// temporary array for hand tiles drawn
-		Tile start_tiles[] = new Tile[13];
+		Tile[] start_tiles = new Tile[13];
 
 		// player IDs and winner assigned
 		//TODO:random initial player turn
@@ -70,8 +71,10 @@ public class Game {
 			}
 			this.player[i].createHand(start_tiles);
 		}
-		
-		System.out.println("Are you ready?! Let's play Mahjong!\n");
+
+		for (int i=0; i<10; i++) {
+			System.out.println("Are you ready?! Let's play Mahjong!\n");
+		}
 	}
 	
 	
@@ -87,7 +90,7 @@ public class Game {
 		Tile latest = new Tile();
 						
 		// while no winner and still hidden tiles
-		while (this.winner_idx == -1 && this.tiles.tilesLeft() == true) {
+		while (this.winner_idx == -1 && this.tiles.tilesLeft()) {
 			
 			// chance for all players to interrupt
 			//TODO: implement concurrently, not in for loop. Unfair on last player
@@ -126,10 +129,11 @@ public class Game {
 				case DRAWING_TILE:
 					// draw a tile
 					System.out.println("Player " + this.player_turn + " drawing tile");
-					this.tile_drawn = this.tiles.revealTile();
+					// last tile drawn
+					Tile tile_drawn = this.tiles.revealTile();
 					
 					// check for a Mahjong
-					if (this.player[this.player_turn].Mahjong(this.tile_drawn) == true) {
+					if (this.player[this.player_turn].Mahjong(tile_drawn)) {
 						this.interrupt_type = PlayerInterruptStates.MAHJONG;
 					}
 					
@@ -183,8 +187,8 @@ public class Game {
 					}
 					else {
 						// error, fix this
-						System.out.println("Error in latest discareded tile not equalling claimed\n");
-						System.out.println(claimed.descriptor + " != " + latest.descriptor);
+						System.err.println("Error in latest discareded tile not equalling claimed\n");
+						System.err.println(claimed.descriptor + " != " + latest.descriptor);
 						System.exit(0);
 					}
 					
@@ -207,7 +211,7 @@ public class Game {
 						this.player[this.player_turn].state = PlayerState.WAITING;
 						break;
 					} else {
-						System.out.println("Interrupt state not supported");
+						System.err.println("Interrupt state not supported");
 						System.exit(0);
 					}
 					break;
@@ -241,7 +245,7 @@ public class Game {
 	/*
 	 * Main function
 	 */
-	public static void main(String[] args) {
+/*	public static void main(String[] args) {
 		
 		// Create game
 		Game game = new Game(4);
@@ -251,7 +255,6 @@ public class Game {
 		win = game.playGame();
 				
 		System.out.println("End of game, winner is " + win + "\n");
-		return;
-	}
+	}*/
 }
 
