@@ -7,6 +7,10 @@
     <string name="button_clear">Clear</string>
     <string name="name">Name</string>
     <string name="your_input_here">Your input here</string>
+    <string name="p0_input_here">P0 input</string>
+    <string name="p1_input_here">P1 input</string>
+    <string name="p2_input_here">P2 input</string>
+    <string name="p3_input_here">P3 input</string>
     <string name="response_to_button">Send button pressed %1$d times. Received the following input: %2$s. Cleared the input text field.</string>
-    <string name="empty_edit_text">The input text fied is empty. Please enter text and try again.</string>
+    <string name="empty_edit_text">The input text field is empty. Please enter text and try again.</string>
 </resources>
