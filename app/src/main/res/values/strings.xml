@@ -13,4 +13,23 @@
     <string name="p3_input_here">P3 input</string>
     <string name="response_to_button">Send button pressed %1$d times. Received the following input: %2$s. Cleared the input text field.</string>
     <string name="empty_edit_text">The input text field is empty. Please enter text and try again.</string>
+    <string name="welcome_msg">Welcome to Mahjong 2k20!</string>
+    <string name="start_game">Start game</string>
+    <string name="join_game">Join game</string>
+    <string name="latest_discarded_image">Latest discarded image</string>
+    <string name="tile_for_player_at_hand_position_0">Tile for player at hand position 0</string>
+    <string name="tile_for_player_at_hand_position_1">tile_for_player_at_hand_position_1</string>
+    <string name="tile_for_player_at_hand_position_2">tile_for_player_at_hand_position_2</string>
+    <string name="tile_for_player_at_hand_position_3">tile_for_player_at_hand_position_3</string>
+    <string name="tile_for_player_at_hand_position_4">tile_for_player_at_hand_position_4</string>
+    <string name="tile_for_player_at_hand_position_5">tile_for_player_at_hand_position_5</string>
+    <string name="tile_for_player_at_hand_position_6">tile_for_player_at_hand_position_6</string>
+    <string name="player_1_turn">Player -1 turn</string>
+    <string name="tile_for_player_at_hand_position_10">tile_for_player_at_hand_position_10</string>
+    <string name="tile_for_player_at_hand_position_7">tile_for_player_at_hand_position_7</string>
+    <string name="tile_for_player_at_hand_position_13">tile_for_player_at_hand_position_13</string>
+    <string name="tile_for_player_at_hand_position_12">tile_for_player_at_hand_position_12</string>
+    <string name="tile_for_player_at_hand_position_11">tile_for_player_at_hand_position_11</string>
+    <string name="tile_for_player_at_hand_position_8">tile_for_player_at_hand_position_8</string>
+    <string name="tile_for_player_at_hand_position_9">tile_for_player_at_hand_position_9</string>
 </resources>

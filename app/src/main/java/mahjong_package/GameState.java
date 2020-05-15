@@ -6,6 +6,8 @@ public enum GameState {
 
     CHECKING_HAND,
 
+    CHECKING_RESPONSES,
+
     MAHJONG,
 
     KONG,
@@ -15,6 +17,8 @@ public enum GameState {
     TSE,
 
     DRAWING_TILE,
+
+    DISCARD_OPTIONS,
 
     DISCARDING_TILE,
 

@@ -303,7 +303,6 @@ public class Hand {
 		// get histogram of all possible tiles for hand
 		int n = 36;
 		int[] count_arr;
-		count_arr = new int [n];
 		count_arr = this.countHand(tmp_list);
 		
 		// count number of doubles in hand - should be only one
@@ -347,7 +346,6 @@ public class Hand {
 
 		//TODO: probably don't do this here
 		if (num_set_3 == 4) {
-			System.out.println("MAHJONG!");
 			return true;
 		}
 		
@@ -362,6 +360,11 @@ public class Hand {
 		for (int i=0; i<this.max_hand_size; i++) {
 			System.out.println(i + ": " + hidden_hand[i].descriptor);
 		}
+	}
+
+
+	public String getDescriptor(int pos) {
+		return this.hidden_hand[pos].descriptor;
 	}
 	
 	

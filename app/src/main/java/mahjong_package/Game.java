@@ -1,13 +1,27 @@
 package mahjong_package;
 
-import android.widget.TextView;
-
 //TODO: I know this is not good practce for TextView access in classes. But it's a start for now. Improve this with interface later
 
 public class Game {
 
+	private GameState gameState;
+
+	private boolean[] pong_available = new boolean[4];
+
+	private boolean[] kong_available = new boolean[4];
+
+	private boolean[] mahjong_available = new boolean[4];
+
+	// are we expecting a player's response?
+	public boolean[] request_response = new boolean[4];
+
+	// was the most recent response valid, pending?
+	public String[] player_input = new String[4];
+
+	public boolean update_discarded_tile_image;
+
 	// latest tile discarded
-	Tile latest_discard;
+	private Tile latest_discard;
 
 	// Number of players playing the game
 	private int num_players;
@@ -22,14 +36,9 @@ public class Game {
 	private int player_turn;
 
 	// player who wins and player who gives them tile to win
+	//TODO: implement this
 	private int winner_idx;
 	private int loser_idx;
-
-	private long start_time, curr_time;
-
-	private final long interrupt_time_ms = 3000;
-
-	public GameStatus gs = new GameStatus();
 
 
 	// constructor
@@ -53,19 +62,25 @@ public class Game {
 			this.player[i] = new Player(i);
 			// draw 13 tiles and create player's hand
 			for (int j = 0; j < 13; j++) {
+				//TODO: a test vector here so we can test that MJ, Kong and Pong works
 				start_tiles[j] = tiles.revealTile();
 			}
 			this.player[i].createHand(start_tiles);
 		}
-
-		System.out.println("Are you ready?! Let's play Mahjong!\n");
-
-		// first player will start in Drawing tile state
-
-
 		this.latest_discard = new Tile();
-		this.start_time = 0;
-		this.curr_time = 0;
+		this.update_discarded_tile_image = false;
+
+		// for every player
+		for (int i=0; i<4; i++) {
+			this.player_input[i] = "";
+			this.request_response[i] = false;
+			this.pong_available[i] = false;
+			this.kong_available[i] = false;
+			this.mahjong_available[i] = false;
+		}
+
+		// for game
+		this.gameState = GameState.START;
 	}
 
 
@@ -74,120 +89,159 @@ public class Game {
 	 */
 	public void playGame() {
 
+		//TODO: change playGame to return an int on game over. For now we game over.
+		//TODO: remove all System.exit calls in package
+
+		// return if game ended
+		if (this.gameState == GameState.GAME_OVER) {
+			return;
+		}
+
+		// return if no more tiles
+		if (!this.tiles.tilesLeft()) {
+			System.out.println("No more tiles left.\n");
+			this.gameState = GameState.GAME_OVER;
+		}
+
 		// return if we are waiting on any user for game input? If so do not proceed with game.
 		for (int i=0; i<this.num_players; i++) {
-			if (this.gs.request_response[i] == true) {
+			if (this.request_response[i]) {
 				return;
 			}
 		}
 
-		//TODO: only if tiles let
-		//this.tiles.tilesLeft()
+		int next_player = (this.player_turn + 1) % this.num_players;
 
-		switch (this.gs.gameState) {
+		switch (this.gameState) {
 
-			//TODO: not needed? Needed for stuff we don't do in constructor?
 			case START:
 				System.out.println("Welcome to the game\n");
-				this.start_time = System.nanoTime();
-				this.gs.gameState = GameState.DRAWING_TILE;
+				this.gameState = GameState.DRAWING_TILE;
 				break;
 
-
 			case CHECKING_HAND:
-				boolean tse;
-				int next_player = (this.player_turn + 1) % this.num_players;
-
-				for (int i = 0; i < this.num_players; i++) {
+				// check if players can Mahjong, Kong or Pong.
+				for (int i=0; i<this.num_players; i++) {
 					// player cannot interrupt their own turn
 					if (i != this.player_turn) {
 						// check for Mahjong
-						if (this.player[i].Mahjong(this.latest_discard)) {
-							//this.loser_idx = this.player_turn;
-							this.gs.gameState = GameState.MAHJONG;
+						if (this.player[i].checkHandMahjong(this.latest_discard)) {
+							this.mahjong_available[i] = true;
+							this.request_response[i] = true;
+							System.out.println("Player " + i + ": Mahjong? \t1=Mahjong\tother=No");
 						} else if (this.player[i].checkHandKong(this.latest_discard)) {
-							// check user input if Kong chance has been accepted
-							if (this.player[this.player_turn].checkUserKong(this.gs.player_input[this.player_turn])) {
-								// game moves to Kong state
-								this.gs.gameState = GameState.KONG;
-							}
+							this.kong_available[i] = true;
+							this.request_response[i] = true;
+							System.out.println("Player " + i + ": Kong? \t1=Kong\tother=No");
 						} else if (this.player[i].checkHandPong(this.latest_discard)) {
-							// check user input if Pong chance has been accepted
-							if (this.player[this.player_turn].checkUserPong(this.gs.player_input[this.player_turn])) {
-								// game moves to Pong state
-								this.gs.gameState = GameState.PONG;
+							this.pong_available[i] = true;
+							this.request_response[i] = true;
+						}
+					}
+				}
+
+				// next player will also have chance to tse
+				this.request_response[next_player] = true;
+				System.out.println("Player " + next_player + ": Tse? \t1=Tse\tother=No");
+				this.gameState = GameState.CHECKING_RESPONSES;
+				break;
+
+			case CHECKING_RESPONSES:
+				// it is in this state that we allow the users to respond over a certain time
+				//TODO: make sure not biased towards Player 0...
+				boolean tse_opportunity = true;
+				for (int i=0; i<this.num_players; i++) {
+					// skip for current player
+					if (this.player_turn != i) {
+						if (this.mahjong_available[i] && this.player[i].checkUserMahjong(this.player_input[i])) {
+							this.gameState = GameState.MAHJONG;
+							this.player_turn = i;
+							tse_opportunity = false;
+							break;	// stop for loop of players early
+						} else if (this.kong_available[i] && this.player[i].checkUserKong(this.player_input[i])) {
+							this.gameState = GameState.KONG;
+							this.player_turn = i;
+							tse_opportunity = false;
+						} else if (this.pong_available[i] && this.player[i].checkUserPong(this.player_input[i])) {
+							// if not kong already
+							if (this.gameState != GameState.KONG) {
+								this.gameState = GameState.PONG;
+								this.player_turn = i;
+								tse_opportunity = false;
 							}
 						}
 					}
 				}
-				// update GameStatus to reflect the results of the Mahjong, Kong and Pong checks.
-				this.curr_time = System.nanoTime() - this.start_time;
-				if (this.curr_time > this.interrupt_time_ms) {
-					// check game state and move on
-					if (this.gs.player_input[next_player].equals("Tse")) {
-						this.gs.gameState = GameState.TSE;
+				if (tse_opportunity) {
+					// check if next player Tse
+					if (this.player_input[next_player].equals("1")) {
+						this.player_turn = next_player;
+						this.gameState = GameState.TSE;
+					} else {
+						this.gameState = GameState.DRAWING_TILE;
 					}
 					this.player_turn = next_player;
-					this.gs.gameState = GameState.DRAWING_TILE;
 				}
+				// reset all available booleans when we leave here
+				this.reset_interrupt_chances();
 				break;
 
 			case MAHJONG:
-				//this.player[this.player_turn].Mahjong(this.latest_discard);
-				this.gs.gameState = GameState.GAME_OVER;
+				this.gameState = GameState.GAME_OVER;
+				System.out.println("Player " + this.player_turn + ": Mahjong!");
 				break;
 
 			case KONG:
 				this.player[this.player_turn].kong(this.latest_discard);
-				this.gs.gameState = GameState.DRAWING_TILE;
+				System.out.println("Player " + this.player_turn + ": Kong!");
+				this.gameState = GameState.DRAWING_TILE;
 				break;
 
 			case PONG:
 				this.player[this.player_turn].pong(this.latest_discard);
-				this.gs.gameState = GameState.DISCARDING_TILE;
+				System.out.println("Player " + this.player_turn + ": Pong!");
+				this.gameState = GameState.DISCARD_OPTIONS;
 				break;
 
 			case TSE:
-				this.player[this.player_turn].tse(this.latest_discard, this.gs.player_input[this.player_turn]);
-				this.gs.gameState = GameState.DISCARDING_TILE;
+				System.out.println("Tse!");
+				this.player[this.player_turn].tse(this.latest_discard, this.player_input[this.player_turn]);
+				this.gameState = GameState.DISCARD_OPTIONS;
 				break;
 
 			case DRAWING_TILE:
-				System.out.println("Player " + this.player_turn + " drawing tile");
+				System.out.println("Player " + this.player_turn + ": drawing tile");
 				// last tile drawn
 				Tile tile_drawn = this.tiles.revealTile();
-
-
 				// check for a Mahjong
+				//TODO: checkMahjong here instead of Mahjong?
 				if (this.player[this.player_turn].Mahjong(tile_drawn)) {
-					this.gs.gameState = GameState.MAHJONG;
+					this.gameState = GameState.MAHJONG;
 				} else {
-					System.out.println("Player " + this.player_turn + " must now discard a tile from the following:");
-					this.player[this.player_turn].showHand();
-					this.gs.gameState = GameState.DISCARDING_TILE;
-					this.gs.request_response[this.player_turn] = true;
+					// add tile to hand MJ or not
+					this.player[this.player_turn].addToHand(tile_drawn);
+					this.gameState = GameState.DISCARD_OPTIONS;
 				}
-				// add tile to hand MJ or not
-				this.player[this.player_turn].addToHand(tile_drawn);
+				break;
 
+			case DISCARD_OPTIONS:
+				System.out.println("Player " + this.player_turn + ": discard a tile from the following:");
+				this.player[this.player_turn].showHand();
+				this.request_response[this.player_turn] = true;
+				this.gameState = GameState.DISCARDING_TILE;
 				break;
 
 			// Discard a tile
 			case DISCARDING_TILE:
-				this.latest_discard = this.player[this.player_turn].discardTile(this.gs.player_input[this.player_turn]);
+				this.latest_discard = this.player[this.player_turn].discardTile(this.player_input[this.player_turn]);
 
 				if (this.latest_discard.descriptor.equals("No tile")) {
 					System.out.println("No tile discarded yet");
 				} else {
 					this.tiles.uncovered_tiles.add(this.latest_discard);
 					System.out.println("Player " + this.player_turn + " discarded " + this.latest_discard.descriptor);
-					this.gs.gameState = GameState.CHECKING_HAND;
-					this.start_time = System.nanoTime();
-					/*try {
-						Thread.sleep(100000);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}*/
+					this.update_discarded_tile_image = true;
+					this.gameState = GameState.CHECKING_HAND;
 				}
 				break;
 
@@ -197,10 +251,38 @@ public class Game {
 
 			default:
 				System.out.println("ERROR: Game should not have reached this state.");
-				System.exit(0);
+				this.gameState = GameState.GAME_OVER;
 				break;
 		}
 
+	}
+
+
+	private void reset_interrupt_chances() {
+
+		for (int i=0; i<4; i++) {
+			this.pong_available[i] = false;
+			this.kong_available[i] = false;
+			this.mahjong_available[i] = false;
+		}
+
+	}
+
+
+	public String getDiscardedDescriptor() {
+		return this.latest_discard.descriptor.toLowerCase().replace(" ", "_");
+	}
+
+
+	public int getTurn() { return this.player_turn; }
+
+
+	public String getHandDescriptor(int idx) {
+		// Descriptor example = Dragon Green
+		// We want dragon_green
+		// lowercase all and replace space with _
+		String in = this.player[this.player_turn].getDescriptor(idx);
+		return in.toLowerCase().replace(" ", "_");
 	}
 
 }

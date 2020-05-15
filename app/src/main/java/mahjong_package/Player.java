@@ -15,18 +15,18 @@ class Player {
 	ArrayList<int[]> possible_pongs = new ArrayList<int[]>();
 	ArrayList<int[]> possible_kongs = new ArrayList<int[]>();
 
-	String user_kong_input;
-	String user_pong_input;
 	int chosen_idx;
+	int player_id;
 	
 	// constructor
 	Player(int player_ID)
     {
         // assert ID is valid and assign
         if (!this.isValid(player_ID)) {
-			System.out.print("Error: Player ID %d is not valid\n");
+			System.out.print("Error: Player ID %" + player_ID + "is not valid\n");
         	System.exit(0);
         }
+        this.player_id = player_ID;
 		this.clearKongsPongs();
     }
 
@@ -35,8 +35,6 @@ class Player {
     public void clearKongsPongs() {
 		this.pong_identified = false;
 		this.chosen_idx = -1;
-		this.user_kong_input = "";
-		this.user_pong_input = "";
 	}
 
     
@@ -51,18 +49,35 @@ class Player {
 		this.hand.createHand(tiles_drawn);
 	}
 	
-	
+
+	boolean checkHandMahjong(Tile t) {
+		return this.hand.checkMahjong(t);
+	}
+
+
+	boolean checkUserMahjong(String player_input) {
+
+		if (player_input.equals("1")) {
+			return true;
+		} else {
+			return false;
+		}
+
+	}
+
+
 	// check for win
 	boolean Mahjong(Tile t) {
 
-		boolean mj = this.hand.checkMahjong(t);
-
 		// if Mahjong, add tile to hand and reveal all tiles
-		if (mj) {
+		if (this.hand.checkMahjong(t)) {
 			this.hand.addToHand(t);
 			this.hand.revealTiles();
+			return true;
+		} else {
+			return false;
 		}
-		return mj;
+
 	}
 
 
@@ -78,16 +93,13 @@ class Player {
 			}
 			return true;
 		}
-
 		return false;
 	}
 
 
 	boolean checkUserKong(String player_input) {
 
-		if (player_input.equals("Kong")) {
-			System.out.println("Kong!\n");
-			this.user_kong_input = player_input;
+		if (player_input.equals("1")) {
 			return true;
 		}
 		return false;
@@ -116,7 +128,7 @@ class Player {
 		if (pongs.size() > 0) {
 			// if Pong option(s), list options & ask user to choose Pong, or decline
 			this.hand.showHand();
-			System.out.println("You can pong for " + t.descriptor + ".\nPlease choose an option to pong with:");
+			System.out.println("Player " + this.player_id + ": Pong?");
 			for (int i=0; i<pongs.size(); i++) {
 				System.out.printf("\t%d. idx {%d %d}\n", i, pongs.get(i)[0], pongs.get(i)[1]);
 				this.possible_pongs.add(pongs.get(i));
@@ -142,7 +154,6 @@ class Player {
 
 		// if last idx, no Pong...
 		if (resp < this.possible_pongs.size() && resp >= 0) {
-			this.user_pong_input = player_input;
 			this.chosen_idx = resp;
 			return true;
 		}
@@ -164,21 +175,20 @@ class Player {
 
 	
 	// a Tse has been called. Add tile and discard a chosen tile.
-	Tile tse(Tile t, String player_input) {
+	void tse(Tile t, String player_input) {
 		
 		// check which tile to discard
-		System.out.println("Discard tile with index: ");
-		int discard_idx = getUserDiscardIdx(player_input);
+		//System.out.println("Discard tile with index: ");
+		//int discard_idx = getUserDiscardIdx(player_input);
 		
 		// if user will discard a tile of discard_idx from their hand
-		Tile out;
-		out = this.hand.discardTile(discard_idx);
+		//Tile out;
+		//out = this.hand.discardTile(discard_idx);
 		
 		// add Tse claimed tile to hand
 		this.addToHand(t);
 		
 		// return Tile that was discarded from hand
-		return out;
 	}
 	
 	
@@ -228,6 +238,10 @@ class Player {
 
 		return discard_idx;
 	}
+
+
+	public String getDescriptor(int pos) { return this.hand.getDescriptor(pos); }
+
 }
 
 
