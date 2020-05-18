@@ -59,7 +59,7 @@ public class Bonus extends Tile {
             }
         }
 
-        System.out.println("Warning, incorrect ID, type or rank for honor tile");
+        System.out.printf("Warning, incorrect ID (%d), type (%d) or rank (%d) for bonus tile\n", ID, type, rank);
         return false;
     }
 

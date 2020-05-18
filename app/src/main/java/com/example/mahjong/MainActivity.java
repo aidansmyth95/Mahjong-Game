@@ -13,7 +13,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 
@@ -71,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
 
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
-            @Override public void write(int oneByte) throws IOException {
+            @Override public void write(int oneByte) {
                 outputStream.write(oneByte);
                 outputText.setText(new String(outputStream.toByteArray()));
             }
@@ -82,12 +81,44 @@ public class MainActivity extends AppCompatActivity {
 
             ByteArrayOutputStream errorStream = new ByteArrayOutputStream();
 
-            @Override public void write(int oneByte) throws IOException {
+            @Override public void write(int oneByte) {
                 errorStream.write(oneByte);
                 outputText.setText(new String(errorStream.toByteArray()));
             }
         }));
 
+        // tests before Game
+        game = new Game(n_players);
+        boolean clear_output = true;
+        clear_output = game.test_true_pong();
+        if (clear_output) {
+            clear_output = game.test_false_pong();
+        }
+        if (clear_output) {
+            clear_output = game.test_true_kong();
+        }
+        if (clear_output) {
+            clear_output = game.test_false_kong();
+        }
+        if (clear_output) {
+            clear_output = game.test_true_mahjong();
+        }
+        if (clear_output) {
+            outputText.setText("");
+            // reset output stream link to text box
+            System.out.flush();
+            System.setOut(new PrintStream(new OutputStream() {
+
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+                @Override public void write(int oneByte) {
+                    outputStream.write(oneByte);
+                    outputText.setText(new String(outputStream.toByteArray()));
+                }
+            }));
+        }
+
+        // start Game
         game = new Game(n_players);
 
         sendButton.setOnClickListener(new View.OnClickListener() {
@@ -120,13 +151,12 @@ public class MainActivity extends AppCompatActivity {
 
         handler.postDelayed( runnable = new Runnable() {
             public void run() {
-                //do something
+                // play the Game
                 game.playGame();
                 int resourceId;
 
                 for (int i=0; i<n_players; i++) {
                     if (game.request_response[i]) {
-                        //TODO: a function to update resource
                         for (int j=0; j<14; j++) {
 
                             resourceId = getResources().getIdentifier(game.getHandDescriptor(j), "drawable", "com.example.mahjong");

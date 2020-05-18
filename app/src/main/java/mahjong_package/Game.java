@@ -1,6 +1,6 @@
 package mahjong_package;
 
-//TODO: I know this is not good practce for TextView access in classes. But it's a start for now. Improve this with interface later
+
 
 public class Game {
 
@@ -62,7 +62,6 @@ public class Game {
 			this.player[i] = new Player(i);
 			// draw 13 tiles and create player's hand
 			for (int j = 0; j < 13; j++) {
-				//TODO: a test vector here so we can test that MJ, Kong and Pong works
 				start_tiles[j] = tiles.revealTile();
 			}
 			this.player[i].createHand(start_tiles);
@@ -136,6 +135,7 @@ public class Game {
 						} else if (this.player[i].checkHandPong(this.latest_discard)) {
 							this.pong_available[i] = true;
 							this.request_response[i] = true;
+							this.player[i].showHand();
 						}
 					}
 				}
@@ -205,7 +205,7 @@ public class Game {
 
 			case TSE:
 				System.out.println("Tse!");
-				this.player[this.player_turn].tse(this.latest_discard, this.player_input[this.player_turn]);
+				this.player[this.player_turn].tse(this.latest_discard);
 				this.gameState = GameState.DISCARD_OPTIONS;
 				break;
 
@@ -213,9 +213,10 @@ public class Game {
 				System.out.println("Player " + this.player_turn + ": drawing tile");
 				// last tile drawn
 				Tile tile_drawn = this.tiles.revealTile();
-				// check for a Mahjong
-				//TODO: checkMahjong here instead of Mahjong?
-				if (this.player[this.player_turn].Mahjong(tile_drawn)) {
+				// check hand for a Mahjong
+				//TODO: a user response to confirm/notice this
+				if (this.player[this.player_turn].checkHandMahjong(tile_drawn)) {
+					System.out.println("Player " + this.player_turn + ": Mahjong By Your Own Hand!");
 					this.gameState = GameState.MAHJONG;
 				} else {
 					// add tile to hand MJ or not
@@ -285,5 +286,133 @@ public class Game {
 		return in.toLowerCase().replace(" ", "_");
 	}
 
+
+	public boolean test_true_pong() {
+
+		for (int i=0; i<2; i++) {
+			Tile[] all_tiles = this.player[0].createTruePongTestVectorHand(i);
+			Tile disc_tile = all_tiles[13];
+			Tile[] hand_tiles = new Tile[13];
+			System.arraycopy(all_tiles, 0, hand_tiles, 0, 13);
+
+			this.player[0].createHand(hand_tiles);
+			boolean success = this.player[0].checkHandPong(disc_tile);
+
+			if (success) {
+				System.out.println("Passed test " + i);
+			} else {
+				this.player[0].showHand();
+				System.out.println(disc_tile.descriptor);
+				System.out.println("Failed test " + i);
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+
+	public boolean test_false_pong() {
+
+		for (int i=0; i<2; i++) {
+			Tile[] all_tiles = this.player[0].createFalsePongTestVectorHand(i);
+			Tile disc_tile = all_tiles[13];
+			Tile[] hand_tiles = new Tile[13];
+			System.arraycopy(all_tiles, 0, hand_tiles, 0, 13);
+
+			this.player[0].createHand(hand_tiles);
+			boolean success = this.player[0].checkHandPong(disc_tile);
+
+			if (!success) {
+				System.out.println("Passed test " + i);
+			} else {
+				this.player[0].showHand();
+				System.out.println(disc_tile.descriptor);
+				System.out.println("Failed test " + i);
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+
+	public boolean test_true_kong() {
+
+		for (int i=0; i<2; i++) {
+			Tile[] all_tiles = this.player[0].createTrueKongTestVectorHand(i);
+			Tile disc_tile = all_tiles[13];
+			Tile[] hand_tiles = new Tile[13];
+			System.arraycopy(all_tiles, 0, hand_tiles, 0, 13);
+
+			this.player[0].createHand(hand_tiles);
+			boolean success = this.player[0].checkHandKong(disc_tile);
+
+			if (success) {
+				System.out.println("Passed test " + i);
+			} else {
+				this.player[0].showHand();
+				System.out.println(disc_tile.descriptor);
+				System.out.println("Failed test " + i);
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+
+	public boolean test_false_kong() {
+
+		for (int i=0; i<2; i++) {
+			Tile[] all_tiles = this.player[0].createFalseKongTestVectorHand(i);
+			Tile disc_tile = all_tiles[13];
+			Tile[] hand_tiles = new Tile[13];
+			System.arraycopy(all_tiles, 0, hand_tiles, 0, 13);
+			this.player[0].createHand(hand_tiles);
+
+			boolean success = this.player[0].checkHandKong(disc_tile);
+
+			if (!success) {
+				System.out.println("Passed test " + i);
+			} else {
+				this.player[0].showHand();
+				System.out.println(disc_tile.descriptor);
+				System.out.println("Failed test " + i);
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+
+	public boolean test_true_mahjong() {
+
+		for (int i=0; i<2; i++) {
+			Tile[] all_tiles = this.player[0].createTrueMahjongTestVectorHand(i);
+
+			Tile disc_tile = all_tiles[13];
+			Tile[] hand_tiles = new Tile[13];
+			System.arraycopy(all_tiles, 0, hand_tiles, 0, 13);
+
+			this.player[0].createHand(hand_tiles);
+			boolean success = this.player[0].checkHandMahjong(disc_tile);
+
+			if (success) {
+				System.out.println("Passed test " + i);
+			} else {
+				this.player[0].showHand();
+				System.out.println(disc_tile.descriptor);
+				System.out.println("Failed test " + i);
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+
+	//TODO: resetGame (if not already existing somewhere in the code)
 }
 
