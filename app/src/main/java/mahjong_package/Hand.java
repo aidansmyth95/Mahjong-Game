@@ -14,7 +14,7 @@ public class Hand {
 	private Tile[] hidden_hand = new Tile[max_hand_size];
 	//TODO: display in Game Activity
 	private Tile[] revealed_hand = new Tile[max_hand_size];
-	private int revealed_put;
+	private int num_revealed;
 	int num_hidden;
 		
 
@@ -22,8 +22,14 @@ public class Hand {
 	Hand() {
 		
 		this.num_hidden = this.max_hand_size-1;
-		this.revealed_put = 0;
+		this.num_revealed = 0;
 	}
+
+
+	int getNum_hidden() {
+		return this.num_hidden;
+	}
+
 	
 	/*
 	 *  Create a hand of tiles from an array of tiles drawn
@@ -98,24 +104,8 @@ public class Hand {
 		
 		return tmp;
 	}
-	
-	
-	// add n tiles to revealed
-	public void revealTiles(Tile[] tiles, int n) {
-		
-		// should be at least two tiles per time
-		if (n > 2) {
-			System.out.println("Error: Should not reveal less that 2 tiles at at time!\n");
-			System.exit(0);
-		}
-		
-		// put tiles in revealed from revealed index
-		if (n >= 0) System.arraycopy(tiles, 0, this.revealed_hand, this.revealed_put, n);
-		
-		this.revealed_put += n;
-	}
-	
-	
+
+
 	// reveal all tiles in hidden hand
 	void revealTiles() {
 		
@@ -126,10 +116,10 @@ public class Hand {
 		// put tiles in revealed from revealed index
 		for (int i=0; i<this.num_hidden; i++) {
 			tmp_tile = this.discardTile(i);
-			this.revealed_hand[this.revealed_put+i] = tmp_tile;
+			this.revealed_hand[this.num_revealed +i] = tmp_tile;
 		}
 		
-		this.revealed_put += num_hidden;
+		this.num_revealed += num_hidden;
 	}
 	
 	
@@ -147,10 +137,10 @@ public class Hand {
 		// put tiles in revealed from revealed index
 		for (int i=0; i<n; i++) {
 			tmp_tile = this.discardTile(hand_idx[i]);
-			this.revealed_hand[this.revealed_put+i] = tmp_tile;
+			this.revealed_hand[this.num_revealed +i] = tmp_tile;
 		}
 		
-		this.revealed_put += n;
+		this.num_revealed += n;
 	}
 	
 	
@@ -331,7 +321,7 @@ public class Hand {
 		int num_seq = 0;
 		
 		// consider revealed tiles - would be 3s and maybe 4s (which count as 3s)
-		num_revealed += this.revealed_put/3;
+		num_revealed += this.num_revealed /3;
 
 		// for all 3 types of suits
 		// bamboo is type 1, dots is type 2, chars is type 3
@@ -384,22 +374,36 @@ public class Hand {
 	
 	
 	// display a hand's contents
-	void showHand() {
+	void showHiddenHand() {
 		System.out.println("\nHand: ");
 		// for all tiles in hand, print a tile descriptor
-		for (int i=0; i<this.max_hand_size; i++) {
+		for (int i=0; i<this.num_hidden; i++) {
 			System.out.println(i + ": " + hidden_hand[i].descriptor);
 		}
 	}
 
 
-	// get descriptor for a tile in hidden hand at a specified hand position
-	String getDescriptor(int pos) {
-		return this.hidden_hand[pos].descriptor;
+	// get all descriptors for tiles in revealed hand
+	ArrayList<String> getRevealedDescriptors() {
+		ArrayList<String> descriptors = new ArrayList<>();
+		for (int i = 0; i<this.num_revealed; i++) {
+			descriptors.add(this.revealed_hand[i].descriptor);
+		}
+		return descriptors;
 	}
-	
 
-    /*
+
+	// get all descriptors for tiles in hidden hand
+	ArrayList<String> getHiddenDescriptors() {
+		ArrayList<String> descriptors = new ArrayList<>();
+		for (int i=0; i<this.num_hidden; i++) {
+			descriptors.add(this.hidden_hand[i].descriptor);
+		}
+		return descriptors;
+	}
+
+
+	/*
      * Count number of suits in ArrayList for a given suit type
      */
 	private int[] countSuits(ArrayList<Tile> tiles, int type) {

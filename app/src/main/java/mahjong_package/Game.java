@@ -1,6 +1,7 @@
 package mahjong_package;
 
 
+import java.util.ArrayList;
 
 public class Game {
 
@@ -278,12 +279,25 @@ public class Game {
 	public int getTurn() { return this.player_turn; }
 
 
-	public String getHandDescriptor(int idx) {
-		// Descriptor example = Dragon Green
-		// We want dragon_green
-		// lowercase all and replace space with _
-		String in = this.player[this.player_turn].getDescriptor(idx);
-		return in.toLowerCase().replace(" ", "_");
+	public ArrayList<String> getRevealedDescriptors() {
+		return this.player[this.player_turn].getRevealedDescriptors();
+	}
+
+
+	public ArrayList<String> getHiddenDescriptors() {
+		return this.player[this.player_turn].getHiddenDescriptors();
+	}
+
+
+	public ArrayList<String> descriptorToDrawablePath(ArrayList<String> descriptors) {
+
+		// Dragon Green -> dragon_green
+		ArrayList<String> drawables = new ArrayList<>();
+		for (int i=0; i<descriptors.size(); i++) {
+			drawables.add(descriptors.get(i).toLowerCase().replace(" ", "_"));
+		}
+
+		return drawables;
 	}
 
 
@@ -414,5 +428,7 @@ public class Game {
 
 
 	//TODO: resetGame (if not already existing somewhere in the code)
+
+	//TODO: get revealed descriptor
 }
 

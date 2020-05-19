@@ -1,20 +1,24 @@
 package com.example.mahjong;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.TextUtils;
 import android.text.method.ScrollingMovementMethod;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.util.ArrayList;
 
 import mahjong_package.Game;
 
@@ -30,7 +34,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView outputText;
     private TextView outputTurn;
     private ImageView discardedImage;
-    private ImageView[] hand_tiles = new ImageView[14];
+    private final int n_total_tiles = 15;
+    private ImageView[] hand_tiles = new ImageView[15];
 
     private final int n_players = 4;
     private final int delay = 1000; //Delay game by this many milliseconds.
@@ -64,6 +69,11 @@ public class MainActivity extends AppCompatActivity {
         hand_tiles[11] = (ImageView) findViewById(R.id.h11);
         hand_tiles[12] = (ImageView) findViewById(R.id.h12);
         hand_tiles[13] = (ImageView) findViewById(R.id.h13);
+        hand_tiles[14] = (ImageView) findViewById(R.id.h14);
+
+        for (int h=0; h<n_total_tiles; h++) {
+            hand_tiles[h].setVisibility(View.INVISIBLE);
+        }
 
         // set System.out in all classes to be TextView
         System.setOut(new PrintStream(new OutputStream() {
@@ -156,12 +166,35 @@ public class MainActivity extends AppCompatActivity {
                 int resourceId;
 
                 for (int i=0; i<n_players; i++) {
-                    if (game.request_response[i]) {
-                        for (int j=0; j<14; j++) {
 
-                            resourceId = getResources().getIdentifier(game.getHandDescriptor(j), "drawable", "com.example.mahjong");
+                    if (game.request_response[i]) {
+
+                        // hidden hand
+                        ArrayList<String> hidden_tile_paths = game.descriptorToDrawablePath(game.getHiddenDescriptors());
+                        for (int j=0; j<hidden_tile_paths.size(); j++) {
+                            //System.out.println("DEBUG: " + hidden_tile_paths.get(j));
+                            resourceId = getResources().getIdentifier(hidden_tile_paths.get(j), "drawable", "com.example.mahjong");
                             hand_tiles[j].setImageResource(resourceId);
+                            hand_tiles[j].setVisibility(View.VISIBLE);
                         }
+
+                        // revealed hand
+                        ArrayList<String> revealed_tile_paths = game.descriptorToDrawablePath(game.getRevealedDescriptors());
+                        for (int j=0; j<revealed_tile_paths.size(); j++) {
+                            resourceId = getResources().getIdentifier(revealed_tile_paths.get(j), "drawable", "com.example.mahjong");
+                            hand_tiles[hidden_tile_paths.size()+j].setImageResource(resourceId);
+                            ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams) hand_tiles[j].getLayoutParams();
+                            // revealed 0, 200, 0, 0
+                            params.setMargins(0, 200, 0, 0) ;//left, top, right, bottom
+                            hand_tiles[j].setLayoutParams(params);
+                            hand_tiles[j].setVisibility(View.VISIBLE);
+                        }
+
+                        // unused tiles (usually one)
+                        for (int j=hidden_tile_paths.size()+revealed_tile_paths.size(); j<n_total_tiles; j++) {
+                            hand_tiles[j].setVisibility(View.INVISIBLE);
+                        }
+
                         outputTurn.setText(new String("Player " + game.getTurn() + " turn."));
                         sendButton.setEnabled(true);
                     }

@@ -57,8 +57,9 @@ class Player {
 
 	// show Hand
 	void showHand() {
-		this.hand.showHand();
+		this.hand.showHiddenHand();
 	}
+
 
 
 	// add a tile to hand
@@ -213,8 +214,12 @@ class Player {
 	}
 
 
-	// get descriptor for a hidden hand tile at a specified position
-	String getDescriptor(int pos) { return this.hand.getDescriptor(pos); }
+	// get arraylist of Revealed tile descriptors
+	ArrayList<String> getRevealedDescriptors() { return this.hand.getRevealedDescriptors(); }
+
+
+	// get arraylist of Hidden tile descriptors
+	ArrayList<String> getHiddenDescriptors() { return this.hand.getHiddenDescriptors(); }
 
 
 	//TODO: a separate test vector class
