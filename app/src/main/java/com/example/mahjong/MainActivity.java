@@ -8,11 +8,9 @@ import android.os.Handler;
 import android.text.TextUtils;
 import android.text.method.ScrollingMovementMethod;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.io.ByteArrayOutputStream;
@@ -32,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
     private Button sendButton;
     private EditText[] userInputText = new EditText[4];
     private TextView outputText;
-    private TextView outputTurn;
+    private TextView outputTurn, outputHand;
     private ImageView discardedImage;
     private final int n_total_tiles = 15;
     private ImageView[] hand_tiles = new ImageView[15];
@@ -53,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
         userInputText[3] = (EditText) findViewById(R.id.P3_input);
         outputText = (TextView) findViewById(R.id.textViewOut);
         outputTurn = (TextView) findViewById(R.id.p_turn);
+        outputHand = (TextView) findViewById(R.id.p_hand);
         outputText.setMovementMethod(new ScrollingMovementMethod());
         discardedImage = (ImageView) findViewById(R.id.discarded);
         hand_tiles[0] = (ImageView) findViewById(R.id.h0);
@@ -74,6 +73,10 @@ public class MainActivity extends AppCompatActivity {
         for (int h=0; h<n_total_tiles; h++) {
             hand_tiles[h].setVisibility(View.INVISIBLE);
         }
+        outputTurn.setVisibility(View.INVISIBLE);
+        outputHand.setVisibility(View.INVISIBLE);
+        discardedImage.setVisibility(View.INVISIBLE);
+
 
         // set System.out in all classes to be TextView
         System.setOut(new PrintStream(new OutputStream() {
@@ -97,10 +100,12 @@ public class MainActivity extends AppCompatActivity {
             }
         }));
 
+
         // tests before Game
         game = new Game(n_players);
         boolean clear_output = true;
         clear_output = game.test_true_pong();
+
         if (clear_output) {
             clear_output = game.test_false_pong();
         }
@@ -113,6 +118,7 @@ public class MainActivity extends AppCompatActivity {
         if (clear_output) {
             clear_output = game.test_true_mahjong();
         }
+
         if (clear_output) {
             outputText.setText("");
             // reset output stream link to text box
@@ -196,6 +202,9 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                         outputTurn.setText(new String("Player " + game.getTurn() + " turn."));
+                        outputTurn.setVisibility(View.VISIBLE);
+                        outputHand.setText(new String("Player " + i + " hand contents."));
+                        outputHand.setVisibility(View.VISIBLE);
                         sendButton.setEnabled(true);
                     }
                 }
@@ -206,8 +215,10 @@ public class MainActivity extends AppCompatActivity {
                     resourceId = getResources().getIdentifier(game.getDiscardedDescriptor(), "drawable", "com.example.mahjong");
                     // update discarded tile image
                     discardedImage.setImageResource(resourceId);
+                    discardedImage.setVisibility(View.VISIBLE);
                     game.update_discarded_tile_image = false;
                 }
+                //TODO: an else making it invisinle again?
 
                 handler.postDelayed(runnable, delay);
             }

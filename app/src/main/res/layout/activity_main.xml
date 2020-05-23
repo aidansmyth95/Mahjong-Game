@@ -9,25 +9,28 @@
     android:keepScreenOn="true"
     tools:context=".MainActivity">
 
-    <ImageView
-        android:id="@+id/h6"
-        android:layout_width="26dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="124dp"
-        android:contentDescription="@string/tile_for_player_at_hand_position_6"
-        android:scaleType="fitXY"
-        app:layout_constraintStart_toEndOf="@+id/h5"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/play" />
+    <TextView
+        android:id="@+id/p_hand"
+        android:layout_width="95dp"
+        android:layout_height="21dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="180dp"
+        android:background="#FFFFFF"
+        android:text="@string/player_1_hand"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
         android:id="@+id/h14"
         android:layout_width="26dp"
         android:layout_height="50dp"
         android:layout_marginTop="124dp"
+        android:layout_marginEnd="3dp"
+        android:layout_marginRight="3dp"
         android:contentDescription="@string/tile_for_player_at_hand_position_13"
         android:scaleType="fitXY"
-        app:layout_constraintStart_toEndOf="@+id/h13"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/play" />
 
@@ -43,13 +46,13 @@
         app:srcCompat="@drawable/play" />
 
     <ImageView
-        android:id="@+id/h3"
+        android:id="@+id/h6"
         android:layout_width="26dp"
         android:layout_height="50dp"
         android:layout_marginTop="124dp"
-        android:contentDescription="@string/tile_for_player_at_hand_position_3"
+        android:contentDescription="@string/tile_for_player_at_hand_position_6"
         android:scaleType="fitXY"
-        app:layout_constraintStart_toEndOf="@+id/h2"
+        app:layout_constraintStart_toEndOf="@+id/h5"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/play" />
 
@@ -57,78 +60,12 @@
         android:id="@+id/h0"
         android:layout_width="26dp"
         android:layout_height="50dp"
-        android:layout_marginStart="12dp"
-        android:layout_marginLeft="12dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginLeft="4dp"
         android:layout_marginTop="124dp"
         android:contentDescription="@string/tile_for_player_at_hand_position_0"
         android:scaleType="fitXY"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/play" />
-
-    <ImageView
-        android:id="@+id/h1"
-        android:layout_width="26dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="124dp"
-        android:contentDescription="@string/tile_for_player_at_hand_position_1"
-        android:scaleType="fitXY"
-        app:layout_constraintStart_toEndOf="@+id/h0"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/play" />
-
-    <ImageView
-        android:id="@+id/h13"
-        android:layout_width="26dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="124dp"
-        android:contentDescription="@string/tile_for_player_at_hand_position_13"
-        android:scaleType="fitXY"
-        app:layout_constraintStart_toEndOf="@+id/h12"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/play" />
-
-    <ImageView
-        android:id="@+id/h12"
-        android:layout_width="26dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="124dp"
-        android:contentDescription="@string/tile_for_player_at_hand_position_12"
-        android:scaleType="fitXY"
-        app:layout_constraintStart_toEndOf="@+id/h11"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/play" />
-
-    <ImageView
-        android:id="@+id/h11"
-        android:layout_width="26dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="124dp"
-        android:contentDescription="@string/tile_for_player_at_hand_position_11"
-        android:scaleType="fitXY"
-        app:layout_constraintStart_toEndOf="@+id/h10"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/play" />
-
-    <ImageView
-        android:id="@+id/h8"
-        android:layout_width="26dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="124dp"
-        android:contentDescription="@string/tile_for_player_at_hand_position_8"
-        android:scaleType="fitXY"
-        app:layout_constraintStart_toEndOf="@+id/h7"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/play" />
-
-    <ImageView
-        android:id="@+id/h9"
-        android:layout_width="26dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="124dp"
-        android:contentDescription="@string/tile_for_player_at_hand_position_9"
-        android:scaleType="fitXY"
-        app:layout_constraintStart_toEndOf="@+id/h8"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/play" />
 
@@ -144,6 +81,17 @@
         app:srcCompat="@drawable/play" />
 
     <ImageView
+        android:id="@+id/h1"
+        android:layout_width="26dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="124dp"
+        android:contentDescription="@string/tile_for_player_at_hand_position_1"
+        android:scaleType="fitXY"
+        app:layout_constraintStart_toEndOf="@+id/h0"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/play" />
+
+    <ImageView
         android:id="@+id/h4"
         android:layout_width="26dp"
         android:layout_height="50dp"
@@ -151,6 +99,50 @@
         android:contentDescription="@string/tile_for_player_at_hand_position_4"
         android:scaleType="fitXY"
         app:layout_constraintStart_toEndOf="@+id/h3"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/play" />
+
+    <ImageView
+        android:id="@+id/h9"
+        android:layout_width="26dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="124dp"
+        android:contentDescription="@string/tile_for_player_at_hand_position_9"
+        android:scaleType="fitXY"
+        app:layout_constraintStart_toEndOf="@+id/h8"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/play" />
+
+    <ImageView
+        android:id="@+id/h12"
+        android:layout_width="26dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="124dp"
+        android:contentDescription="@string/tile_for_player_at_hand_position_12"
+        android:scaleType="fitXY"
+        app:layout_constraintStart_toEndOf="@+id/h11"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/play" />
+
+    <ImageView
+        android:id="@+id/h10"
+        android:layout_width="26dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="124dp"
+        android:contentDescription="@string/tile_for_player_at_hand_position_10"
+        android:scaleType="fitXY"
+        app:layout_constraintStart_toEndOf="@+id/h9"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/play" />
+
+    <ImageView
+        android:id="@+id/h8"
+        android:layout_width="26dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="124dp"
+        android:contentDescription="@string/tile_for_player_at_hand_position_8"
+        android:scaleType="fitXY"
+        app:layout_constraintStart_toEndOf="@+id/h7"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/play" />
 
@@ -166,13 +158,35 @@
         app:srcCompat="@drawable/play" />
 
     <ImageView
-        android:id="@+id/h10"
+        android:id="@+id/h11"
         android:layout_width="26dp"
         android:layout_height="50dp"
         android:layout_marginTop="124dp"
-        android:contentDescription="@string/tile_for_player_at_hand_position_10"
+        android:contentDescription="@string/tile_for_player_at_hand_position_11"
         android:scaleType="fitXY"
-        app:layout_constraintStart_toEndOf="@+id/h9"
+        app:layout_constraintStart_toEndOf="@+id/h10"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/play" />
+
+    <ImageView
+        android:id="@+id/h13"
+        android:layout_width="26dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="124dp"
+        android:contentDescription="@string/tile_for_player_at_hand_position_13"
+        android:scaleType="fitXY"
+        app:layout_constraintStart_toEndOf="@+id/h12"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/play" />
+
+    <ImageView
+        android:id="@+id/h3"
+        android:layout_width="26dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="124dp"
+        android:contentDescription="@string/tile_for_player_at_hand_position_3"
+        android:scaleType="fitXY"
+        app:layout_constraintStart_toEndOf="@+id/h2"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/play" />
 
@@ -241,7 +255,8 @@
         android:id="@+id/textViewOut"
         android:layout_width="312dp"
         android:layout_height="275dp"
-        android:layout_marginRight="20dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginBottom="228dp"
         android:background="#6DFFFFFF"
         android:duplicateParentState="false"
         android:gravity="bottom"
@@ -253,9 +268,7 @@
         android:textColor="#FFFFFF"
         android:textSize="16sp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.475" />
+        app:layout_constraintRight_toRightOf="parent" />
 
     <Button
         android:id="@+id/send_button"

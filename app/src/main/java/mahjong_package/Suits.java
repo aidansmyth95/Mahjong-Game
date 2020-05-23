@@ -3,9 +3,6 @@ package mahjong_package;
 
 public class Suits extends Tile {
 
-    // rank and type
-    private final int type;
-
     // Type of suits
     private final static int BAMBOO = 1;
     private final static int DOTS = 2;
@@ -24,14 +21,11 @@ public class Suits extends Tile {
 
     Suits(int suit_type, int suit_rank, int suit_ID) {
 
-        super(suit_ID);
+        super("suits", suit_ID, suit_rank, suit_type);
 
         // assert validity
         isValid(suit_type, suit_rank, ID);
 
-        super.rank = suit_rank;
-        super.type = suit_type;
-        this.type = suit_type;
         super.descriptor = describeSuit();
     }
 
@@ -71,7 +65,7 @@ public class Suits extends Tile {
         String rank = "";
         String total;
 
-        switch(this.type) {
+        switch(super.type) {
             case BAMBOO:
                 type = "Bamboo";
                 break;
@@ -87,7 +81,7 @@ public class Suits extends Tile {
                 break;
         }
 
-        switch (this.rank) {
+        switch (super.rank) {
             case ONE:
                 rank = "One";
                 break;
@@ -125,7 +119,4 @@ public class Suits extends Tile {
         return total;
     }
 
-    public boolean isMatch(Suits cmp) {
-        return (cmp.rank == super.rank && cmp.type == this.type);
-    }
 }

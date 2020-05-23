@@ -11,26 +11,13 @@ public class Hand {
 	private final int max_hand_size = 14;
 
 	// hand of hidden and revealed tiles - empty unassigned Tile
-	private Tile[] hidden_hand = new Tile[max_hand_size];
-	//TODO: display in Game Activity
-	private Tile[] revealed_hand = new Tile[max_hand_size];
-	private int num_revealed;
-	int num_hidden;
-		
+	private ArrayList<Tile> hidden_hand = new ArrayList<>();
+	private ArrayList<Tile> revealed_hand = new ArrayList<>();
 
 	// constructor
-	Hand() {
-		
-		this.num_hidden = this.max_hand_size-1;
-		this.num_revealed = 0;
-	}
+	Hand() {}
 
 
-	int getNum_hidden() {
-		return this.num_hidden;
-	}
-
-	
 	/*
 	 *  Create a hand of tiles from an array of tiles drawn
 	 */
@@ -44,29 +31,45 @@ public class Hand {
 		}
 		
 		// copy to hand
-		System.arraycopy(tiles_drawn, 0, this.hidden_hand, 0, this.max_hand_size - 1);
-		
-		// last tile is empty
-		this.hidden_hand[this.max_hand_size-1] = new Tile();
+		Collections.addAll(this.hidden_hand, tiles_drawn);
+
+		// sort hand
+		Collections.sort(this.hidden_hand, new TileOrderComparator());
 	}
-	
+
+
+	/*
+	Get hidden hand size
+	 */
+	int getHiddenHandSize() {
+		return this.hidden_hand.size();
+	}
+
+
+	public void clearHand() {
+		this.hidden_hand.clear();
+	}
+
 	
 	/*
 	 * Add a tile to the empty space in hand
 	 */
 	void addToHand(Tile tile) {
+
+		//TODO: a check of revealed til count too?
+
 		// if no free space to place drawn tile
-		if (this.num_hidden >= this.max_hand_size) {
+		if (this.hidden_hand.size() >= this.max_hand_size) {
 			System.out.println("Error: No free space to place drawn tile. Code check required!\n");
 			System.exit(0);
 		}
 		else {
 			// assign tile to free space in idx
-			this.hidden_hand[this.num_hidden] = tile;
-			
-			// increment number of hidden
-			this.num_hidden++;
+			this.hidden_hand.add(tile);
 		}
+
+		// order hand
+		Collections.sort(this.hidden_hand, new TileOrderComparator());
 	}
 	
 	
@@ -78,30 +81,17 @@ public class Hand {
 		Tile tmp = new Tile();
 
 		// verify index is valid
-		if (idx < 0 || idx >= this.num_hidden) {
+		if (idx < 0 || idx >= this.hidden_hand.size()) {
 			System.out.printf("Hand index %d is not valid, please choose again\n", idx);
 			return tmp;
 		}
 		
 		// copy tile and remove from hand
-		tmp = this.hidden_hand[idx];
-		this.hidden_hand[idx] = new Tile();
-		
-		// shift back if needed to cover removed tile
-		for (int i=idx; i<this.num_hidden; i++) {
-			
-			if (i != this.max_hand_size-1) {
-				// if not last tile, shift back by copying next tile
-				this.hidden_hand[i] = this.hidden_hand[i+1];
-			} else {
-				// last tile in hand, so assign an empty one
-				this.hidden_hand[i] = new Tile();				
-			}
-		}
-				
-		// decrement hand number
-		this.num_hidden--;
-		
+		tmp = this.hidden_hand.remove(idx);
+
+		// order hand
+		Collections.sort(this.hidden_hand, new TileOrderComparator());
+
 		return tmp;
 	}
 
@@ -110,16 +100,13 @@ public class Hand {
 	void revealTiles() {
 		
 		// tmp list of tiles that will be discarded from hidden hand
-		Tile tmp_tile = new Tile();
-		int num_hidden = this.num_hidden;
-		
+		Tile tmp_tile;
+
 		// put tiles in revealed from revealed index
-		for (int i=0; i<this.num_hidden; i++) {
+		for (int i=0; i<this.hidden_hand.size(); i++) {
 			tmp_tile = this.discardTile(i);
-			this.revealed_hand[this.num_revealed +i] = tmp_tile;
+			this.revealed_hand.add(tmp_tile);
 		}
-		
-		this.num_revealed += num_hidden;
 	}
 	
 	
@@ -137,10 +124,8 @@ public class Hand {
 		// put tiles in revealed from revealed index
 		for (int i=0; i<n; i++) {
 			tmp_tile = this.discardTile(hand_idx[i]);
-			this.revealed_hand[this.num_revealed +i] = tmp_tile;
+			this.revealed_hand.add(tmp_tile);
 		}
-		
-		this.num_revealed += n;
 	}
 	
 	
@@ -160,7 +145,7 @@ public class Hand {
 		int len = 0;
 		int[] hand_idx;
 		hand_idx = this.findHiddenIndex(t);
-		for (int i=0; i<this.num_hidden; i++) {
+		for (int i=0; i<this.hidden_hand.size(); i++) {
 			if (hand_idx[i] >= 0 && i < 3) {
 				match_idx[len] = hand_idx[len];
 				len ++;
@@ -193,7 +178,7 @@ public class Hand {
 		int len = 0;
 		int[] hand_idx;
 		hand_idx = this.findHiddenIndex(t);
-		for (int i=0; i<this.num_hidden; i++) {
+		for (int i=0; i<this.getHiddenHandSize(); i++) {
 			if (hand_idx[i] >= 0 && i < 2) {
 				match_idx[len] = hand_idx[len];
 				len ++;
@@ -209,9 +194,8 @@ public class Hand {
 			return pongs;
 		}
 
-        ArrayList<Tile> tmp_list = new ArrayList<>();
-        Collections.addAll(tmp_list, this.hidden_hand);
-        
+        ArrayList<Tile> tmp_list = new ArrayList<>(this.hidden_hand);
+
     	int loop_size = tmp_list.size();
 		Tile tmp_tile;
         
@@ -307,8 +291,7 @@ public class Hand {
 		int[] honors_count;
 
 		// list for purpose of counting suits in hand
-		ArrayList<Tile> tmp_list = new ArrayList<>();
-        Collections.addAll(tmp_list, this.hidden_hand);
+		ArrayList<Tile> tmp_list = new ArrayList<>(this.hidden_hand);
         tmp_list.add(t);
 
 		// number of triples
@@ -321,7 +304,7 @@ public class Hand {
 		int num_seq = 0;
 		
 		// consider revealed tiles - would be 3s and maybe 4s (which count as 3s)
-		num_revealed += this.num_revealed /3;
+		num_revealed += this.revealed_hand.size() /3;
 
 		// for all 3 types of suits
 		// bamboo is type 1, dots is type 2, chars is type 3
@@ -375,10 +358,10 @@ public class Hand {
 	
 	// display a hand's contents
 	void showHiddenHand() {
-		System.out.println("\nHand: ");
 		// for all tiles in hand, print a tile descriptor
-		for (int i=0; i<this.num_hidden; i++) {
-			System.out.println(i + ": " + hidden_hand[i].descriptor);
+		System.out.println("\nHand: ");
+		for (int i=0; i<this.getHiddenHandSize(); i++) {
+			System.out.println(i + ": " + this.hidden_hand.get(i).descriptor);
 		}
 	}
 
@@ -386,8 +369,8 @@ public class Hand {
 	// get all descriptors for tiles in revealed hand
 	ArrayList<String> getRevealedDescriptors() {
 		ArrayList<String> descriptors = new ArrayList<>();
-		for (int i = 0; i<this.num_revealed; i++) {
-			descriptors.add(this.revealed_hand[i].descriptor);
+		for (int i = 0; i<this.revealed_hand.size(); i++) {
+			descriptors.add(this.revealed_hand.get(i).descriptor);
 		}
 		return descriptors;
 	}
@@ -396,8 +379,8 @@ public class Hand {
 	// get all descriptors for tiles in hidden hand
 	ArrayList<String> getHiddenDescriptors() {
 		ArrayList<String> descriptors = new ArrayList<>();
-		for (int i=0; i<this.num_hidden; i++) {
-			descriptors.add(this.hidden_hand[i].descriptor);
+		for (int i=0; i<this.hidden_hand.size(); i++) {
+			descriptors.add(this.hidden_hand.get(i).descriptor);
 		}
 		return descriptors;
 	}
@@ -484,10 +467,10 @@ public class Hand {
     	
     	// add every match to array
     	int num_found = 0;
-    	for (int i=0; i<this.max_hand_size; i++) {
+    	for (int i=0; i<this.getHiddenHandSize(); i++) {
     	    // descriptors will match
 			idx[i] = -1;
-    		if (t.descriptor.equals(this.hidden_hand[i].descriptor)) {
+    		if (t.descriptor.equals(this.hidden_hand.get(i).descriptor)) {
     			idx[num_found] = i;
     			num_found++;
     		}

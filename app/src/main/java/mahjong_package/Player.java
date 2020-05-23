@@ -27,6 +27,9 @@ class Player {
     }
 
 
+    void clearHand() { this.hand.clearHand(); }
+
+
     // reset pong/kong interactions
 	private void clearKongsPongs() {
 		// pong identified and waiting user response
@@ -56,7 +59,7 @@ class Player {
 
 
 	// show Hand
-	void showHand() {
+	void showHiddenHand() {
 		this.hand.showHiddenHand();
 	}
 
@@ -94,7 +97,7 @@ class Player {
 		}
 
 		// check if int is valid in hand
-		if (discard_idx >= this.hand.num_hidden || discard_idx < 0) {
+		if (discard_idx >= this.hand.getHiddenHandSize() || discard_idx < 0) {
 			System.out.println("Please choose a valid discard_idx, " + player_input + " is invalid\n");
 			discard_idx = -1;
 		}
@@ -142,7 +145,6 @@ class Player {
 
 	// check hand for MJ
 	boolean checkHandMahjong(Tile t) {
-		this.showHand();
 		return this.hand.checkMahjong(t);
 	}
 
@@ -171,7 +173,6 @@ class Player {
 
 	// check user response for Kong
 	boolean checkUserKong(String player_input) {
-
 		return player_input.equals("1");
 	}
 
@@ -199,7 +200,7 @@ class Player {
 		hand_idx[0] = this.possible_kongs.get(0)[0];
 		hand_idx[1] = this.possible_kongs.get(0)[1];
 		hand_idx[2] = this.possible_kongs.get(0)[2];
-		hand_idx[3] = this.hand.num_hidden-1;
+		hand_idx[3] = this.hand.getHiddenHandSize()-1;
 		this.hand.revealTiles(hand_idx, 4);
 	}
 
@@ -209,7 +210,7 @@ class Player {
 		this.hand.addToHand(t);
 		hand_idx[0] = this.possible_pongs.get(this.chosen_idx)[0];
 		hand_idx[1] = this.possible_pongs.get(this.chosen_idx)[1];
-		hand_idx[2] = this.hand.num_hidden-1;
+		hand_idx[2] = this.hand.getHiddenHandSize()-1;
 		this.hand.revealTiles(hand_idx, 3);
 	}
 

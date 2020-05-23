@@ -2,10 +2,6 @@ package mahjong_package;
 
 public class Honors extends Tile {
 
-    // values
-    private final int rank;
-    private final int type;
-
     // enums for wind and dragon
     private final static int WIND = 1;
     private final static int DRAGON = 2;
@@ -23,13 +19,11 @@ public class Honors extends Tile {
 
     Honors(int honor_type, int honor_rank, int honor_ID)
     {
-        super(honor_ID);
+        super("honors", honor_ID, honor_rank, honor_type);
 
         // assert valid
         isValid(honor_type, honor_rank, honor_ID);
 
-        this.rank = honor_rank;
-        this.type = honor_type;
         super.descriptor = describeHonor();
     }
 
@@ -65,7 +59,7 @@ public class Honors extends Tile {
         String rank = "";
         String total;
 
-        switch(this.type) {
+        switch(super.type) {
             case WIND:
                 type = "Wind";
                 // another switch here
@@ -114,7 +108,4 @@ public class Honors extends Tile {
         return total;
     }
 
-    public boolean isMatch(Honors cmp) {
-        return (cmp.rank == this.rank && cmp.type == this.type);
-    }
 }

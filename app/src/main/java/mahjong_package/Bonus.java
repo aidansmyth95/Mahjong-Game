@@ -2,10 +2,6 @@ package mahjong_package;
 
 public class Bonus extends Tile {
 
-    // rank and type
-    private final int rank;
-    private final int type;
-
     // Types of bonus
     private final static int SEASONS = 1;
     private final static int FLOWERS = 2;
@@ -23,30 +19,29 @@ public class Bonus extends Tile {
     private final static int BAMBOO = 4;
 
     Bonus(int bonus_type, int bonus_rank, int bonus_ID) {
-        super(bonus_ID);
+
+        super("bonus", bonus_ID, bonus_rank, bonus_type);
 
         // assert valid
         isValid(bonus_type, bonus_rank, bonus_ID);
 
-        this.rank = bonus_rank;
-        this.type = bonus_type;
-
         super.descriptor = describeBonus();
+
     }
 
 
     int getRank()
     {
-        return this.rank;
+        return super.rank;
     }
 
 
     int getType()
     {
-        return this.type;
+        return super.type;
     }
 
-
+    //TODO: boolean never used? Why?
     private static boolean isValid(int type, int rank, int ID) {
 
         if (type == SEASONS) {
@@ -70,11 +65,11 @@ public class Bonus extends Tile {
         String rank = "";
         String total;
 
-        switch(this.type) {
+        switch(super.type) {
             case SEASONS:
                 type = "Seasons";
                 // another switch here
-                switch(this.rank) {
+                switch(super.rank) {
                     case SPRING:
                         rank = "Spring";
                         break;
@@ -88,7 +83,7 @@ public class Bonus extends Tile {
                         rank = "Winter";
                         break;
                     default:
-                        total = "Warning, " + this.rank + " rank of bonus does not exist!";
+                        total = "Warning, " + super.rank + " rank of bonus does not exist!";
                         System.out.println(total);
                 }
                 break;
@@ -109,7 +104,7 @@ public class Bonus extends Tile {
                         rank = "Bamboo";
                         break;
                     default:
-                        total = "Warning, " + this.rank + " rank of bonus does not exist!";
+                        total = "Warning, " + super.rank + " rank of bonus does not exist!";
                         System.out.println(total);
                 }
                 break;
@@ -120,10 +115,6 @@ public class Bonus extends Tile {
 
         total = type + " " + rank;
         return total;
-    }
-
-    public boolean isMatch(Bonus cmp) {
-        return (cmp.rank == this.rank && cmp.type == this.type);
     }
 
 }

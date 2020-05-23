@@ -58,7 +58,7 @@ public class Game {
 		// reset and shuffle deck
 		this.tiles.shuffleTiles();
 
-		// for each player...
+		// create hand for each player
 		for (int i = 0; i < this.num_players; i++) {
 			this.player[i] = new Player(i);
 			// draw 13 tiles and create player's hand
@@ -67,6 +67,7 @@ public class Game {
 			}
 			this.player[i].createHand(start_tiles);
 		}
+
 		this.latest_discard = new Tile();
 		this.update_discarded_tile_image = false;
 
@@ -81,6 +82,7 @@ public class Game {
 
 		// for game
 		this.gameState = GameState.START;
+
 	}
 
 
@@ -136,7 +138,7 @@ public class Game {
 						} else if (this.player[i].checkHandPong(this.latest_discard)) {
 							this.pong_available[i] = true;
 							this.request_response[i] = true;
-							this.player[i].showHand();
+							this.player[i].showHiddenHand();
 						}
 					}
 				}
@@ -228,7 +230,7 @@ public class Game {
 
 			case DISCARD_OPTIONS:
 				System.out.println("Player " + this.player_turn + ": discard a tile from the following:");
-				this.player[this.player_turn].showHand();
+				this.player[this.player_turn].showHiddenHand();
 				this.request_response[this.player_turn] = true;
 				this.gameState = GameState.DISCARDING_TILE;
 				break;
@@ -303,19 +305,23 @@ public class Game {
 
 	public boolean test_true_pong() {
 
+
 		for (int i=0; i<2; i++) {
+			this.player[0].clearHand();
 			Tile[] all_tiles = this.player[0].createTruePongTestVectorHand(i);
 			Tile disc_tile = all_tiles[13];
 			Tile[] hand_tiles = new Tile[13];
 			System.arraycopy(all_tiles, 0, hand_tiles, 0, 13);
 
 			this.player[0].createHand(hand_tiles);
+			this.player[0].showHiddenHand();
+
 			boolean success = this.player[0].checkHandPong(disc_tile);
 
 			if (success) {
 				System.out.println("Passed test " + i);
 			} else {
-				this.player[0].showHand();
+				this.player[0].showHiddenHand();
 				System.out.println(disc_tile.descriptor);
 				System.out.println("Failed test " + i);
 				return false;
@@ -329,6 +335,7 @@ public class Game {
 	public boolean test_false_pong() {
 
 		for (int i=0; i<2; i++) {
+			this.player[0].clearHand();
 			Tile[] all_tiles = this.player[0].createFalsePongTestVectorHand(i);
 			Tile disc_tile = all_tiles[13];
 			Tile[] hand_tiles = new Tile[13];
@@ -340,7 +347,7 @@ public class Game {
 			if (!success) {
 				System.out.println("Passed test " + i);
 			} else {
-				this.player[0].showHand();
+				this.player[0].showHiddenHand();
 				System.out.println(disc_tile.descriptor);
 				System.out.println("Failed test " + i);
 				return false;
@@ -354,6 +361,7 @@ public class Game {
 	public boolean test_true_kong() {
 
 		for (int i=0; i<2; i++) {
+			this.player[0].clearHand();
 			Tile[] all_tiles = this.player[0].createTrueKongTestVectorHand(i);
 			Tile disc_tile = all_tiles[13];
 			Tile[] hand_tiles = new Tile[13];
@@ -365,7 +373,7 @@ public class Game {
 			if (success) {
 				System.out.println("Passed test " + i);
 			} else {
-				this.player[0].showHand();
+				this.player[0].showHiddenHand();
 				System.out.println(disc_tile.descriptor);
 				System.out.println("Failed test " + i);
 				return false;
@@ -379,6 +387,7 @@ public class Game {
 	public boolean test_false_kong() {
 
 		for (int i=0; i<2; i++) {
+			this.player[0].clearHand();
 			Tile[] all_tiles = this.player[0].createFalseKongTestVectorHand(i);
 			Tile disc_tile = all_tiles[13];
 			Tile[] hand_tiles = new Tile[13];
@@ -390,7 +399,7 @@ public class Game {
 			if (!success) {
 				System.out.println("Passed test " + i);
 			} else {
-				this.player[0].showHand();
+				this.player[0].showHiddenHand();
 				System.out.println(disc_tile.descriptor);
 				System.out.println("Failed test " + i);
 				return false;
@@ -404,8 +413,8 @@ public class Game {
 	public boolean test_true_mahjong() {
 
 		for (int i=0; i<2; i++) {
+			this.player[0].clearHand();
 			Tile[] all_tiles = this.player[0].createTrueMahjongTestVectorHand(i);
-
 			Tile disc_tile = all_tiles[13];
 			Tile[] hand_tiles = new Tile[13];
 			System.arraycopy(all_tiles, 0, hand_tiles, 0, 13);
@@ -416,7 +425,7 @@ public class Game {
 			if (success) {
 				System.out.println("Passed test " + i);
 			} else {
-				this.player[0].showHand();
+				this.player[0].showHiddenHand();
 				System.out.println(disc_tile.descriptor);
 				System.out.println("Failed test " + i);
 				return false;
