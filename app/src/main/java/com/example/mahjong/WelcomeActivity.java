@@ -6,35 +6,41 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
+
 
 public class WelcomeActivity extends AppCompatActivity {
 
-    private Button welcomeButton;
-    private TextView welcomeTxt;
+    private Button loginRedirectButton, registerRedirectButton;
+
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    protected void onCreate(Bundle savedInstance) {
+        super.onCreate(savedInstance);
         setContentView(R.layout.activity_welcome);
 
-        welcomeButton = (Button) findViewById(R.id.welcome_button);
-        welcomeTxt = (TextView) findViewById(R.id.welcome_txt);
+        initializeUI();
 
-        welcomeButton.setOnClickListener(new View.OnClickListener() {
+        loginRedirectButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-
-                welcomeButton.setEnabled(false);
-
-                // Intents are objects of the android.content.Intent type. Your code can send them
-                // to the Android system defining the components you are targeting.
-                // Intent to start an activity called SecondActivity with the following code:
-
-                Intent intent = new Intent(WelcomeActivity.this, MainActivity.class);
-
-                // start the activity connect to the specified class
+                Intent intent = new Intent(WelcomeActivity.this, LoginActivity.class);
                 startActivity(intent);
             }
         });
+
+        registerRedirectButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent intent = new Intent(WelcomeActivity.this, RegisterActivity.class);
+                startActivity(intent);
+            }
+        });
+
     }
+
+    private void initializeUI() {
+
+        loginRedirectButton = (Button) findViewById(R.id.login_redirect_button);
+        registerRedirectButton = (Button) findViewById(R.id.register_redirect_button);
+
+    }
+
 }

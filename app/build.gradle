@@ -27,9 +27,19 @@ apply plugin: 'com.android.application'
 
 apply plugin: 'com.google.gms.google-services'
 
+ext {
+    //Add the playServices version
+    playServices = "17.2.2"
+}
+
+
+// find the correct versions at https://firebase.google.com/docs/android/setup
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.google.firebase:firebase-analytics:17.2.2'
+    implementation "com.google.firebase:firebase-analytics:$playServices"
+    implementation "com.google.firebase:firebase-auth:19.3.1"
+    implementation "com.google.firebase:firebase-database:19.3.0"
+    implementation 'com.google.firebase:firebase-storage:19.1.1'
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
     testImplementation 'junit:junit:4.12'

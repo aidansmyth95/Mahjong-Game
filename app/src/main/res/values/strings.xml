@@ -33,4 +33,21 @@
     <string name="tile_for_player_at_hand_position_8">tile_for_player_at_hand_position_8</string>
     <string name="tile_for_player_at_hand_position_9">tile_for_player_at_hand_position_9</string>
     <string name="player_1_hand">Player -1 hand</string>
+    <string name="your_email">Your email</string>
+    <string name="your_password">Your password</string>
+    <string name="log_in">Log in</string>
+    <string name="register">Register</string>
+    <string name="multiplayer">Multiplayer</string>
+    <string name="single_player">Single player</string>
+    <string name="create_game">Create Game</string>
+    <string name="number_of_players">Number of players</string>
+    <string name="game_members">Game members</string>
+    <string name="game_id">Game ID</string>
+    <string name="status">Status</string>
+    <string name="your_game_name_here">Your game name here</string>
+    <string name="empty" />
+    <string name="your_name">Your name</string>
+    <string name="game_name">Game Name</string>
+    <string name="paused">Paused</string>
+    <string name="player_input_here">player_input_here</string>
 </resources>

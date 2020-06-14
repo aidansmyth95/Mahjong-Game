@@ -7,19 +7,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/wood_table"
     android:keepScreenOn="true"
-    tools:context=".SinglePlayerActivity">
-
-    <TextView
-        android:id="@+id/p_hand"
-        android:layout_width="95dp"
-        android:layout_height="21dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginTop="180dp"
-        android:background="#FFFFFF"
-        android:text="@string/player_1_hand"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    tools:context=".MultiplayerActivity">
 
     <ImageView
         android:id="@+id/h14"
@@ -190,62 +178,17 @@
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/play" />
 
-    <EditText
-        android:id="@+id/P0_input"
-        android:layout_width="86dp"
-        android:layout_height="62dp"
-        android:layout_marginEnd="320dp"
-        android:layout_marginRight="320dp"
-        android:layout_marginBottom="44dp"
-        android:background="#D7FFFFFF"
-        android:gravity="center"
-        android:hint="@string/p0_input_here"
-        android:importantForAutofill="no"
-        android:inputType="textNoSuggestions|number|text"
-        app:layout_constraintBottom_toTopOf="@+id/send_button"
-        app:layout_constraintEnd_toEndOf="parent" />
 
     <EditText
-        android:id="@+id/P1_input"
+        android:id="@+id/p_input"
         android:layout_width="86dp"
         android:layout_height="62dp"
-        android:layout_marginEnd="216dp"
-        android:layout_marginRight="216dp"
-        android:layout_marginBottom="44dp"
+        android:layout_marginEnd="152dp"
+        android:layout_marginRight="152dp"
+        android:layout_marginBottom="16dp"
         android:background="#D7FFFFFF"
         android:gravity="center"
-        android:hint="@string/p1_input_here"
-        android:importantForAutofill="no"
-        android:inputType="textNoSuggestions|number|text"
-        app:layout_constraintBottom_toTopOf="@+id/send_button"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <EditText
-        android:id="@+id/P2_input"
-        android:layout_width="86dp"
-        android:layout_height="62dp"
-        android:layout_marginEnd="104dp"
-        android:layout_marginRight="104dp"
-        android:layout_marginBottom="44dp"
-        android:background="#D7FFFFFF"
-        android:gravity="center"
-        android:hint="@string/p2_input_here"
-        android:importantForAutofill="no"
-        android:inputType="textNoSuggestions|number|text"
-        app:layout_constraintBottom_toTopOf="@+id/send_button"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-
-    <EditText
-        android:id="@+id/P3_input"
-        android:layout_width="86dp"
-        android:layout_height="62dp"
-        android:layout_marginEnd="4dp"
-        android:layout_marginRight="4dp"
-        android:layout_marginBottom="44dp"
-        android:background="#D7FFFFFF"
-        android:gravity="center"
-        android:hint="@string/p3_input_here"
+        android:hint="@string/player_input_here"
         android:importantForAutofill="no"
         android:inputType="textNoSuggestions|number|text"
         app:layout_constraintBottom_toTopOf="@+id/send_button"
@@ -253,10 +196,10 @@
 
     <TextView
         android:id="@+id/textViewOut"
-        android:layout_width="312dp"
-        android:layout_height="275dp"
-        android:layout_marginRight="16dp"
-        android:layout_marginBottom="228dp"
+        android:layout_width="314dp"
+        android:layout_height="239dp"
+        android:layout_marginRight="40dp"
+        android:layout_marginBottom="180dp"
         android:background="#6DFFFFFF"
         android:duplicateParentState="false"
         android:gravity="bottom"
@@ -278,7 +221,6 @@
         android:layout_marginRight="152dp"
         android:layout_marginBottom="36dp"
         android:background="#009688"
-        android:onClick="sendMessage"
         android:text="@string/button_send"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
@@ -287,22 +229,22 @@
         android:id="@+id/discarded"
         android:layout_width="43dp"
         android:layout_height="58dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginLeft="16dp"
+        android:layout_marginStart="184dp"
+        android:layout_marginLeft="184dp"
         android:contentDescription="@string/latest_discarded_image"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.48"
+        app:layout_constraintVertical_bias="0.312"
         app:srcCompat="@drawable/mj_back_tile" />
 
     <TextView
         android:id="@+id/p_turn"
         android:layout_width="95dp"
         android:layout_height="21dp"
-        android:layout_marginStart="12dp"
-        android:layout_marginLeft="12dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginStart="28dp"
+        android:layout_marginLeft="28dp"
+        android:layout_marginTop="268dp"
         android:background="#FFFFFF"
         android:text="@string/player_1_turn"
         app:layout_constraintStart_toStartOf="parent"

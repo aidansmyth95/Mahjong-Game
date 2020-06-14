@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import mahjong_package.Game;
 
 
-public class MainActivity extends AppCompatActivity {
+public class SinglePlayerActivity extends AppCompatActivity {
 
     private Game game;
     private Handler handler = new Handler();
