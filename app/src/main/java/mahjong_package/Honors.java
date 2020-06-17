@@ -20,24 +20,30 @@ public class Honors extends Tile {
     Honors(int honor_type, int honor_rank, int honor_ID)
     {
         super("honors", honor_ID, honor_rank, honor_type);
-
         // assert valid
         isValid(honor_type, honor_rank, honor_ID);
-
-        super.descriptor = describeHonor();
+        super.setDescriptor(describeHonor());
+        super.setChildClass("Honors");
     }
 
-    int getRank()
+    Honors() {
+        super();
+        super.setChildClass("Honors");
+    }
+
+    public int getRank() { return super.getRank(); }
+    public int getType()
     {
-        return this.rank;
+        return super.getType();
     }
-
-
-    int getType()
-    {
-        return this.type;
-    }
-
+    public int getID() { return super.getID(); }
+    public int getHidden() { return super.getHidden(); }
+    public String getDescriptor() { return super.getDescriptor(); }
+    public void setRank(int rank) { super.setRank(rank); }
+    public void setType(int type) { super.setType(type); }
+    public void setID(int id) { super.setID(id); }
+    public void setHidden(int hidden) { super.setHidden(hidden); }
+    public void setDescriptor(String descriptor) { super.setDescriptor(descriptor); }
 
     private static boolean isValid(int type, int rank, int ID) {
 
@@ -59,11 +65,11 @@ public class Honors extends Tile {
         String rank = "";
         String total;
 
-        switch(super.type) {
+        switch(super.getType()) {
             case WIND:
                 type = "Wind";
                 // another switch here
-                switch(this.rank) {
+                switch(this.getRank()) {
                     case NORTH:
                         rank = "North";
                         break;
@@ -77,14 +83,14 @@ public class Honors extends Tile {
                         rank = "West";
                         break;
                     default:
-                        total = "Warning, this rank of honor does not exist!";
+                        total = "Warning, " + super.getRank() + " rank of honor does not exist!";
                         System.out.println(total);
                 }
                 break;
             case DRAGON:
                 type = "Dragon";
                 // another switch
-                switch(this.rank) {
+                switch(this.getRank()) {
                     case RED:
                         rank = "Red";
                         break;
@@ -95,12 +101,12 @@ public class Honors extends Tile {
                         rank = "White";
                         break;
                     default:
-                        total = "Warning, this rank of honor does not exist!";
+                        total = "Warning, " + super.getRank() + " rank of honor does not exist!";
                         System.out.println(total);
                 }
                 break;
             default:
-                total = "Warning, this type of honor does not exist!";
+                total = "Warning, " + super.getType() + " type of honor does not exist!";
                 System.out.println(total);
         }
 

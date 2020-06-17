@@ -6,7 +6,7 @@ import java.io.Serializable;
 /*
 This class should be pushed t database for any list of users
  */
-public class User implements Serializable {
+public class User {
 
     private String uname;
     private String uid;

@@ -20,29 +20,31 @@ public class Suits extends Tile {
     private final static int NINE = 9;
 
     Suits(int suit_type, int suit_rank, int suit_ID) {
-
         super("suits", suit_ID, suit_rank, suit_type);
-
         // assert validity
-        isValid(suit_type, suit_rank, ID);
-
-        super.descriptor = describeSuit();
+        isValid(suit_type, suit_rank, suit_ID);
+        super.setDescriptor(describeSuit());
+        super.setChildClass("Suit");
     }
 
+    public Suits() {
+        super();
+        super.setChildClass("Suit");
+    }
 
-    int getRank()
+    public int getRank() { return super.getRank(); }
+    public int getType()
     {
-        return this.rank;
+        return super.getType();
     }
-
-    int getType()
-    {
-        return this.type;
-    }
-
-    public int getID() { return super.ID; }
-
-    public int getVisibility() { return super.hidden; }
+    public int getID() { return super.getID(); }
+    public int getHidden() { return super.getHidden(); }
+    public String getDescriptor() { return super.getDescriptor(); }
+    public void setRank(int rank) { super.setRank(rank); }
+    public void setType(int type) { super.setType(type); }
+    public void setID(int id) { super.setID(id); }
+    public void setHidden(int hidden) { super.setHidden(hidden); }
+    public void setDescriptor(String descriptor) { super.setDescriptor(descriptor); }
 
     private static boolean isValid(int type, int rank, int ID) {
 
@@ -65,7 +67,7 @@ public class Suits extends Tile {
         String rank = "";
         String total;
 
-        switch(super.type) {
+        switch(super.getType()) {
             case BAMBOO:
                 type = "Bamboo";
                 break;
@@ -76,12 +78,12 @@ public class Suits extends Tile {
                 type = "Characters";
                 break;
             default:
-                total = "Warning, this type of suits does not exist!";
+                total = "Warning, " + super.getType() + " type of suits does not exist!";
                 System.out.println(total);
                 break;
         }
 
-        switch (super.rank) {
+        switch (super.getRank()) {
             case ONE:
                 rank = "One";
                 break;
@@ -110,7 +112,7 @@ public class Suits extends Tile {
                 rank = "Nine";
                 break;
             default:
-                total = "Warning, rank of " + rank + " does not exist!";
+                total = "Warning, rank of " + super.getRank() + " does not exist!";
                 System.out.println(total);
                 break;
         }

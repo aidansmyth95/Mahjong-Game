@@ -10,196 +10,204 @@
     tools:context=".MultiplayerActivity">
 
     <ImageView
-        android:id="@+id/h14"
-        android:layout_width="26dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="124dp"
-        android:layout_marginEnd="3dp"
-        android:layout_marginRight="3dp"
-        android:contentDescription="@string/tile_for_player_at_hand_position_13"
-        android:scaleType="fitXY"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/play" />
-
-    <ImageView
-        android:id="@+id/h2"
-        android:layout_width="26dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="124dp"
-        android:contentDescription="@string/tile_for_player_at_hand_position_2"
-        android:scaleType="fitXY"
-        app:layout_constraintStart_toEndOf="@+id/h1"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/play" />
-
-    <ImageView
-        android:id="@+id/h6"
-        android:layout_width="26dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="124dp"
-        android:contentDescription="@string/tile_for_player_at_hand_position_6"
-        android:scaleType="fitXY"
-        app:layout_constraintStart_toEndOf="@+id/h5"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/play" />
-
-    <ImageView
         android:id="@+id/h0"
         android:layout_width="26dp"
         android:layout_height="50dp"
-        android:layout_marginStart="4dp"
-        android:layout_marginLeft="4dp"
-        android:layout_marginTop="124dp"
         android:contentDescription="@string/tile_for_player_at_hand_position_0"
         android:scaleType="fitXY"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.15"
+        app:layout_constraintHorizontal_bias="0.03"
         app:srcCompat="@drawable/play" />
-
-    <ImageView
-        android:id="@+id/h7"
-        android:layout_width="26dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="124dp"
-        android:contentDescription="@string/tile_for_player_at_hand_position_7"
-        android:scaleType="fitXY"
-        app:layout_constraintStart_toEndOf="@+id/h6"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/play" />
-
     <ImageView
         android:id="@+id/h1"
         android:layout_width="26dp"
         android:layout_height="50dp"
-        android:layout_marginTop="124dp"
         android:contentDescription="@string/tile_for_player_at_hand_position_1"
         android:scaleType="fitXY"
         app:layout_constraintStart_toEndOf="@+id/h0"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.15"
         app:srcCompat="@drawable/play" />
-
     <ImageView
-        android:id="@+id/h4"
+        android:id="@+id/h2"
         android:layout_width="26dp"
         android:layout_height="50dp"
-        android:layout_marginTop="124dp"
-        android:contentDescription="@string/tile_for_player_at_hand_position_4"
+        android:contentDescription="@string/tile_for_player_at_hand_position_2"
         android:scaleType="fitXY"
-        app:layout_constraintStart_toEndOf="@+id/h3"
+        app:layout_constraintStart_toEndOf="@+id/h1"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.15"
         app:srcCompat="@drawable/play" />
-
-    <ImageView
-        android:id="@+id/h9"
-        android:layout_width="26dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="124dp"
-        android:contentDescription="@string/tile_for_player_at_hand_position_9"
-        android:scaleType="fitXY"
-        app:layout_constraintStart_toEndOf="@+id/h8"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/play" />
-
-    <ImageView
-        android:id="@+id/h12"
-        android:layout_width="26dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="124dp"
-        android:contentDescription="@string/tile_for_player_at_hand_position_12"
-        android:scaleType="fitXY"
-        app:layout_constraintStart_toEndOf="@+id/h11"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/play" />
-
-    <ImageView
-        android:id="@+id/h10"
-        android:layout_width="26dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="124dp"
-        android:contentDescription="@string/tile_for_player_at_hand_position_10"
-        android:scaleType="fitXY"
-        app:layout_constraintStart_toEndOf="@+id/h9"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/play" />
-
-    <ImageView
-        android:id="@+id/h8"
-        android:layout_width="26dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="124dp"
-        android:contentDescription="@string/tile_for_player_at_hand_position_8"
-        android:scaleType="fitXY"
-        app:layout_constraintStart_toEndOf="@+id/h7"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/play" />
-
-    <ImageView
-        android:id="@+id/h5"
-        android:layout_width="26dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="124dp"
-        android:contentDescription="@string/tile_for_player_at_hand_position_5"
-        android:scaleType="fitXY"
-        app:layout_constraintStart_toEndOf="@+id/h4"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/play" />
-
-    <ImageView
-        android:id="@+id/h11"
-        android:layout_width="26dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="124dp"
-        android:contentDescription="@string/tile_for_player_at_hand_position_11"
-        android:scaleType="fitXY"
-        app:layout_constraintStart_toEndOf="@+id/h10"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/play" />
-
-    <ImageView
-        android:id="@+id/h13"
-        android:layout_width="26dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="124dp"
-        android:contentDescription="@string/tile_for_player_at_hand_position_13"
-        android:scaleType="fitXY"
-        app:layout_constraintStart_toEndOf="@+id/h12"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/play" />
-
     <ImageView
         android:id="@+id/h3"
         android:layout_width="26dp"
         android:layout_height="50dp"
-        android:layout_marginTop="124dp"
         android:contentDescription="@string/tile_for_player_at_hand_position_3"
         android:scaleType="fitXY"
         app:layout_constraintStart_toEndOf="@+id/h2"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.15"
+        app:srcCompat="@drawable/play" />
+    <ImageView
+        android:id="@+id/h4"
+        android:layout_width="26dp"
+        android:layout_height="50dp"
+        android:contentDescription="@string/tile_for_player_at_hand_position_4"
+        android:scaleType="fitXY"
+        app:layout_constraintStart_toEndOf="@+id/h3"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.15"
+        app:srcCompat="@drawable/play" />
+    <ImageView
+        android:id="@+id/h5"
+        android:layout_width="26dp"
+        android:layout_height="50dp"
+        android:contentDescription="@string/tile_for_player_at_hand_position_5"
+        android:scaleType="fitXY"
+        app:layout_constraintStart_toEndOf="@+id/h4"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.15"
+        app:srcCompat="@drawable/play" />
+    <ImageView
+        android:id="@+id/h6"
+        android:layout_width="26dp"
+        android:layout_height="50dp"
+        android:contentDescription="@string/tile_for_player_at_hand_position_6"
+        android:scaleType="fitXY"
+        app:layout_constraintStart_toEndOf="@+id/h5"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.15"
+        app:srcCompat="@drawable/play" />
+    <ImageView
+        android:id="@+id/h7"
+        android:layout_width="26dp"
+        android:layout_height="50dp"
+        android:contentDescription="@string/tile_for_player_at_hand_position_7"
+        android:scaleType="fitXY"
+        app:layout_constraintStart_toEndOf="@+id/h6"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.15"
+        app:srcCompat="@drawable/play" />
+    <ImageView
+        android:id="@+id/h8"
+        android:layout_width="26dp"
+        android:layout_height="50dp"
+        android:contentDescription="@string/tile_for_player_at_hand_position_8"
+        android:scaleType="fitXY"
+        app:layout_constraintStart_toEndOf="@+id/h7"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.15"
+        app:srcCompat="@drawable/play" />
+    <ImageView
+        android:id="@+id/h9"
+        android:layout_width="26dp"
+        android:layout_height="50dp"
+        android:contentDescription="@string/tile_for_player_at_hand_position_9"
+        android:scaleType="fitXY"
+        app:layout_constraintStart_toEndOf="@+id/h8"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.15"
+        app:srcCompat="@drawable/play" />
+    <ImageView
+        android:id="@+id/h10"
+        android:layout_width="26dp"
+        android:layout_height="50dp"
+        android:contentDescription="@string/tile_for_player_at_hand_position_10"
+        android:scaleType="fitXY"
+        app:layout_constraintStart_toEndOf="@+id/h9"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.15"
+        app:srcCompat="@drawable/play" />
+    <ImageView
+        android:id="@+id/h11"
+        android:layout_width="26dp"
+        android:layout_height="50dp"
+        android:contentDescription="@string/tile_for_player_at_hand_position_11"
+        android:scaleType="fitXY"
+        app:layout_constraintStart_toEndOf="@+id/h10"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.15"
+        app:srcCompat="@drawable/play" />
+    <ImageView
+        android:id="@+id/h12"
+        android:layout_width="26dp"
+        android:layout_height="50dp"
+        android:contentDescription="@string/tile_for_player_at_hand_position_12"
+        android:scaleType="fitXY"
+        app:layout_constraintStart_toEndOf="@+id/h11"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.15"
+        app:srcCompat="@drawable/play" />
+    <ImageView
+        android:id="@+id/h13"
+        android:layout_width="26dp"
+        android:layout_height="50dp"
+        android:contentDescription="@string/tile_for_player_at_hand_position_13"
+        android:scaleType="fitXY"
+        app:layout_constraintStart_toEndOf="@+id/h12"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.15"
+        app:srcCompat="@drawable/play" />
+    <ImageView
+        android:id="@+id/h14"
+        android:layout_width="26dp"
+        android:layout_height="50dp"
+        android:contentDescription="@string/tile_for_player_at_hand_position_13"
+        android:scaleType="fitXY"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.15"
+        app:layout_constraintHorizontal_bias="0.98"
         app:srcCompat="@drawable/play" />
 
+    <ImageView
+        android:id="@+id/discarded"
+        android:layout_width="43dp"
+        android:layout_height="58dp"
+        android:contentDescription="@string/latest_discarded_image"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.312"
+        app:srcCompat="@drawable/mj_back_tile" />
 
-    <EditText
-        android:id="@+id/p_input"
-        android:layout_width="86dp"
-        android:layout_height="62dp"
-        android:layout_marginEnd="152dp"
-        android:layout_marginRight="152dp"
-        android:layout_marginBottom="16dp"
-        android:background="#D7FFFFFF"
-        android:gravity="center"
-        android:hint="@string/player_input_here"
-        android:importantForAutofill="no"
-        android:inputType="textNoSuggestions|number|text"
-        app:layout_constraintBottom_toTopOf="@+id/send_button"
-        app:layout_constraintEnd_toEndOf="parent" />
+    <TextView
+        android:id="@+id/p_turn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_google_signin_btn_text_dark_default"
+        android:text="@string/player_1_turn"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/p_input"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintHorizontal_bias="0.1"
+        app:layout_constraintVertical_bias="0.5" />
 
     <TextView
         android:id="@+id/textViewOut"
         android:layout_width="314dp"
         android:layout_height="239dp"
-        android:layout_marginRight="40dp"
-        android:layout_marginBottom="180dp"
         android:background="#6DFFFFFF"
         android:duplicateParentState="false"
         android:gravity="bottom"
@@ -210,44 +218,38 @@
         android:textAllCaps="true"
         android:textColor="#FFFFFF"
         android:textSize="16sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintRight_toRightOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/discarded"
+        app:layout_constraintBottom_toTopOf="@+id/p_input"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintVertical_bias="0.85" />
+
+
+    <EditText
+        android:id="@+id/p_input"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_google_signin_btn_text_dark_default"
+        android:gravity="center"
+        android:hint="@string/player_input"
+        android:importantForAutofill="no"
+        android:inputType="textNoSuggestions|number|text"
+        app:layout_constraintBottom_toTopOf="@id/send_button"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintVertical_bias="0.97" />
 
     <Button
         android:id="@+id/send_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="152dp"
-        android:layout_marginRight="152dp"
-        android:layout_marginBottom="36dp"
         android:background="#009688"
-        android:text="@string/button_send"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <ImageView
-        android:id="@+id/discarded"
-        android:layout_width="43dp"
-        android:layout_height="58dp"
-        android:layout_marginStart="184dp"
-        android:layout_marginLeft="184dp"
-        android:contentDescription="@string/latest_discarded_image"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.312"
-        app:srcCompat="@drawable/mj_back_tile" />
-
-    <TextView
-        android:id="@+id/p_turn"
-        android:layout_width="95dp"
-        android:layout_height="21dp"
-        android:layout_marginStart="28dp"
-        android:layout_marginLeft="28dp"
-        android:layout_marginTop="268dp"
-        android:background="#FFFFFF"
-        android:text="@string/player_1_turn"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintVertical_bias="0.95"
+        android:text="@string/button_send" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

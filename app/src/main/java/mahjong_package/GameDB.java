@@ -4,6 +4,7 @@ import android.util.Log;
 
 import java.util.ArrayList;
 
+//TODO: start of with Game inside GameDB, but eventually merge to be just GameDB, then rename to Game
 
 public class GameDB {
 
@@ -11,29 +12,19 @@ public class GameDB {
     private String gameID;
     private ArrayList<String> gameMembersName;
     private ArrayList<String> gameMembersUid;
-    private ArrayList<Integer> expectedResponses;
-    private String gameStatus;
     private int playerTurn;
     private String gameState;   // begin, start, play, saved, finished
-    private String gameHistoryRef;
 
     public GameDB() {
         this.setGameName("NaN");
         this.setGameID("NaN");
         this.setGameState("begin");
-        this.setGameStatus("free");
         this.setPlayerTurn(-1);
-        this.setGameHistoryRef("NaN");
-        this.expectedResponses = new ArrayList<>();
         this.gameMembersUid = new ArrayList<>();
         this.gameMembersName = new ArrayList<>();
     }
 
     // non getter setter methods
-    //FIXME: seems to be listing as follows:
-    //2020-06-10 20:29:24.189 19734-19734/com.example.mahjong E/1: 0 names ADDED NAME
-    //2020-06-10 20:29:24.189 19734-19734/com.example.mahjong E/1: 1 names ADDED NAME
-    //2020-06-10 20:29:24.189 19734-19734/com.example.mahjong E/1: 2 Aidan Smyth ADDED NAME
     public String listAllPlayer() {
         if (this.gameMembersName.size() <= 1) {
             return "No members";
@@ -90,21 +81,11 @@ public class GameDB {
     public void setGameID(String id) { this.gameID = id; }
     public String getGameID() { return this.gameID; }
 
-    public void setGameStatus(String game_status) { this.gameStatus = game_status; }
-    public String getGameStatus() { return this.gameStatus; }
-
     public void setGameState(String game_state) { this.gameState = game_state; }
     public String getGameState() { return this.gameState; }
 
-    public void setExpectedResponses(ArrayList<Integer> exp) { this.expectedResponses.addAll(exp); }
-    public ArrayList<Integer> getExpectedResponses() { return this.expectedResponses; }
-
     public void setPlayerTurn(Integer player_turn) { this.playerTurn = player_turn; }
     public Integer getPlayerTurn() { return this.playerTurn; }
-
-    public void setGameHistoryRef(String hist) { this.gameHistoryRef = hist; }
-    public String getGameHistoryRef() { return this.gameHistoryRef; }
-
 }
 
 

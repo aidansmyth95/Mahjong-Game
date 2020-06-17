@@ -19,27 +19,31 @@ public class Bonus extends Tile {
     private final static int BAMBOO = 4;
 
     Bonus(int bonus_type, int bonus_rank, int bonus_ID) {
-
         super("bonus", bonus_ID, bonus_rank, bonus_type);
-
         // assert valid
         isValid(bonus_type, bonus_rank, bonus_ID);
-
-        super.descriptor = describeBonus();
-
+        super.setDescriptor(describeBonus());
+        super.setChildClass("Bonus");
     }
 
+    Bonus() {
+        super();
+        super.setChildClass("Bonus");
+    }
 
-    int getRank()
+    public int getRank() { return super.getRank(); }
+    public int getType()
     {
-        return super.rank;
+        return super.getType();
     }
-
-
-    int getType()
-    {
-        return super.type;
-    }
+    public int getID() { return super.getID(); }
+    public int getHidden() { return super.getHidden(); }
+    public String getDescriptor() { return super.getDescriptor(); }
+    public void setRank(int rank) { super.setRank(rank); }
+    public void setType(int type) { super.setType(type); }
+    public void setID(int id) { super.setID(id); }
+    public void setHidden(int hidden) { super.setHidden(hidden); }
+    public void setDescriptor(String descriptor) { super.setDescriptor(descriptor); }
 
     //TODO: boolean never used? Why?
     private static boolean isValid(int type, int rank, int ID) {
@@ -65,11 +69,11 @@ public class Bonus extends Tile {
         String rank = "";
         String total;
 
-        switch(super.type) {
+        switch(super.getType()) {
             case SEASONS:
                 type = "Seasons";
                 // another switch here
-                switch(super.rank) {
+                switch(super.getRank()) {
                     case SPRING:
                         rank = "Spring";
                         break;
@@ -83,14 +87,14 @@ public class Bonus extends Tile {
                         rank = "Winter";
                         break;
                     default:
-                        total = "Warning, " + super.rank + " rank of bonus does not exist!";
+                        total = "Warning, " + super.getRank() + " rank of bonus does not exist!";
                         System.out.println(total);
                 }
                 break;
             case FLOWERS:
                 type = "Flowers";
                 // another switch
-                switch(this.rank) {
+                switch(this.getRank()) {
                     case PLUM:
                         rank = "Plum";
                         break;
@@ -104,12 +108,12 @@ public class Bonus extends Tile {
                         rank = "Bamboo";
                         break;
                     default:
-                        total = "Warning, " + super.rank + " rank of bonus does not exist!";
+                        total = "Warning, " + super.getRank() + " rank of bonus does not exist!";
                         System.out.println(total);
                 }
                 break;
             default:
-                total = "Warning, this type of bonus does not exist!";
+                total = "Warning, " + super.getType() + " type of bonus does not exist!";
                 System.out.println(total);
         }
 

@@ -11,6 +11,16 @@ import java.util.ArrayList;
 
 public final class FirebaseRepository {
 
+    /**********************************************
+     Get Uid
+     **********************************************/
+    public static String getCurrentUserUid() {
+        FirebaseUser userAuth = FirebaseAuth.getInstance().getCurrentUser();
+        if (userAuth != null) {
+            return userAuth.getUid();
+        }
+        return "";
+    }
 
     /**********************************************
             WRITING TO FIREBASE USERS
@@ -129,59 +139,8 @@ public final class FirebaseRepository {
         return dataSnapshot.getValue(GameDB.class);
     }
 
-
-    /*
-    DEPRECATED
-     */
-    /*
-        public static String getCurrentUserUid() {
-        FirebaseUser userAuth = FirebaseAuth.getInstance().getCurrentUser();
-        if (userAuth != null) {
-            return userAuth.getUid();
-        }
-        return "";
+    // write an object of any kind to test
+    public static void testWriteObjectFirebase(Object o) {
+        FirebaseDatabase.getInstance().getReference("tiles").child("a").setValue(o);
     }
-
-    // get a User from list of Users we are listening to
-    public static User getUserFromUid(ArrayList<User> users, String uid) {
-        for (int i=0; i<users.size(); i++) {
-            if (uid.equals(users.get(i).get_uid())) {
-                return users.get(i);
-            }
-        }
-        return new User();
-    }
-
-    public static void removeUserFromFirebase(ArrayList<User> users, DataSnapshot dataSnapshot) {
-        User changed_user = dataSnapshot.getValue(User.class);
-        for (int i=0; i<users.size(); i++) {
-            assert changed_user != null;
-            if (users.get(i).get_uid().equals(changed_user.get_uid())) {
-                users.remove(i);
-                return;
-            }
-        }
-    }
-
-        // update Users list with a new User added
-    // update list of user info
-    public static void addNewUserFromFirebase(ArrayList<User> users, DataSnapshot dataSnapshot) {
-        users.add(dataSnapshot.getValue(User.class));
-        Log.e(dataSnapshot.getKey(), "New user added");
-    }
-
-    // update Users list with a changed User
-    public static void changeUserFromFirebase(ArrayList<User> users, DataSnapshot dataSnapshot) {
-        User changed_user = dataSnapshot.getValue(User.class);
-        for (int i=0; i<users.size(); i++) {
-            assert changed_user != null;
-            if (users.get(i).get_uid().equals(changed_user.get_uid())) {
-                users.remove(i);
-                users.add(changed_user);
-                break;
-            }
-        }
-    }
-
-     */
 }

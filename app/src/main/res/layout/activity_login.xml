@@ -7,25 +7,24 @@
     android:background="@drawable/unnamed"
     tools:context=".RegisterActivity">
 
+
     <Button
         android:id="@+id/login_button"
-        android:layout_width="128dp"
-        android:layout_height="92dp"
-        android:layout_marginEnd="140dp"
-        android:layout_marginRight="140dp"
-        android:layout_marginBottom="192dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:text="@string/log_in"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintVertical_bias="0.568" />
 
     <EditText
         android:id="@+id/emailText2"
-        android:layout_width="254dp"
-        android:layout_height="50dp"
-        android:layout_marginEnd="76dp"
-        android:layout_marginRight="76dp"
-        android:layout_marginBottom="432dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:autofillHints=""
         android:background="@color/common_google_signin_btn_text_dark_default"
         android:ems="10"
         android:gravity="center"
@@ -33,15 +32,14 @@
         android:inputType="textEmailAddress"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:autofillHints="" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.32" />
 
     <EditText
         android:id="@+id/pwdText2"
-        android:layout_width="254dp"
-        android:layout_height="50dp"
-        android:layout_marginEnd="76dp"
-        android:layout_marginRight="76dp"
-        android:layout_marginBottom="340dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:autofillHints=""
         android:background="@color/common_google_signin_btn_text_dark_default"
         android:ems="10"
@@ -49,6 +47,9 @@
         android:hint="@string/your_password"
         android:inputType="textEmailAddress"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.42" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

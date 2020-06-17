@@ -137,27 +137,27 @@ public class SinglePlayerActivity extends AppCompatActivity {
         // start Game
         game = new Game(n_players);
 
-        sendButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                // check user input for all players
-                for (int i=0; i<n_players; i++) {
-                    // if there is text, use it as player_input
-                    if (!TextUtils.isEmpty(userInputText[i].getText().toString())) {
-                        // copy and clear user input, sending it to game
-                        game.player_input[i] = userInputText[i].getText().toString();
-                        userInputText[i].setText("");
-                        // remove flags expecting user input and disable button
-                        game.request_response[i] = false;
-                        sendButton.setEnabled(false);
-                    } else {
-                        // print an empty input text warning in outputText if we expect user input
-                        if (game.request_response[i]) {
-                            outputText.setText(R.string.empty_edit_text);
-                        }
-                    }
-                }
-            }
-        });
+//        sendButton.setOnClickListener(new View.OnClickListener() {
+//            public void onClick(View v) {
+//                // check user input for all players
+//                for (int i=0; i<n_players; i++) {
+//                    // if there is text, use it as player_input
+//                    if (!TextUtils.isEmpty(userInputText[i].getText().toString())) {
+//                        // copy and clear user input, sending it to game
+//                        game.getplayerInput.set(i, userInputText[i].getText().toString());
+//                        userInputText[i].setText("");
+//                        // remove flags expecting user input and disable button
+//                        game.requestResponse[i] = false;
+//                        sendButton.setEnabled(false);
+//                    } else {
+//                        // print an empty input text warning in outputText if we expect user input
+//                        if (game.requestResponse[i]) {
+//                            outputText.setText(R.string.empty_edit_text);
+//                        }
+//                    }
+//                }
+//            }
+//        });
     }
 
 
@@ -173,7 +173,7 @@ public class SinglePlayerActivity extends AppCompatActivity {
 
                 for (int i=0; i<n_players; i++) {
 
-                    if (game.request_response[i]) {
+                    if (game.getRequestResponse().get(i)) {
 
                         // hidden hand
                         ArrayList<String> hidden_tile_paths = game.descriptorToDrawablePath(game.getHiddenDescriptors());
@@ -209,14 +209,14 @@ public class SinglePlayerActivity extends AppCompatActivity {
                     }
                 }
 
-                if (game.update_discarded_tile_image) {
+                if (game.updateDiscardedTileImage) {
                     // get descriptor & its resource ID
                     //TODO: use hash map?
                     resourceId = getResources().getIdentifier(game.getDiscardedDescriptor(), "drawable", "com.example.mahjong");
                     // update discarded tile image
                     discardedImage.setImageResource(resourceId);
                     discardedImage.setVisibility(View.VISIBLE);
-                    game.update_discarded_tile_image = false;
+                    game.updateDiscardedTileImage = false;
                 }
                 //TODO: an else making it invisinle again?
 

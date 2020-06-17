@@ -51,7 +51,7 @@ public class GameSelectActivity extends AppCompatActivity implements LifecycleOb
     private EditText new_game;
 
     private ArrayList<GameDB> games = new ArrayList<>();
-    private int selected_game = -1;
+    private String selected_game = "";
 
     FirebaseUser userRef = FirebaseAuth.getInstance().getCurrentUser();
     private User curr_user = new User();
@@ -66,14 +66,13 @@ public class GameSelectActivity extends AppCompatActivity implements LifecycleOb
         Button create_button = (Button) findViewById(R.id.create_game);
         new_game = (EditText) findViewById(R.id.new_game_text);
 
-        initializeUI();
+        initializeUI(false);
 
         create_button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 if (curr_user.userExists()) {
                     if (create_new_game()) {
                         Intent intent = new Intent(GameSelectActivity.this, GameWaitingRoomActivity.class);
-                        intent.putExtra("User", curr_user);
                         startActivity(intent);
                     }
                 }
@@ -86,7 +85,6 @@ public class GameSelectActivity extends AppCompatActivity implements LifecycleOb
                 if (curr_user.userExists()) {
                     if (join_new_game()) {
                         Intent intent = new Intent(GameSelectActivity.this, GameWaitingRoomActivity.class);
-                        intent.putExtra("User", curr_user);
                         startActivity(intent);
                     }
                 }
@@ -101,7 +99,7 @@ public class GameSelectActivity extends AppCompatActivity implements LifecycleOb
 
 
     // update dynamically created table of games and users
-    private void initializeUI() {
+    private void initializeUI(boolean uncheck_others) {
         //TODO: fixed header
 
         // add header
@@ -112,58 +110,52 @@ public class GameSelectActivity extends AppCompatActivity implements LifecycleOb
         tv0.setTextColor(Color.BLACK);
         row0.addView(tv0);
         TextView tv1 = new TextView(this);
-        tv1.setText(R.string.game_members);
+        tv1.setText(R.string.status);
         tv1.setTextColor(Color.BLACK);
         row0.addView(tv1);
         TextView tv2 = new TextView(this);
-        tv2.setText(R.string.status);
+        tv2.setText(R.string.game_members);
         tv2.setTextColor(Color.BLACK);
         row0.addView(tv2);
         row0.setBackgroundResource(R.drawable.border);
         tableLayout.addView(row0);
         // add data for each game
         for (int i = 0; i < games.size(); i++) {
-            GameDB game_tmp = games.get(i);
+            final GameDB game_tmp = games.get(i);
             // check box
-            final int chb_index = i*3;
-            final int finalI = i;
             TableRow row = new TableRow(this);
             CheckBox chb = new CheckBox(this);
-            chb.setTag(chb_index);
             chb.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     if(((CompoundButton) view).isChecked()){
-                        selected_game = finalI;
+                        selected_game = game_tmp.getGameID();
+                        initializeUI(true);
                     } else {
-                        selected_game = -1;
+                        selected_game = "";
                     }
                 }
             });
             chb.setText(i + ": " + game_tmp.getGameName());
             chb.setTextColor(Color.BLUE);
             chb.setGravity(Gravity.CENTER);
-            if (selected_game == i) {
+            if (selected_game.equals(game_tmp.getGameID())) {
                 chb.setChecked(true);
             } else {
                 chb.setChecked(false);
             }
             row.addView(chb);
             // text views
-            TextView t1v = new TextView(this);
-            final int t1v_index = i*3 + 1;
-            t1v.setTag(t1v_index);
-            t1v.setText(game_tmp.listAllPlayer());
-            t1v.setTextColor(Color.BLUE);
-            t1v.setGravity(Gravity.CENTER);
-            row.addView(t1v);
-            TextView t2v = new TextView(this);
-            final int t2v_index = i*3 + 2;
-            t1v.setTag(t2v_index);
-            t2v.setText(R.string.paused);
-            t2v.setTextColor(Color.BLUE);
-            t2v.setGravity(Gravity.CENTER);
-            row.addView(t2v);
+            TextView t1n = new TextView(this);
+            t1n.setText(R.string.paused);
+            t1n.setTextColor(Color.BLUE);
+            t1n.setGravity(Gravity.CENTER);
+            row.addView(t1n);
+            TextView t2n = new TextView(this);
+            t2n.setText(game_tmp.listAllPlayer());
+            t2n.setTextColor(Color.BLUE);
+            t2n.setGravity(Gravity.CENTER);
+            row.addView(t2n);
             row.setBackgroundResource(R.drawable.border);
             tableLayout.addView(row);
         }
@@ -200,7 +192,6 @@ public class GameSelectActivity extends AppCompatActivity implements LifecycleOb
             game_info.setGameMembersUid(uid_list);
             game_info.setGameID(game_ID);
             game_info.setGameState("begin");
-            game_info.setExpectedResponses(resp);
             // update games.
             updateGameDBFirebase(game_info);
             // This is now last game user played
@@ -217,12 +208,18 @@ public class GameSelectActivity extends AppCompatActivity implements LifecycleOb
     // join an existing game
     private boolean join_new_game() {
         // check selected checkbox and find corresponding GameID in that row
-        if (selected_game == -1) {
+        if (selected_game.equals("")) {
             Toast.makeText(getApplicationContext(), "Please select a game to join first.", Toast.LENGTH_LONG).show();
             return false;
         } else {
-            // get game ID using the selected reference
-            GameDB gameSelected = games.get(selected_game);
+            // get game using gameID
+            GameDB gameSelected = new GameDB();
+            for (int i=0; i<games.size(); i++) {
+                gameSelected = games.get(i);
+                if (gameSelected.getGameID().equals(selected_game)) {
+                    break;
+                }
+            }
             // add user details to game DB members that require it
             FirebaseUser userAuth = FirebaseAuth.getInstance().getCurrentUser();
             if (userAuth == null) {
@@ -274,21 +271,21 @@ public class GameSelectActivity extends AppCompatActivity implements LifecycleOb
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, String s) {
                 Log.e(dataSnapshot.getKey(),"GAME ADDED ");
                 addNewGameDBFromFirebase(games, dataSnapshot);
-                initializeUI();
+                initializeUI(false);
             }
 
             @Override
             public void onChildChanged(@NonNull DataSnapshot dataSnapshot, String s) {
                 Log.e(dataSnapshot.getKey(),dataSnapshot.getChildrenCount() + "ITEMS IN GAME CHANGED ");
                 changeGameDBFromFirebase(games, dataSnapshot);
-                initializeUI();
+                initializeUI(false);
             }
 
             @Override
             public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
                 Log.e(dataSnapshot.getKey(),"GAME REMOVED ");
                 removeGameDBFromFirebase(games, dataSnapshot);
-                initializeUI();
+                initializeUI(false);
             }
 
             @Override
@@ -296,7 +293,7 @@ public class GameSelectActivity extends AppCompatActivity implements LifecycleOb
             public void onChildMoved(@NonNull DataSnapshot dataSnapshot, String s) {
                 Log.e(dataSnapshot.getKey(),dataSnapshot.getChildrenCount() + "GAME MOVED ");
                 removeGameDBFromFirebase(games, dataSnapshot);
-                initializeUI();
+                initializeUI(false);
             }
 
             @Override

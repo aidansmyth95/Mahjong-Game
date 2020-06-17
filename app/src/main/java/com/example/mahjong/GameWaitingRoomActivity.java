@@ -23,6 +23,7 @@ import mahjong_package.User;
 
 import static mahjong_package.FirebaseRepository.addCurrGameDetailsFirebase;
 import static mahjong_package.FirebaseRepository.addCurrUserDetailsFirebase;
+import static mahjong_package.FirebaseRepository.getCurrentUserUid;
 import static mahjong_package.FirebaseRepository.removeInactiveUserFromWaitingRoomFirebase;
 import static mahjong_package.FirebaseRepository.startGameFirebase;
 import static mahjong_package.FirebaseRepository.userInactiveFirebaseUser;
@@ -62,11 +63,7 @@ public class GameWaitingRoomActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game_waiting_room);
 
-        // To retrieve object in second Activity
-        curr_user = (User) getIntent().getSerializableExtra("User");
-
         // set Firebase database listeners
-        setCurrMulitplayerGameListener();
         setCurrUserListener();
 
         game_table_view = (TableLayout) findViewById(R.id.single_game_table_layout);
@@ -74,15 +71,17 @@ public class GameWaitingRoomActivity extends AppCompatActivity {
 
         start_game.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                // move to playing game
-                startGame(true);
+                if (curr_user.userExists()) {
+                    // move to playing game
+                    startGame(true);
+                }
             }
         });
     }
 
     private void initializeUI() {
 
-        //TODO: here we would check game status and see if somebody else started the game
+        // here we would check game status and see if somebody else started the game
         if (curr_game.getGameState().equals("start")) {
             startGame(false);
         }
@@ -121,7 +120,6 @@ public class GameWaitingRoomActivity extends AppCompatActivity {
     }
 
     private void startGame(boolean initiator) {
-        //TODO: do this for all users, not just those that clicked! Otherwise they will be stuck in waiting room!
         userPlayingGameFirebase();
         boolean proceed = false;
 
@@ -147,13 +145,15 @@ public class GameWaitingRoomActivity extends AppCompatActivity {
     // add a listener for users database that updates dynamic table with users
     private void setCurrUserListener() {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference usersRef = database.getReference().child("users").child(curr_user.get_uid());
+        DatabaseReference usersRef = database.getReference().child("users").child(getCurrentUserUid());
         usersRef.addValueEventListener(new ValueEventListener() {
 
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Log.e(dataSnapshot.getKey(),dataSnapshot.getChildrenCount() + " CHILD NODES CHANGED FOR CURRENT USER");
                 curr_user = addCurrUserDetailsFirebase(dataSnapshot);
+                // now we have last Game ID, so set current game listener
+                setCurrMulitplayerGameListener();
             }
 
             @Override
