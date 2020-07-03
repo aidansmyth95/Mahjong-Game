@@ -1,27 +1,66 @@
 package mahjong_package;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.InputMismatchException;
 
 public class Player {
 
-	// player's hand
-	private Hand hand = new Hand();
-
+	private String playerUname;
+	private String playerUid;
+	private Boolean pongAvailable; 		// Users ability to pong
+	private Boolean kongAvailable; 		// Users ability to kong
+	private Boolean mahjongAvailable; 	// Users ability to mahjong
+	private Boolean requestResponse; 	// Users chance to respond
+	private String playerResponse;	// Users responses
+	private Hand hand = new Hand();		// player's hand
 	private ArrayList<int[]> possiblePongs = new ArrayList<>();
 	private ArrayList<int[]> possibleKongs = new ArrayList<>();
-
 	private int chosenIdx;
 	private int playerIdx;
 
-	public Player() {
+	//TODO: use these in constructors
+	public String getPlayerUid() { return this.playerUid; }
+	public void setPlayerUid(String uid) { this.playerUid = uid; }
+	public String getPlayerUname() { return this.playerUname; }
+	public void setPlayerUname(String uname) { this.playerUname = uname; }
+	public Boolean getPongAvailable() { return this.pongAvailable; }
+	public void setPongAvailable(boolean b) { this.pongAvailable = b; }
+	public void setKongAvailable(boolean b) { this.kongAvailable = b; }
+	public Boolean getKongAvailable() { return this.kongAvailable; }
+	public void setMahjongAvailable(boolean b) { this.mahjongAvailable = b; }
+	public Boolean getMahjongAvailable() { return this.mahjongAvailable; }
+	public Boolean getRequestResponse() { return this.requestResponse; }
+	public void setRequestResponse(boolean b) { this.requestResponse = b; }
+	public void setPlayerResponse(String s) { this.playerResponse = s; }
+	public String getPlayerResponse() { return this.playerResponse; }
+	public Hand getHand() { return this.hand; }
+	public void setHand(Hand hand) { this.hand = hand; }
+	public ArrayList<int[]> getPossiblePongs() { return this.possiblePongs; }
+	public void setPossiblePongs(ArrayList<int[]> p) { this.possiblePongs = p; }
+	public ArrayList<int[]> getPossibleKongs() { return this.possibleKongs; }
+	public void setPossibleKongs(ArrayList<int[]> p) { this.possibleKongs = p; }
+	public Integer getChosenIdx() { return this.chosenIdx; }
+	public void setChosenIdx(int c) { this.chosenIdx = c; }
+	public Integer getPlayerIdx() { return this.playerIdx; }
+	public void setPlayerIdx(int p) { this.playerIdx = p; }
+
+	private Player() {
 		this.playerIdx = -1;
 		this.chosenIdx = -1;
 		this.clearHand();
+		this.playerUname = "";
+		this.playerUid = "";
+		this.pongAvailable = false;
+		this.kongAvailable = false;
+		this.mahjongAvailable = false;
+		this.requestResponse = false;
+		this.playerResponse = "";
 	}
 
 	// constructor
-	Player(int player_ID)
+	Player(String uname, String uid, int player_ID, Tile[] start_tiles)
     {
 		this();
 		// assert ID is valid and assign
@@ -29,19 +68,11 @@ public class Player {
 			System.out.print("Error: Player ID %" + player_ID + "is not valid\n");
         	System.exit(0);
         }
+		this.playerUname = uname;
+		this.playerUid = uid;
         this.playerIdx = player_ID;
-    }
-
-    public void setHand(Hand hand) { this.hand = hand; }
-    public void setPossiblePongs(ArrayList<int[]> p) { this.possiblePongs = p; }
-	public void setPossibleKongs(ArrayList<int[]> p) { this.possibleKongs = p; }
-	public void setChosenIdx(int c) { this.chosenIdx = c; }
-	public void setPlayerIdxIdx(int p) { this.playerIdx = p; }
-	public Hand getHand() { return this.hand; }
-	public ArrayList<int[]> getPossiblePongs() { return this.possiblePongs; }
-	public ArrayList<int[]> getPossibleKongs() { return this.possibleKongs; }
-	public Integer getChosenIdx() { return this.chosenIdx; }
-	public Integer getPlayerIdxIdx() { return this.playerIdx; }
+		this.createHand(start_tiles);
+	}
 
 	// clear the hand
 	void clearHand() { this.hand.clearHand(); }
@@ -74,13 +105,12 @@ public class Player {
 
 	// discard tile from hand
 	Tile discardTile(String player_input) {
-		System.out.println("Discard tile with index: ");
 		int discard_idx = getUserDiscardIdx(player_input);
 		return this.hand.discardTile(discard_idx);
 	}
 
 	// Parse User input for discard idx
-	private int getUserDiscardIdx(String player_input) {
+	public int getUserDiscardIdx(String player_input) {
 		int discard_idx = -1;
 		// try parse for a valid int
 		try {
@@ -102,6 +132,7 @@ public class Player {
 	// check hand for Pong
 	// check for Pong given a potential tile - Three-of-a-kind or a sequence of three.
 	boolean checkHandPong(Tile t) {
+		this.possiblePongs.clear();
 		ArrayList<int[]> pongs;
 		pongs = this.hand.checkPong(t);
 		// if no Pong arrays in this ArrayList (size 0), return false
@@ -120,6 +151,7 @@ public class Player {
 
 	// check hand for kong, update options for kong, return true if chance for kong
 	boolean checkHandKong(Tile t) {
+		this.possibleKongs.clear();
 		ArrayList<int[]> kongs;
 		kongs = this.hand.checkKong(t);
 		// if no Pong arrays in this ArrayList (size 0), return false

@@ -11,5 +11,6 @@ public enum GameState {
     DRAWING_TILE,
     DISCARD_OPTIONS,
     DISCARDING_TILE,
-    GAME_OVER
+    GAME_OVER,
+    DEBUG_TESTING
 }

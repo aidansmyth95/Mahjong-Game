@@ -5,7 +5,6 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 
 import android.os.Bundle;
 import android.os.Handler;
-import android.text.TextUtils;
 import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.widget.Button;
@@ -102,10 +101,9 @@ public class SinglePlayerActivity extends AppCompatActivity {
 
 
         // tests before Game
-        game = new Game(n_players);
-        boolean clear_output = true;
+        game = new Game();
+        boolean clear_output;
         clear_output = game.test_true_pong();
-
         if (clear_output) {
             clear_output = game.test_false_pong();
         }
@@ -135,7 +133,12 @@ public class SinglePlayerActivity extends AppCompatActivity {
         }
 
         // start Game
-        game = new Game(n_players);
+        game = new Game();
+        // add dummy players
+        this.game.addPlayer("player1", "player1");
+        this.game.addPlayer("player2", "player2");
+        this.game.addPlayer("player3", "player3");
+        this.game.addPlayer("player4", "player4");
 
 //        sendButton.setOnClickListener(new View.OnClickListener() {
 //            public void onClick(View v) {
@@ -173,7 +176,7 @@ public class SinglePlayerActivity extends AppCompatActivity {
 
                 for (int i=0; i<n_players; i++) {
 
-                    if (game.getRequestResponse().get(i)) {
+                    if (game.getRequestResponse(i)) {
 
                         // hidden hand
                         ArrayList<String> hidden_tile_paths = game.descriptorToDrawablePath(game.getHiddenDescriptors());
@@ -201,7 +204,7 @@ public class SinglePlayerActivity extends AppCompatActivity {
                             hand_tiles[j].setVisibility(View.INVISIBLE);
                         }
 
-                        outputTurn.setText(new String("Player " + game.getTurn() + " turn."));
+                        outputTurn.setText(new String("Player " + game.getPlayerTurn() + " turn."));
                         outputTurn.setVisibility(View.VISIBLE);
                         outputHand.setText(new String("Player " + i + " hand contents."));
                         outputHand.setVisibility(View.VISIBLE);

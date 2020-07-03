@@ -19,11 +19,10 @@ public class Bonus extends Tile {
     private final static int BAMBOO = 4;
 
     Bonus(int bonus_type, int bonus_rank, int bonus_ID) {
-        super("bonus", bonus_ID, bonus_rank, bonus_type);
+        super("Bonus", bonus_type, bonus_rank, bonus_ID);
         // assert valid
         isValid(bonus_type, bonus_rank, bonus_ID);
         super.setDescriptor(describeBonus());
-        super.setChildClass("Bonus");
     }
 
     Bonus() {
@@ -37,12 +36,10 @@ public class Bonus extends Tile {
         return super.getType();
     }
     public int getID() { return super.getID(); }
-    public int getHidden() { return super.getHidden(); }
     public String getDescriptor() { return super.getDescriptor(); }
     public void setRank(int rank) { super.setRank(rank); }
     public void setType(int type) { super.setType(type); }
     public void setID(int id) { super.setID(id); }
-    public void setHidden(int hidden) { super.setHidden(hidden); }
     public void setDescriptor(String descriptor) { super.setDescriptor(descriptor); }
 
     //TODO: boolean never used? Why?
@@ -94,7 +91,7 @@ public class Bonus extends Tile {
             case FLOWERS:
                 type = "Flowers";
                 // another switch
-                switch(this.getRank()) {
+                switch(super.getRank()) {
                     case PLUM:
                         rank = "Plum";
                         break;

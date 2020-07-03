@@ -1,5 +1,7 @@
 package mahjong_package;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -54,6 +56,7 @@ public class Tiles {
         for (int type=0; type<3; type++) {      // 3 types
             for (int rank=0; rank<9; rank++) {  // 9 ranks
                 for (int ID=0; ID<4; ID++) {    // 4 duplicates
+                    Log.e("DEBUG", "Game debug type " + type);
                     hiddenTiles.add(new Suits(type+1, rank+1, ID));
                     i++;
                 }
@@ -105,25 +108,26 @@ public class Tiles {
 	// reveal tile
 	Tile revealTile() {
 
+        Tile t = new Tile();
+
         if (this.hiddenTiles.isEmpty()) {
             System.out.println("\nNo hidden tiles in deck left to uncover. Please restart the game :)");
-            System.exit(0);
+            //System.exit(0);
+            return t;
         }
 
-        Tile t = this.hiddenTiles.remove(0);
+        t = this.hiddenTiles.remove(0);
 
         // check this is actually a legitimate tile
-        if (t instanceof Suits || t instanceof Honors || t instanceof Bonus) {
-            // all is good
-        } else {
+        if (!t.getChildClass().equals("Suits") && !t.getChildClass().equals("Honors") && t.getChildClass().equals("Bonus")) {
             // problem
-            System.out.println("Error: This tile does not exist\n");
-            System.exit(0);
+            System.out.println("Error: This tile does not exist: " + t.getDescriptor());
+            //System.exit(0);
+            return t;
         }
 
         // put revealed tile in ArrayList
         uncoveredTiles.add(t);
-
         return t;
     }
 }

@@ -1,6 +1,8 @@
 package mahjong_package;
 
 
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -14,8 +16,6 @@ public class Hand {
 	private ArrayList<Tile> hiddenHand = new ArrayList<>();
 	private ArrayList<Tile> revealedHand = new ArrayList<>();
 
-	// constructor
-	public Hand() {}
 	public void setMaxHandSize(int n) { }
 	public void setHiddenHand(ArrayList<Tile> hand) { this.hiddenHand = hand; }
 	public void setRevealedHand(ArrayList<Tile> hand) { this.revealedHand = hand; }
@@ -23,6 +23,8 @@ public class Hand {
 	public ArrayList<Tile> getHiddenHand() { return this.hiddenHand; }
 	public ArrayList<Tile> getRevealedHand() { return this.revealedHand; }
 
+	// constructor
+	Hand() {}
 
 	/*
 	 *  Create a hand of tiles from an array of tiles drawn
@@ -32,9 +34,12 @@ public class Hand {
 		// check size of tiles_drawn[] input is correct
 		if (tiles_drawn.length != this.maxHandSize -1) {
 			// all is not good
-			System.err.println("Unexpected number of tiles in hand created: " + tiles_drawn.length + "\n");
-			System.exit(0);;
+			System.err.println("ERROR: Unexpected number of tiles in hand created: " + tiles_drawn.length + "\n");
+			//TODO: cant do System.exit, so do what instead?
 		}
+
+		// clear hand
+		this.hiddenHand.clear();
 		
 		// copy to hand
 		Collections.addAll(this.hiddenHand, tiles_drawn);
@@ -60,14 +65,14 @@ public class Hand {
 	/*
 	 * Add a tile to the empty space in hand
 	 */
-	void addToHand(Tile tile) {
+	Boolean addToHand(Tile tile) {
 
 		//TODO: a check of revealed til count too?
 
 		// if no free space to place drawn tile
 		if (this.hiddenHand.size() >= this.maxHandSize) {
 			System.out.println("Error: No free space to place drawn tile. Code check required!\n");
-			System.exit(0);
+			return false;
 		}
 		else {
 			// assign tile to free space in idx
@@ -76,6 +81,7 @@ public class Hand {
 
 		// order hand
 		Collections.sort(this.hiddenHand, new TileOrderComparator());
+		return true;
 	}
 	
 	
@@ -194,7 +200,7 @@ public class Hand {
 			pongs.add(match_idx);
 		}
 		
-		if (t instanceof Suits) {
+		if (t.getChildClass().equals("Suits")) {
 			// proceed
 		} else {
 			return pongs;
@@ -209,7 +215,7 @@ public class Hand {
 		int idx = 0;
     	while (tmp_list.size() > 0 && loop_size > 0) {
         	tmp_tile = tmp_list.get(idx);
-        	if (tmp_tile.getType() == t.getType() && tmp_tile instanceof Suits) {
+        	if (tmp_tile.getType() == t.getType() && tmp_tile.getChildClass().equals("Suits")) {
         		// do nothing
 				idx++;
 				//System.out.println(tmp_tile.descriptor);
@@ -298,7 +304,8 @@ public class Hand {
 
 		// list for purpose of counting suits in hand
 		ArrayList<Tile> tmp_list = new ArrayList<>(this.hiddenHand);
-        tmp_list.add(t);
+
+		tmp_list.add(t);
 
 		// number of triples
 		int num_triple = 0;
@@ -310,7 +317,7 @@ public class Hand {
 		int num_seq = 0;
 		
 		// consider revealed tiles - would be 3s and maybe 4s (which count as 3s)
-		num_revealed += this.revealedHand.size() /3;
+		num_revealed += this.revealedHand.size() / 3;
 
 		// for all 3 types of suits
 		// bamboo is type 1, dots is type 2, chars is type 3
@@ -330,14 +337,12 @@ public class Hand {
 				}
 			}
 		}
-
 		//TODO: how do we handle four of a kind in hand?
 
 		// count number of triples for Bonus and Honors
 		for (int n=0; n<2; n++) {
 			bonus_count = this.countBonus(tmp_list, n+1);
 			honors_count = this.countHonors(tmp_list, n+1);
-
 			for (int i=0; i<4; i++) {
 				if (bonus_count[i] == 3) {
 					num_triple++;
@@ -399,17 +404,12 @@ public class Hand {
     	
     	// dots 2, bamboo 1, chars 3
     	int[] ranks = new int[9];
-    	
-    	Suits tmp_s;
-    	
+
     	// for all elements in list, increment respective ranks and types
     	for (Tile tmp : tiles) {
     	    // if Suits
-    		if (tmp instanceof Suits) {
-    			tmp_s = (Suits) tmp;
-    			if (tmp_s.getType() == type) {
-    				ranks[tmp_s.getRank()-1]++;
-    			}
+    		if (tmp.getChildClass().equals("Suits") && tmp.getType() == type) {
+    			ranks[tmp.getRank()-1]++;
     		}
     	}
     	return ranks;
@@ -423,17 +423,12 @@ public class Hand {
 
 		int[] ranks = new int[4];
 
-		Bonus tmp_b;
-
 		// for all elements in list, increment respective ranks and types
 		for (Tile tmp : tiles) {
 			// if Bonus
-			if (tmp instanceof Bonus) {
-				tmp_b = (Bonus) tmp;
-				if (tmp_b.getType() == type) {
-					// seasons = 1
-					ranks[tmp_b.getRank()-1]++;
-				}
+			if (tmp.getChildClass().equals("Bonus") && tmp.getType() == type) {
+				// seasons = 1
+				ranks[tmp.getRank()-1]++;
 			}
 		}
 		return ranks;
@@ -447,17 +442,12 @@ public class Hand {
 
 		int[] ranks = new int[4];
 
-		Honors tmp_h;
-
 		// for all elements in list, increment respective ranks and types
 		for (Tile tmp : tiles) {
 			// if Honors
-			if (tmp instanceof Honors) {
-				tmp_h = (Honors) tmp;
-				if (tmp_h.getType() == type) {
-					// wind = 1, dragon = 2
-					ranks[tmp_h.getRank()-1]++;
-				}
+			if (tmp.getChildClass().equals("Honors") && tmp.getType() == type) {
+				// wind = 1, dragon = 2
+				ranks[tmp.getRank()-1]++;
 			}
 		}
 		return ranks;

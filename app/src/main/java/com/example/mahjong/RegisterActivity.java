@@ -114,16 +114,16 @@ public class RegisterActivity extends AppCompatActivity {
         User user = new User();
         FirebaseUser userAuth = FirebaseAuth.getInstance().getCurrentUser();
         if (userAuth != null) {
-            user.set_uid(userAuth.getUid());
-            user.set_uname(nameText.getText().toString());
-            user.set_provider_id(userAuth.getProviderId());
-            user.set_email(userAuth.getEmail());
-            user.set_email_verified(false);
-            user.set_user_status("inactive");
-            user.set_last_game_id("NaN");
+            user.setUid(userAuth.getUid());
+            user.setUname(nameText.getText().toString());
+            user.setProviderId(userAuth.getProviderId());
+            user.setEmail(userAuth.getEmail());
+            user.setEmailVerified(false);
+            user.setUserStatus("inactive");
+            user.setLastGameId("NaN");
             DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference().child("users");
             // This will NOT work unless you have getters and setters. You can push the Map or the object, all that differs is _ prepended in DB if Object
-            usersRef.child(user.get_uid()).setValue(user);
+            usersRef.child(user.getUid()).setValue(user);
         }
     }
 

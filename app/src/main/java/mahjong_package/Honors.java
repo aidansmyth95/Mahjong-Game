@@ -19,11 +19,10 @@ public class Honors extends Tile {
 
     Honors(int honor_type, int honor_rank, int honor_ID)
     {
-        super("honors", honor_ID, honor_rank, honor_type);
+        super("Honors", honor_type, honor_rank, honor_rank);
         // assert valid
         isValid(honor_type, honor_rank, honor_ID);
         super.setDescriptor(describeHonor());
-        super.setChildClass("Honors");
     }
 
     Honors() {
@@ -37,12 +36,10 @@ public class Honors extends Tile {
         return super.getType();
     }
     public int getID() { return super.getID(); }
-    public int getHidden() { return super.getHidden(); }
     public String getDescriptor() { return super.getDescriptor(); }
     public void setRank(int rank) { super.setRank(rank); }
     public void setType(int type) { super.setType(type); }
     public void setID(int id) { super.setID(id); }
-    public void setHidden(int hidden) { super.setHidden(hidden); }
     public void setDescriptor(String descriptor) { super.setDescriptor(descriptor); }
 
     private static boolean isValid(int type, int rank, int ID) {
@@ -69,7 +66,7 @@ public class Honors extends Tile {
             case WIND:
                 type = "Wind";
                 // another switch here
-                switch(this.getRank()) {
+                switch(super.getRank()) {
                     case NORTH:
                         rank = "North";
                         break;
@@ -90,7 +87,7 @@ public class Honors extends Tile {
             case DRAGON:
                 type = "Dragon";
                 // another switch
-                switch(this.getRank()) {
+                switch(super.getRank()) {
                     case RED:
                         rank = "Red";
                         break;

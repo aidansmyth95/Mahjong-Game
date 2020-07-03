@@ -18,32 +18,35 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import mahjong_package.GameDB;
+import mahjong_package.Game;
 import mahjong_package.User;
 
-import static mahjong_package.FirebaseRepository.addCurrGameDetailsFirebase;
-import static mahjong_package.FirebaseRepository.addCurrUserDetailsFirebase;
+import static mahjong_package.FirebaseRepository.getCurrGameDetailsFirebase;
+import static mahjong_package.FirebaseRepository.getCurrUserDetailsFirebase;
 import static mahjong_package.FirebaseRepository.getCurrentUserUid;
-import static mahjong_package.FirebaseRepository.removeInactiveUserFromWaitingRoomFirebase;
-import static mahjong_package.FirebaseRepository.startGameFirebase;
+import static mahjong_package.FirebaseRepository.startMultiplayerGame;
 import static mahjong_package.FirebaseRepository.userInactiveFirebaseUser;
 import static mahjong_package.FirebaseRepository.userPlayingGameFirebase;
 
 public class GameWaitingRoomActivity extends AppCompatActivity {
     private TableLayout game_table_view;
     private User curr_user = new User();
-    private GameDB curr_game = new GameDB();
+    private Game curr_game = new Game();
 
     private boolean go_back_to_game_select = false;
+    private boolean go_back_activity = true;
 
     @Override
     protected void onPause() {
         super.onPause();
-        // user is inactive - no longer joined in a game
-        userInactiveFirebaseUser();
-        // User is removed from that game.
-        removeInactiveUserFromWaitingRoomFirebase(curr_user, curr_game);
-        this.go_back_to_game_select = true;
+        // if we did not click start game and came here, the user has left the app
+        if (go_back_activity) {
+            // user is inactive - no longer joined in a game
+            userInactiveFirebaseUser();
+            // User is removed from that game.
+            //removeInactiveUserFromWaitingRoomFirebase(curr_user, curr_game);
+            this.go_back_to_game_select = true;
+        }
     }
 
     @Override
@@ -123,10 +126,10 @@ public class GameWaitingRoomActivity extends AppCompatActivity {
         userPlayingGameFirebase();
         boolean proceed = false;
 
-        // get last_game_id of user and update GameDB to be playing - if initiator
+        // get last_game_id of user and update Game to be playing - if initiator
         if (initiator) {
-            String game_id = curr_user.get_last_game_id();
-            startGameFirebase(game_id);
+            String game_id = curr_user.getLastGameId();
+            startMultiplayerGame(game_id);
             proceed = true;
         } else {
             // check if game has been started
@@ -136,7 +139,9 @@ public class GameWaitingRoomActivity extends AppCompatActivity {
         }
 
         if (proceed) {
-            // in GameDB listener, if change, user's last_game_idx is updated and intent is moved (no need to update Game)
+            // do not delete user from game as we move to next intent
+            go_back_activity = false;
+            // in Game listener, if change, user's last_game_idx is updated and intent is moved (no need to update Game)
             Intent intent = new Intent(GameWaitingRoomActivity.this, MultiplayerActivity.class);
             startActivity(intent);
         }
@@ -151,7 +156,7 @@ public class GameWaitingRoomActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Log.e(dataSnapshot.getKey(),dataSnapshot.getChildrenCount() + " CHILD NODES CHANGED FOR CURRENT USER");
-                curr_user = addCurrUserDetailsFirebase(dataSnapshot);
+                curr_user = getCurrUserDetailsFirebase(dataSnapshot);
                 // now we have last Game ID, so set current game listener
                 setCurrMulitplayerGameListener();
             }
@@ -164,13 +169,13 @@ public class GameWaitingRoomActivity extends AppCompatActivity {
     // add a listener for multiplayer games database that updates dynamic table with users
     private void setCurrMulitplayerGameListener() {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference gameRef = database.getReference().child("multiplayer_games").child(curr_user.get_last_game_id());
+        DatabaseReference gameRef = database.getReference().child("multiplayer_games").child(curr_user.getLastGameId());
         gameRef.addValueEventListener(new ValueEventListener() {
 
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Log.e(dataSnapshot.getKey(),dataSnapshot.getChildrenCount() + " CHILD NODES CHANGED FOR CURRENT GAME");
-                curr_game = addCurrGameDetailsFirebase(dataSnapshot);
+                curr_game = getCurrGameDetailsFirebase(dataSnapshot);
                 initializeUI();
             }
 

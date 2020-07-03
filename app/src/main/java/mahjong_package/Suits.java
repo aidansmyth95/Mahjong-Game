@@ -1,6 +1,8 @@
 package mahjong_package;
 
 
+import android.util.Log;
+
 public class Suits extends Tile {
 
     // Type of suits
@@ -20,16 +22,15 @@ public class Suits extends Tile {
     private final static int NINE = 9;
 
     Suits(int suit_type, int suit_rank, int suit_ID) {
-        super("suits", suit_ID, suit_rank, suit_type);
+        super("Suits", suit_type, suit_rank, suit_ID);
         // assert validity
         isValid(suit_type, suit_rank, suit_ID);
         super.setDescriptor(describeSuit());
-        super.setChildClass("Suit");
     }
 
     public Suits() {
         super();
-        super.setChildClass("Suit");
+        super.setChildClass("Suits");
     }
 
     public int getRank() { return super.getRank(); }
@@ -38,12 +39,10 @@ public class Suits extends Tile {
         return super.getType();
     }
     public int getID() { return super.getID(); }
-    public int getHidden() { return super.getHidden(); }
     public String getDescriptor() { return super.getDescriptor(); }
     public void setRank(int rank) { super.setRank(rank); }
     public void setType(int type) { super.setType(type); }
     public void setID(int id) { super.setID(id); }
-    public void setHidden(int hidden) { super.setHidden(hidden); }
     public void setDescriptor(String descriptor) { super.setDescriptor(descriptor); }
 
     private static boolean isValid(int type, int rank, int ID) {
