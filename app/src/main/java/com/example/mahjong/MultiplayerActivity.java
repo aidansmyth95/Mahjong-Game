@@ -1,5 +1,6 @@
 package com.example.mahjong;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.TextUtils;
@@ -27,17 +28,19 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 
 import mahjong_package.Game;
-import mahjong_package.GameState;
+import mahjong_package.GameStatus;
 import mahjong_package.User;
 
 import static mahjong_package.FirebaseRepository.getCurrGameDetailsFirebase;
 import static mahjong_package.FirebaseRepository.getCurrUserDetailsFirebase;
 import static mahjong_package.FirebaseRepository.getCurrentUserUid;
+import static mahjong_package.FirebaseRepository.updateMultiplayerGame;
 
 
 public class MultiplayerActivity extends AppCompatActivity {
 
-    // Firebase listeners for User and Game
+    private final int nTotalTiles = 15;
+    private final long gameDelay = 500;
     private Game currGame = new Game();
     private User currUser = new User();
     private int playerIdx;
@@ -47,22 +50,35 @@ public class MultiplayerActivity extends AppCompatActivity {
     private TextView outputText;
     private TextView outputTurn;
     private ImageView discardedImage;
-    private final int nTotalTiles = 15;
     private ImageView[] handTiles = new ImageView[15];
     Handler gamePlayHandler = new Handler();
     Runnable gamePlayRunnable;
-    private long gameDelay = 500;
 
     @Override
     public void onPause() {
         super.onPause();
         gamePlayHandler.removeCallbacks(gamePlayRunnable);
-        //TODO: update Game status
-        //TODO: in a runnable, all users check for this happening and go back to Game Select where they can join current or new game
+        // update Game status if not already Paused
+        if (currGame.getGameStatus() != GameStatus.PAUSED) {
+            Log.e("Game analysis", "PAUSING GAME ACTIVITY");
+            currGame.setGameStatus(GameStatus.PAUSED);
+            updateMultiplayerGame(currGame);
+        }
     }
 
     @Override
     public void onResume() {
+
+        // check if game has been paused by another user
+        if (passed_tests && currGame.getGameStatus() == GameStatus.PAUSED) {
+            Log.e("Game analysis", "LEAVING GAME ACTIVITY");
+            //return to GameSelect activity
+            Intent intent = new Intent(MultiplayerActivity.this, GameSelectActivity.class);
+            startActivity(intent);
+        }
+
+        Log.e("Game analysis", "RESUMING GAME ACTIVITY");
+
         if (passed_tests) {
             gamePlayHandler.postDelayed(gamePlayRunnable = new Runnable() {
                 @Override
@@ -96,6 +112,7 @@ public class MultiplayerActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_multiplayer);
+        Log.e("Game analysis", "BEGINNING GAME ACTIVITY");
         // set listener on user - and in turn Game
         setCurrUserListener();
         initializeUI();
@@ -104,6 +121,7 @@ public class MultiplayerActivity extends AppCompatActivity {
         redirectGameSystemErr(outputText);
         // test the test vectors before Game
         passed_tests = runAllGameTestVectors();
+        currGame.setGameStatus(GameStatus.ACTIVE);
     }
 
     private void initializeUI() {
@@ -144,6 +162,7 @@ public class MultiplayerActivity extends AppCompatActivity {
                     // remove flags expecting user input and disable button
                     currGame.setRequestResponse(playerIdx, false);
                     sendButton.setEnabled(false);
+                    updateMultiplayerGame(currGame);
                 } else {
                     // print an empty input text warning in outputText if we expect user input
                     if (currGame.getRequestResponse(playerIdx)) {
@@ -208,11 +227,14 @@ public class MultiplayerActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Log.e(dataSnapshot.getKey(),dataSnapshot.getChildrenCount() + " CHILD NODES CHANGED FOR CURRENT GAME");
+
                 currGame = getCurrGameDetailsFirebase(dataSnapshot);
-                playerIdx = currGame.getPlayerIdx(currUser.getUid());
-                Log.e("Response analysis", "PlayerIdx=" + playerIdx);
-                if (passed_tests) {
-                    currGame.playGame();
+                if (currGame.gameExists()) {
+                    playerIdx = currGame.getPlayerIdx(currUser.getUid());
+                    Log.e("Response analysis", "PlayerIdx=" + playerIdx);
+                    if (passed_tests) {
+                        currGame.playGame();
+                    }
                 }
             }
             @Override

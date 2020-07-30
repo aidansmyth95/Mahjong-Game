@@ -1,8 +1,7 @@
 package mahjong_package;
 
-import android.util.Log;
-
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.InputMismatchException;
 
 public class Player {
@@ -15,8 +14,7 @@ public class Player {
 	private Boolean requestResponse; 	// Users chance to respond
 	private String playerResponse;	// Users responses
 	private Hand hand = new Hand();		// player's hand
-	private ArrayList<int[]> possiblePongs = new ArrayList<>();
-	private ArrayList<int[]> possibleKongs = new ArrayList<>();
+	private PossiblePongsKongs ppk = new PossiblePongsKongs();
 	private int chosenIdx;
 	private int playerIdx;
 
@@ -37,10 +35,8 @@ public class Player {
 	public String getPlayerResponse() { return this.playerResponse; }
 	public Hand getHand() { return this.hand; }
 	public void setHand(Hand hand) { this.hand = hand; }
-	public ArrayList<int[]> getPossiblePongs() { return this.possiblePongs; }
-	public void setPossiblePongs(ArrayList<int[]> p) { this.possiblePongs = p; }
-	public ArrayList<int[]> getPossibleKongs() { return this.possibleKongs; }
-	public void setPossibleKongs(ArrayList<int[]> p) { this.possibleKongs = p; }
+	public PossiblePongsKongs getPpk() { return this.ppk; }
+	public void setPpk(PossiblePongsKongs ppk) { this.ppk = ppk; }
 	public Integer getChosenIdx() { return this.chosenIdx; }
 	public void setChosenIdx(int c) { this.chosenIdx = c; }
 	public Integer getPlayerIdx() { return this.playerIdx; }
@@ -132,7 +128,8 @@ public class Player {
 	// check hand for Pong
 	// check for Pong given a potential tile - Three-of-a-kind or a sequence of three.
 	boolean checkHandPong(Tile t) {
-		this.possiblePongs.clear();
+		this.ppk.clearPongs();
+		//this.possiblePongs.clear();
 		ArrayList<int[]> pongs;
 		pongs = this.hand.checkPong(t);
 		// if no Pong arrays in this ArrayList (size 0), return false
@@ -141,7 +138,9 @@ public class Player {
 			System.out.println("Player " + this.playerIdx + ": Pong?");
 			for (int i=0; i<pongs.size(); i++) {
 				System.out.printf("\t%d. idx {%d %d}\n", i, pongs.get(i)[0], pongs.get(i)[1]);
-				this.possiblePongs.add(pongs.get(i));
+				//this.possiblePongs.add(pongs.get(i));
+				String stringVal = Arrays.toString(pongs.get(i));
+				this.ppk.setPossiblePong(i, stringVal);
 			}
 			System.out.printf("\t%d. Skip pong\n", pongs.size());
 			return true;
@@ -151,12 +150,15 @@ public class Player {
 
 	// check hand for kong, update options for kong, return true if chance for kong
 	boolean checkHandKong(Tile t) {
-		this.possibleKongs.clear();
+		this.ppk.clearKongs();
+		//this.possibleKongs.clear();
 		ArrayList<int[]> kongs;
 		kongs = this.hand.checkKong(t);
 		// if no Pong arrays in this ArrayList (size 0), return false
 		if (kongs.size() > 0) {
-			this.possibleKongs.addAll(kongs);
+			//this.possibleKongs.addAll(kongs);
+			String stringVal = Arrays.toString(kongs.get(0));
+			this.ppk.setPossibleKong(0, stringVal);
 			return true;
 		}
 		return false;
@@ -169,18 +171,18 @@ public class Player {
 
 	// check user response for Pong
 	boolean checkUserPong(String player_input) {
-		int resp;
+		int resp = -1;
 		try {
 			resp = Integer.parseInt(player_input);
-		} catch (InputMismatchException ex) {
+		} catch (InputMismatchException e) {
 			// in case not a valid integer idx
-			resp = this.possiblePongs.size();
+			e.printStackTrace();
 		} catch (NumberFormatException e) {
 			e.printStackTrace();
-			resp = this.possiblePongs.size();
 		}
 		// if last idx, no Pong...
-		if (resp < this.possiblePongs.size() && resp >= 0) {
+		//if (resp < this.possiblePongs.size() && resp >= 0) {
+		if (resp < this.ppk.getNumPongs() && resp >= 0) {
 			this.chosenIdx = resp;
 			return true;
 		}
@@ -208,19 +210,23 @@ public class Player {
 	void kong(Tile t) {
 		this.hand.addToHand(t);
 		int[] hand_idx = new int[4];
-		hand_idx[0] = this.possibleKongs.get(0)[0];
-		hand_idx[1] = this.possibleKongs.get(0)[1];
-		hand_idx[2] = this.possibleKongs.get(0)[2];
+		//TODO: parse from string to get array elements
+		hand_idx[0] = Integer.parseInt(this.ppk.getPossibleKong(0));  //this.possibleKongs.get(0)[0];
+		hand_idx[1] = Integer.parseInt(this.ppk.getPossibleKong(1)); //this.possibleKongs.get(0)[1];
+		hand_idx[2] = Integer.parseInt(this.ppk.getPossibleKong(2)); //this.possibleKongs.get(0)[2];
 		hand_idx[3] = this.hand.getHiddenHandSize()-1;
 		this.hand.revealTiles(hand_idx, 4);
 	}
 
+	// We will transform string array to int array
 	void pong(Tile t) {
 		int[] hand_idx = new int[3];
 		this.hand.addToHand(t);
-		hand_idx[0] = this.possiblePongs.get(this.chosenIdx)[0];
-		hand_idx[1] = this.possiblePongs.get(this.chosenIdx)[1];
-		hand_idx[2] = this.hand.getHiddenHandSize()-1;
+		int[] pongs = new int[2];
+		pongs = fromString(this.ppk.getPossiblePong(this.chosenIdx));
+		hand_idx[0] = pongs[0]; // this.possiblePongs.get(this.chosenIdx)[0];
+		hand_idx[1] = pongs[1]; // this.possiblePongs.get(this.chosenIdx)[1];
+		hand_idx[2] = this.hand.getHiddenHandSize()-1; // the last idx where the new tile to pong will be
 		this.hand.revealTiles(hand_idx, 3);
 	}
 
@@ -444,6 +450,15 @@ public class Player {
 				break;
 		}
 		return test_vector;
+	}
+
+	private static int[] fromString(String string) {
+		String[] strings = string.replace("[", "").replace("]", "").split(", ");
+		int[] result = new int[strings.length];
+		for (int i = 0; i < result.length; i++) {
+			result[i] = Integer.parseInt(strings[i]);
+		}
+		return result;
 	}
 }
 

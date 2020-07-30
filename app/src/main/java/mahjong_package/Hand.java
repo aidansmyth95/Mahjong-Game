@@ -1,11 +1,7 @@
 package mahjong_package;
 
-
-import android.util.Log;
-
 import java.util.ArrayList;
 import java.util.Collections;
-
 
 public class Hand {
 	
@@ -145,6 +141,7 @@ public class Hand {
 	 *  Check for a Kong with prospective a new tile as an argument
 	 *  Index refers to hand index of potential Kong
 	 */
+	//TODO: not great code, better ways exist to do this
 	ArrayList<int[]> checkKong(Tile t) {
 		
 		// ArrayList of integers for hidden hand index of Kongs

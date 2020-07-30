@@ -7,6 +7,8 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
+import static mahjong_package.FirebaseRepository.userInactiveFirebaseUser;
+
 
 public class GameModeActivity extends AppCompatActivity {
 
@@ -18,6 +20,8 @@ public class GameModeActivity extends AppCompatActivity {
         setContentView(R.layout.activity_game_mode);
 
         initializeUI();
+
+        userInactiveFirebaseUser();
 
         spButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {

@@ -35,13 +35,12 @@ import mahjong_package.Game;
 import mahjong_package.User;
 
 import static mahjong_package.FirebaseRepository.addUserLastGameIDFirebase;
-import static mahjong_package.FirebaseRepository.createNewMultiplayerGame;
+import static mahjong_package.FirebaseRepository.createNewMultiplayerGameRef;
 import static mahjong_package.FirebaseRepository.getCurrUserDetailsFirebase;
 import static mahjong_package.FirebaseRepository.getModifiedMultiplayerGameFromFirebase;
-import static mahjong_package.FirebaseRepository.getNewMultiplayerGameFromFirebase;
-import static mahjong_package.FirebaseRepository.removeDeletedMultiplayerGameFromFirebase;
+import static mahjong_package.FirebaseRepository.getPausedGameFromFirebase;
+import static mahjong_package.FirebaseRepository.getDeletedMultiplayerGameFromFirebase;
 import static mahjong_package.FirebaseRepository.updateMultiplayerGame;
-import static mahjong_package.FirebaseRepository.userJoinedGameFirebase;
 
 //TODO: add completion / failure callbacks for all db writes in pkg
 
@@ -91,13 +90,21 @@ public class GameSelectActivity extends AppCompatActivity implements LifecycleOb
                 }
             }
         });
-
-        // listen to all games (for table display)
-        setMultiplayerGamesListener();
-        // listen to current user (so we can modify selected Game's details when we join or create)
-        setCurrUserListener();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.e("GameSelectActivity","GameSelectActivity: onResume \n");
+        games.clear();
+        selected_game = "";
+        // listen to current user (so we can modify selected Game's details when we join or create)
+        setCurrUserListener();
+        Log.e("GameSelectActivity","GameSelectActivity: User listener set \n");
+        // listen to all games (for table display)
+        setMultiplayerGamesListener();
+        Log.e("GameSelectActivity","GameSelectActivity: Games listener set \n");
+    }
 
     // update dynamically created table of games and users
     private void initializeUI(boolean uncheck_others) {
@@ -121,6 +128,7 @@ public class GameSelectActivity extends AppCompatActivity implements LifecycleOb
         row0.setBackgroundResource(R.drawable.border);
         tableLayout.addView(row0);
         // add data for each game
+        Log.e("GameSelectActivity","GameSelectActivity: Games is of size "+games.size()+"\n");
         for (int i = 0; i < games.size(); i++) {
             final Game game_tmp = games.get(i);
             // check box
@@ -172,21 +180,19 @@ public class GameSelectActivity extends AppCompatActivity implements LifecycleOb
             return false;
         }
         new_game.setText("");
-        Game game_info = new Game();
+        Game new_game = new Game();
         FirebaseUser userRef = FirebaseAuth.getInstance().getCurrentUser();
         if (userRef != null) {
             // create game ID unique to others created, add it and name
-            String game_ID = createNewMultiplayerGame();
-            Log.e("1"," MADE IT HERE");
-            game_info.addPlayer(curr_user.getUname(), curr_user.getUid());
-            game_info.setGameName(new_game_name);
-            game_info.setGameID(game_ID);
+            String game_ID = createNewMultiplayerGameRef();
+            new_game.addPlayer(curr_user.getUname(), curr_user.getUid());
+            new_game.setGameName(new_game_name);
+            new_game.setGameID(game_ID);
             // update games.
-            updateMultiplayerGame(game_info);
+            updateMultiplayerGame(new_game);
             // This is now last game user played
-            addUserLastGameIDFirebase(game_info.getGameID());
-            // user state is now joined
-            userJoinedGameFirebase();
+            addUserLastGameIDFirebase(new_game.getGameID());
+            Toast.makeText(getApplicationContext(), "Joined " + new_game.getGameName()+"...", Toast.LENGTH_LONG).show();
             return true;
         } else {
             Toast.makeText(getApplicationContext(), "Failed to make new game. Please be non null user.", Toast.LENGTH_LONG).show();
@@ -202,10 +208,10 @@ public class GameSelectActivity extends AppCompatActivity implements LifecycleOb
             return false;
         } else {
             // get game using gameID
-            Game gameSelected = new Game();
+            Game gameJoined = new Game();
             for (int i=0; i<games.size(); i++) {
-                gameSelected = games.get(i);
-                if (gameSelected.getGameID().equals(selected_game)) {
+                gameJoined = games.get(i);
+                if (gameJoined.getGameID().equals(selected_game)) {
                     break; // for loop break
                 }
             }
@@ -215,19 +221,16 @@ public class GameSelectActivity extends AppCompatActivity implements LifecycleOb
                 return false;
             } else {
                 // check that there are < 4 players already joined
-                if (gameSelected.getNumPlayers() >= 4) {
+                if (gameJoined.getNumPlayers() >= gameJoined.getMaxPlayers()) {
                     Toast.makeText(getApplicationContext(), "Maximum number of players joined.", Toast.LENGTH_LONG).show();
                     return false;
-
                 } else {
-                    gameSelected.addPlayer(curr_user.getUname(), curr_user.getUid());
+                    gameJoined.addPlayer(curr_user.getUname(), curr_user.getUid());
                     // update Firebase to reflect this change in game object by updating child
-                    updateMultiplayerGame(gameSelected);
+                    updateMultiplayerGame(gameJoined);
                     //update user to reflect that this is the last game they played
-                    addUserLastGameIDFirebase(gameSelected.getGameID());
-                    // user state is now joined
-                    userJoinedGameFirebase();
-                    Toast.makeText(getApplicationContext(), "Joined " + gameSelected.getGameName()+"...", Toast.LENGTH_LONG).show();
+                    addUserLastGameIDFirebase(gameJoined.getGameID());
+                    Toast.makeText(getApplicationContext(), "Joined " + gameJoined.getGameName()+"...", Toast.LENGTH_LONG).show();
                     return true;
                 }
             }
@@ -242,7 +245,9 @@ public class GameSelectActivity extends AppCompatActivity implements LifecycleOb
 
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                Log.e(dataSnapshot.getKey(),dataSnapshot.getChildrenCount() + " CHILD NODES CHANGED FOR CURRENT USER");
+                Log.e(
+                        dataSnapshot.getKey(),
+                        "GameSelectActivity" + dataSnapshot.getChildrenCount() + " child nodes changed for user");
                 curr_user = getCurrUserDetailsFirebase(dataSnapshot);
             }
 
@@ -258,33 +263,33 @@ public class GameSelectActivity extends AppCompatActivity implements LifecycleOb
         gameRef.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, String s) {
-                Log.e(dataSnapshot.getKey(),"GAME ADDED ");
-                getNewMultiplayerGameFromFirebase(games, dataSnapshot);
+                Log.e(dataSnapshot.getKey(),"GameSelectActivity: Paused game to be added ");
+                //FIXME: seems to crash here now
+                getPausedGameFromFirebase(games, dataSnapshot);
+                Log.e(dataSnapshot.getKey(),"GameSelectActivity: Paused Game was added");
                 initializeUI(false);
             }
-
             @Override
             public void onChildChanged(@NonNull DataSnapshot dataSnapshot, String s) {
-                Log.e(dataSnapshot.getKey(),dataSnapshot.getChildrenCount() + "ITEMS IN GAME CHANGED ");
+                Log.e(dataSnapshot.getKey(),dataSnapshot.getChildrenCount() + " GameSelectActivity: Game items changed ");
                 getModifiedMultiplayerGameFromFirebase(games, dataSnapshot);
                 initializeUI(false);
             }
-
             @Override
             public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-                Log.e(dataSnapshot.getKey(),"GAME REMOVED ");
-                removeDeletedMultiplayerGameFromFirebase(games, dataSnapshot);
+                Log.e(dataSnapshot.getKey(),"GameSelectActivity: Game items removed");
+                getDeletedMultiplayerGameFromFirebase(games, dataSnapshot);
                 initializeUI(false);
             }
-
             @Override
             //TODO: do not handle this right, study how to do this right
             public void onChildMoved(@NonNull DataSnapshot dataSnapshot, String s) {
-                Log.e(dataSnapshot.getKey(),dataSnapshot.getChildrenCount() + "GAME MOVED ");
-                removeDeletedMultiplayerGameFromFirebase(games, dataSnapshot);
+                Log.e(
+                        dataSnapshot.getKey(),
+                        dataSnapshot.getChildrenCount() + "GameSelectActivity: Game items moved");
+                getDeletedMultiplayerGameFromFirebase(games, dataSnapshot);
                 initializeUI(false);
             }
-
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
 

@@ -1,31 +1,31 @@
 package mahjong_package;
 
-
 import android.util.Log;
+
+import com.google.firebase.database.Exclude;
 
 import java.util.ArrayList;
 import java.util.Random;
 
 //TODO: incorrect data structures (too many ArrayLists) when we could use maps or sets etc.
 
-
 public class Game {
 
 	private final long ACCEPTING_RESPONSE_TIME = 1000;	// n milliseconds after next player input for another player to have chance to interrupt
-	private final int max_players = 4;
+	private final int maxPlayers = 4;
 	private String gameName;
 	private String gameID;
-	private GameState gameState; // state of Game
-	private String gameStatus;	// status of Game - new, start, playing, saved ..(and more)... //TODO: use enums later for this
-	private int numPlayers; // Number of players playing the game
-	private Tiles tiles = new Tiles(); // tile deck
-	private int playerTurn; // player's turn to discard etc
+	private GameState gameState; 		// state of Game
+	private GameStatus gameStatus;			// status of Game - new, start, playing, saved ..(and more)... //TODO: use enums later for this
+	private int numPlayers; 			// Number of players playing the game
+	private Tiles tiles = new Tiles(); 	// tile deck
+	private int playerTurn;				// player's turn to discard etc
 	//TODO: implement this
-	private int winnerIdx; // player who wins
-	private int loserIdx; // player who loses
+	private int winnerIdx; 				// player who wins
+	private int loserIdx; 				// player who loses
 	//TODO: needed?
 	public boolean updateDiscardedTileImage; // update discarded image tiles cue
-	private Tile latestDiscard; // latest tile discarded
+	private Tile latestDiscard; 		// latest tile discarded
 	private ArrayList<Player> player = new ArrayList<>(); // Players playing game
 	private Boolean acceptingResponses;								// Game is still allowing responses
 	private long tseCalledTime = 0;
@@ -44,8 +44,12 @@ public class Game {
 		this.setGameID("NaN");
 		// reset and shuffle deck
 		this.tiles.shuffleTiles();
-		this.setGameStatus("new");
+		this.setGameStatus(GameStatus.PAUSED);
 		this.setTseCalled(false);
+	}
+
+	public Boolean gameExists() {
+		return !this.getGameID().equals("NaN");
 	}
 
 	/*
@@ -75,18 +79,107 @@ public class Game {
 	public String getGameName() { return this.gameName; }
 	public void setGameID(String id) { this.gameID = id; }
 	public String getGameID() { return this.gameID; }
-	public void setGameStatus(String s) { this.gameStatus = s; }
-	public String getGameStatus() { return this.gameStatus; }
+	public void setGameStatus(GameStatus s) { this.gameStatus = s; }
+	public GameStatus getGameStatus() { return this.gameStatus; }
 	public void setTseCalledTime() { this.tseCalledTime = System.currentTimeMillis(); }
 	public long getTseCalledTime() { return this.tseCalledTime; }
-	public long getTseTimeElapsed() { return System.currentTimeMillis() - this.tseCalledTime; }
 	public Boolean getTseCalled() { return this.tseCalled; }
-	private void setTseCalled(Boolean tse) { this.tseCalled = tse; }
+	public void setTseCalled(Boolean tse) { this.tseCalled = tse; }
+	public int getMaxPlayers() { return this.maxPlayers; }
+	@Exclude
+	public long getTseTimeElapsed() { return System.currentTimeMillis() - this.tseCalledTime; }
 
 	// provide access to player responses
 	public Boolean getRequestResponse(int player_idx) { return this.player.get(player_idx).getRequestResponse(); }
 	public void setRequestResponse(int player_idx, boolean b) { this.player.get(player_idx).setRequestResponse(b); }
 	public void setPlayerResponse(int player_idx, String resp) { this.player.get(player_idx).setPlayerResponse(resp); }
+
+	public void fillEmptyArrayLists() {
+		ArrayList<int[]> emptyIntArrayArrayList = new ArrayList<>();
+		int [] intArr = new int[1];
+		intArr[0] = -1;
+		emptyIntArrayArrayList.add(intArr);
+		Tile emptyTile = new Tile();
+		ArrayList<Tile> emptyTileArrayList = new ArrayList<>();
+		emptyTileArrayList.add(emptyTile);
+
+		for (int i=0; i<this.numPlayers; i++) {
+			// if possiblePongs or possibleKongs is empty, add an empty value
+			/*
+			if (this.player.get(i).getPossiblePongs().isEmpty()) {
+				this.player.get(i).setPossiblePongs(emptyIntArrayArrayList);
+			}
+			if (this.player.get(i).getPossibleKongs().isEmpty()) {
+				this.player.get(i).setPossibleKongs(emptyIntArrayArrayList);
+			}
+
+			 */
+
+			// hand items hiddenHand and revealedHand
+			Hand playerHand = this.player.get(i).getHand();
+			if (playerHand.getHiddenHand().isEmpty()) {
+				playerHand.setHiddenHand(emptyTileArrayList);
+			}
+			if (playerHand.getRevealedHand().isEmpty()) {
+				playerHand.setRevealedHand(emptyTileArrayList);
+			}
+		}
+
+		//TODO: hidden and uncovered Tiles?
+		if (tiles.getHiddenTiles().isEmpty()) {
+			tiles.setHiddenTiles(emptyTileArrayList);
+		}
+		if (tiles.getUncoveredTiles().isEmpty()) {
+			tiles.setUncoveredTiles(emptyTileArrayList);
+		}
+	}
+
+	// remove empty values added in above function
+	public void cleanEmptyArrayLists() {
+		ArrayList<int[]> emptyIntArrayArrayList = new ArrayList<>();
+		//ArrayList<int[]> tmp;
+		int [] intArr = new int[1];
+		intArr[0] = -1;
+		emptyIntArrayArrayList.add(intArr);
+		Tile emptyTile = new Tile();
+		ArrayList<Tile> emptyTileArrayList = new ArrayList<>();
+		ArrayList<Tile> emptyTileArrayListPattern = new ArrayList<>();
+		emptyTileArrayListPattern.add(emptyTile);
+
+		for (int i=0; i<this.numPlayers; i++) {
+		/*
+			tmp = this.player.get(i).getPossiblePongs();
+			// if possiblePongs or possibleKongs is empty, add an empty value
+			if (tmp.equals(emptyIntArrayArrayList)) {
+				this.player.get(i).getPossiblePongs().clear();
+			}
+			tmp = this.player.get(i).getPossibleKongs();
+			if (tmp.equals(emptyIntArrayArrayList)) {
+				this.player.get(i).getPossibleKongs().clear();
+			}
+
+		 */
+
+			// hand items hiddenHand and revealedHand
+			Hand playerHand = this.player.get(i).getHand();
+			// if empty match
+			if (playerHand.getHiddenHand().equals(emptyTileArrayListPattern)) {
+				playerHand.setHiddenHand(emptyTileArrayList);
+			}
+			// if empty match
+			if (playerHand.getRevealedHand().equals(emptyTileArrayListPattern)) {
+				playerHand.setRevealedHand(emptyTileArrayList);
+			}
+		}
+		// hidden and uncovered Tiles?
+		if (this.tiles.getHiddenTiles().equals(emptyTileArrayListPattern)) {
+			this.tiles.getHiddenTiles().clear();
+		}
+		if (this.tiles.getUncoveredTiles().equals(emptyTileArrayListPattern)) {
+			this.tiles.getUncoveredTiles().clear();
+		}
+
+	}
 
 	/*
 	 * Return player index of winner.
@@ -139,11 +232,6 @@ public class Game {
 				this.player.get(next_player).setRequestResponse(true);
 				this.setAcceptingResponses(true);
 				System.out.println("Player " + next_player + ": Tse? \t1=Tse\t0=No");
-				//this.setGameState(GameState.CHECKING_RESPONSES);
-				this.setGameState(GameState.DEBUG_TESTING);
-				break;
-
-			case DEBUG_TESTING:
 				this.setGameState(GameState.CHECKING_RESPONSES);
 				break;
 
@@ -265,14 +353,12 @@ public class Game {
 				this.gameState = GameState.DISCARD_OPTIONS;
 				break;
 
-				//FIXME: sometimes crashes here, sometimes does not
 			case DRAWING_TILE:
 				Log.e(String.valueOf(1),"STATE STATUS: DRAWING TILE");
 				System.out.println("Player " + this.playerTurn + ": drawing tile");
 				// last tile drawn
 				Tile tile_drawn = this.tiles.revealTile();
-				// check hand for a Mahjong
-				//TODO: a user response to confirm/notice this
+				// check hand for a Mahjong //TODO: a user response to confirm/notice this
 				if (this.player.get(this.playerTurn).checkHandMahjong(tile_drawn)) {
 					System.out.println("Player " + this.playerTurn + ": Mahjong By Your Own Hand!");
 					this.gameState = GameState.MAHJONG;
@@ -317,6 +403,7 @@ public class Game {
 			case GAME_OVER:
 				Log.e(String.valueOf(1),"STATE STATUS: GAME OVER");
 				System.out.println("Game over!\n");
+				this.setGameStatus(GameStatus.FINISHED);
 				break;
 
 			default:
@@ -340,14 +427,17 @@ public class Game {
 		}
 	}
 
+	@Exclude
 	public String getDiscardedDescriptor() {
 		return this.latestDiscard.getDescriptor().toLowerCase().replace(" ", "_");
 	}
 
+	@Exclude
 	public ArrayList<String> getRevealedDescriptors() {
 		return this.player.get(playerTurn).getRevealedDescriptors();
 	}
 
+	@Exclude
 	public ArrayList<String> getHiddenDescriptors() {
 		return this.player.get(this.playerTurn).getHiddenDescriptors();
 	}

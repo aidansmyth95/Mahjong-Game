@@ -24,6 +24,7 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import mahjong_package.User;
 
+
 public class RegisterActivity extends AppCompatActivity {
 
     private static final String TAG = "RegisterActivity";
