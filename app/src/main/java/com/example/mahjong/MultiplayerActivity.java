@@ -114,6 +114,9 @@ public class MultiplayerActivity extends AppCompatActivity {
                 @Override
                 public void run() {
 
+                    // this player is playing when we are in this state
+                    currGame.setPlayerPlayingStatus(true, playerIdx);
+
                     // check that all players are playing. If not, popup window
                     if (currGame.allPlayersPlaying() && currGame.getGameStatus() == GameStatus.PAUSED) {
                         Log.e(TAG, TAG+": Dismissing leave game popup menu");
@@ -169,6 +172,7 @@ public class MultiplayerActivity extends AppCompatActivity {
         if (currGame.getGameStatus() != GameStatus.PAUSED) {
             Log.e(TAG, TAG+": Pausing game.");
             currGame.setGameStatus(GameStatus.PAUSED);
+            currGame.setPlayerPlayingStatus(false, playerIdx);
             updateMultiplayerGame(currGame);
             userInactiveFirebaseUser();
         }
@@ -278,12 +282,6 @@ public class MultiplayerActivity extends AppCompatActivity {
                 currGame = getCurrGameDetailsFirebase(dataSnapshot);
                 if (currGame.gameExists()) {
                     playerIdx = currGame.getPlayerIdx(currUser.getUid());
-                    //TODO: remove this
-                    /*
-                    if (passed_tests) {
-                        currGame.playGame();
-                    }
-                    */
                 }
             }
             @Override
