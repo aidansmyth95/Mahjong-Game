@@ -17,6 +17,7 @@ public class Player {
 	private PossiblePongsKongs ppk = new PossiblePongsKongs();
 	private int chosenIdx;
 	private int playerIdx;
+	private Boolean playerPlaying;
 
 	//TODO: use these in constructors
 	public String getPlayerUid() { return this.playerUid; }
@@ -41,6 +42,8 @@ public class Player {
 	public void setChosenIdx(int c) { this.chosenIdx = c; }
 	public Integer getPlayerIdx() { return this.playerIdx; }
 	public void setPlayerIdx(int p) { this.playerIdx = p; }
+	public Boolean getPlayerPlaying() { return this.playerPlaying; }
+	public void setPlayerPlaying(boolean p) { this.playerPlaying = p; }
 
 	private Player() {
 		this.playerIdx = -1;
@@ -53,6 +56,7 @@ public class Player {
 		this.mahjongAvailable = false;
 		this.requestResponse = false;
 		this.playerResponse = "";
+		this.playerPlaying = false;
 	}
 
 	// constructor

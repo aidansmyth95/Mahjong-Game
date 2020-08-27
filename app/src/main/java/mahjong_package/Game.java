@@ -104,17 +104,6 @@ public class Game {
 		emptyTileArrayList.add(emptyTile);
 
 		for (int i=0; i<this.numPlayers; i++) {
-			// if possiblePongs or possibleKongs is empty, add an empty value
-			/*
-			if (this.player.get(i).getPossiblePongs().isEmpty()) {
-				this.player.get(i).setPossiblePongs(emptyIntArrayArrayList);
-			}
-			if (this.player.get(i).getPossibleKongs().isEmpty()) {
-				this.player.get(i).setPossibleKongs(emptyIntArrayArrayList);
-			}
-
-			 */
-
 			// hand items hiddenHand and revealedHand
 			Hand playerHand = this.player.get(i).getHand();
 			if (playerHand.getHiddenHand().isEmpty()) {
@@ -147,19 +136,6 @@ public class Game {
 		emptyTileArrayListPattern.add(emptyTile);
 
 		for (int i=0; i<this.numPlayers; i++) {
-		/*
-			tmp = this.player.get(i).getPossiblePongs();
-			// if possiblePongs or possibleKongs is empty, add an empty value
-			if (tmp.equals(emptyIntArrayArrayList)) {
-				this.player.get(i).getPossiblePongs().clear();
-			}
-			tmp = this.player.get(i).getPossibleKongs();
-			if (tmp.equals(emptyIntArrayArrayList)) {
-				this.player.get(i).getPossibleKongs().clear();
-			}
-
-		 */
-
 			// hand items hiddenHand and revealedHand
 			Hand playerHand = this.player.get(i).getHand();
 			// if empty match
@@ -179,6 +155,53 @@ public class Game {
 			this.tiles.getUncoveredTiles().clear();
 		}
 
+	}
+
+	public void setPlayerPlayingStatus(boolean status, int playerIdx) {
+		this.player.get(playerIdx).setPlayerPlaying(status);
+	}
+
+	public String namePlayersPlaying() {
+		ArrayList<String> names = new ArrayList<>();
+		for (int i=0; i<this.numPlayers; i++) {
+			if (this.player.get(i).getPlayerPlaying()) {
+				names.add(this.player.get(i).getPlayerUname());
+			}
+		}
+		if (names.size() == 0) {
+			return "None";
+		}
+		StringBuilder s = new StringBuilder();
+		for (int i=0; i<names.size(); i++) {
+			s.append(names.get(i)).append("  ");
+		}
+		return s.toString();
+	}
+
+	public String namePlayersNotPlaying() {
+		ArrayList<String> names = new ArrayList<>();
+		for (int i=0; i<this.numPlayers; i++) {
+			if (!this.player.get(i).getPlayerPlaying()) {
+				names.add(this.player.get(i).getPlayerUname());
+			}
+		}
+		if (names.size() == 0) {
+			return "None";
+		}
+		StringBuilder s = new StringBuilder();
+		for (int i=0; i<names.size(); i++) {
+			s.append(names.get(i)).append("  ");
+		}
+		return s.toString();
+	}
+
+	public Boolean allPlayersPlaying() {
+		for (int i=0; i<this.numPlayers; i++) {
+			if (!this.player.get(i).getPlayerPlaying()) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/*

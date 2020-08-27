@@ -44,47 +44,56 @@ import static mahjong_package.FirebaseRepository.updateMultiplayerGame;
 
 //TODO: add completion / failure callbacks for all db writes in pkg
 
+
 public class GameSelectActivity extends AppCompatActivity implements LifecycleObserver {
 
     private TableLayout tableLayout;
     private EditText new_game;
+    private ArrayList<Game> games;
+    private String selected_game;
+    private FirebaseUser userRef;
+    private User curr_user;
+    private static final String TAG = "GameSelectActivity";
 
-    private ArrayList<Game> games = new ArrayList<>();
-    private String selected_game = "";
-
-    FirebaseUser userRef = FirebaseAuth.getInstance().getCurrentUser();
-    private User curr_user = new User();
-
+    private DatabaseReference dbRef;
+    private ValueEventListener usersListener;
+    private ChildEventListener gameListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.e(TAG,TAG+": onCreate \n");
+
         setContentView(R.layout.activity_game_select);
+
+        userRef = FirebaseAuth.getInstance().getCurrentUser();
+
+        games = new ArrayList<>();
+        curr_user = new User();
 
         tableLayout = (TableLayout) findViewById(R.id.game_table_layout);
         Button join_button = (Button) findViewById(R.id.join_game);
         Button create_button = (Button) findViewById(R.id.create_game);
         new_game = (EditText) findViewById(R.id.new_game_text);
 
+        // UI creation
         initializeUI(false);
-
         create_button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 if (curr_user.userExists()) {
                     if (create_new_game()) {
-                        Intent intent = new Intent(GameSelectActivity.this, GameWaitingRoomActivity.class);
+                        Intent intent = new Intent(GameSelectActivity.this, WaitingRoomActivity.class);
                         startActivity(intent);
                     }
                 }
             }
         });
-
         join_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (curr_user.userExists()) {
                     if (join_new_game()) {
-                        Intent intent = new Intent(GameSelectActivity.this, GameWaitingRoomActivity.class);
+                        Intent intent = new Intent(GameSelectActivity.this, WaitingRoomActivity.class);
                         startActivity(intent);
                     }
                 }
@@ -93,22 +102,36 @@ public class GameSelectActivity extends AppCompatActivity implements LifecycleOb
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        Log.e("GameSelectActivity","GameSelectActivity: onResume \n");
+    protected void onStart() {
+        super.onStart();
+        Log.e(TAG, TAG+": onStart");
+
         games.clear();
         selected_game = "";
+
         // listen to current user (so we can modify selected Game's details when we join or create)
         setCurrUserListener();
-        Log.e("GameSelectActivity","GameSelectActivity: User listener set \n");
+        Log.e(TAG,TAG+": User listener set \n");
         // listen to all games (for table display)
         setMultiplayerGamesListener();
-        Log.e("GameSelectActivity","GameSelectActivity: Games listener set \n");
+        Log.e(TAG,TAG+": Games listener set \n");
+    }
+
+    @Override
+    protected void onStop() {
+        if (usersListener != null) {
+            dbRef.removeEventListener(usersListener);
+        }
+        if (gameListener != null) {
+            dbRef.removeEventListener(gameListener);
+        }
+        super.onStop();
+        Log.e(TAG, TAG+": onStop");
     }
 
     // update dynamically created table of games and users
     private void initializeUI(boolean uncheck_others) {
-        //TODO: fixed header
+        //TODO: a fixed header
 
         // add header
         tableLayout.removeAllViews();
@@ -128,7 +151,7 @@ public class GameSelectActivity extends AppCompatActivity implements LifecycleOb
         row0.setBackgroundResource(R.drawable.border);
         tableLayout.addView(row0);
         // add data for each game
-        Log.e("GameSelectActivity","GameSelectActivity: Games is of size "+games.size()+"\n");
+        Log.e(TAG,TAG+": Games is of size "+games.size()+"\n");
         for (int i = 0; i < games.size(); i++) {
             final Game game_tmp = games.get(i);
             // check box
@@ -239,15 +262,12 @@ public class GameSelectActivity extends AppCompatActivity implements LifecycleOb
 
     // add a listener for users database that updates dynamic table with users
     private void setCurrUserListener() {
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference usersRef = database.getReference().child("users").child(userRef.getUid());
-        usersRef.addValueEventListener(new ValueEventListener() {
+        dbRef = FirebaseDatabase.getInstance().getReference();
+        usersListener = dbRef.child("users").child(userRef.getUid()).addValueEventListener(new ValueEventListener() {
 
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                Log.e(
-                        dataSnapshot.getKey(),
-                        "GameSelectActivity" + dataSnapshot.getChildrenCount() + " child nodes changed for user");
+                Log.e(dataSnapshot.getKey(),TAG+":" + dataSnapshot.getChildrenCount() + " child nodes changed for user");
                 curr_user = getCurrUserDetailsFirebase(dataSnapshot);
             }
 
@@ -258,35 +278,32 @@ public class GameSelectActivity extends AppCompatActivity implements LifecycleOb
 
     // add a listener for multiplayer games database that updates dynamic table with users
     private void setMultiplayerGamesListener() {
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference gameRef = database.getReference().child("multiplayer_games");
-        gameRef.addChildEventListener(new ChildEventListener() {
+        dbRef = FirebaseDatabase.getInstance().getReference();
+        gameListener = dbRef.child("multiplayer_games").addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, String s) {
-                Log.e(dataSnapshot.getKey(),"GameSelectActivity: Paused game to be added ");
-                //FIXME: seems to crash here now
+                Log.e(TAG,TAG+": Paused game to be added ");
+                //FIXME: crashes here, obviously an issue with reading the Game
                 getPausedGameFromFirebase(games, dataSnapshot);
-                Log.e(dataSnapshot.getKey(),"GameSelectActivity: Paused Game was added");
+                Log.e(TAG,TAG+": Paused Game was added");
                 initializeUI(false);
             }
             @Override
             public void onChildChanged(@NonNull DataSnapshot dataSnapshot, String s) {
-                Log.e(dataSnapshot.getKey(),dataSnapshot.getChildrenCount() + " GameSelectActivity: Game items changed ");
+                Log.e(TAG,TAG+": "+dataSnapshot.getChildrenCount()+" GameSelectActivity: Game items changed");
                 getModifiedMultiplayerGameFromFirebase(games, dataSnapshot);
                 initializeUI(false);
             }
             @Override
             public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-                Log.e(dataSnapshot.getKey(),"GameSelectActivity: Game items removed");
+                Log.e(TAG,TAG+": Game items removed");
                 getDeletedMultiplayerGameFromFirebase(games, dataSnapshot);
                 initializeUI(false);
             }
             @Override
             //TODO: do not handle this right, study how to do this right
             public void onChildMoved(@NonNull DataSnapshot dataSnapshot, String s) {
-                Log.e(
-                        dataSnapshot.getKey(),
-                        dataSnapshot.getChildrenCount() + "GameSelectActivity: Game items moved");
+                Log.e(TAG,TAG + ": " + dataSnapshot.getChildrenCount() + " game items moved");
                 getDeletedMultiplayerGameFromFirebase(games, dataSnapshot);
                 initializeUI(false);
             }
@@ -295,5 +312,29 @@ public class GameSelectActivity extends AppCompatActivity implements LifecycleOb
 
             }
         });
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.e(TAG, TAG+": onPause");
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        Log.e(TAG, TAG+": onRestart");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.e(TAG, TAG+": onResume");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.e(TAG, TAG+": onDestroy");
     }
 }

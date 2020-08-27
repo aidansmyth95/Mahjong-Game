@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.example.mahjong">
 
     <uses-permission android:name="android.permission.INTERNET" />
@@ -11,8 +12,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MultiplayerActivity"></activity>
-        <activity android:name=".GameWaitingRoomActivity" />
+        <activity android:name=".PopUpMenuActivityTmp" />
+        <activity android:name=".MultiplayerActivity" />
+        <activity android:name=".WaitingRoomActivity" />
         <activity android:name=".GameSelectActivity" />
         <activity android:name=".GameModeActivity" />
         <activity android:name=".LoginActivity" />
@@ -29,6 +31,14 @@
                 <action android:name="android.intent.action.MAIN_ACTIVITY" />
             </intent-filter>
         </activity>
+        <activity
+            android:name="com.google.firebase.auth.internal.FederatedSignInActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:launchMode="singleInstance"
+            android:permission="com.google.firebase.auth.api.gms.permission.LAUNCH_FEDERATED_SIGN_IN"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            tools:replace="android:launchMode" />
     </application>
 
 </manifest>

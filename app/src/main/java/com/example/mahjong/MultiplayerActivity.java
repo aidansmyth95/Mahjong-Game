@@ -11,8 +11,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
@@ -35,7 +35,13 @@ import static mahjong_package.FirebaseRepository.getCurrGameDetailsFirebase;
 import static mahjong_package.FirebaseRepository.getCurrUserDetailsFirebase;
 import static mahjong_package.FirebaseRepository.getCurrentUserUid;
 import static mahjong_package.FirebaseRepository.updateMultiplayerGame;
+import static mahjong_package.FirebaseRepository.userInactiveFirebaseUser;
+import static mahjong_package.FirebaseRepository.userJoinedGameFirebase;
+import static mahjong_package.FirebaseRepository.userPlayingGameFirebase;
 
+
+//TODO: migrate code from onCreate to onStart & onStop as per:
+//https://stackoverflow.com/questions/48157959/calling-firebase-event-listeners-in-oncreate-of-fragment
 
 public class MultiplayerActivity extends AppCompatActivity {
 
@@ -51,42 +57,88 @@ public class MultiplayerActivity extends AppCompatActivity {
     private TextView outputTurn;
     private ImageView discardedImage;
     private ImageView[] handTiles = new ImageView[15];
-    Handler gamePlayHandler = new Handler();
-    Runnable gamePlayRunnable;
+    private Handler gamePlayHandler = new Handler();
+    private Runnable gamePlayRunnable;
+    private AlertDialog dialog;
+    private static final String TAG = "MultiplayerActivity";
+
+    private DatabaseReference dbRef;
+    private ValueEventListener userListener, gameListener;
 
     @Override
-    public void onPause() {
-        super.onPause();
-        gamePlayHandler.removeCallbacks(gamePlayRunnable);
-        // update Game status if not already Paused
-        if (currGame.getGameStatus() != GameStatus.PAUSED) {
-            Log.e("Game analysis", "PAUSING GAME ACTIVITY");
-            currGame.setGameStatus(GameStatus.PAUSED);
-            updateMultiplayerGame(currGame);
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        Log.e(TAG, TAG+": onCreate");
+        setContentView(R.layout.activity_multiplayer);
+        initializeUI();
+        // redirect Game system out and system error
+        redirectGameSystemOut(outputText);
+        redirectGameSystemErr(outputText);
+        // test the test vectors before Game
+        passed_tests = runAllGameTestVectors();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.e(TAG, TAG+": onStart");
+        // set listener on user - and in turn Game
+        setCurrUserListener();
+        // user is at least joined when they start this activity
+        userJoinedGameFirebase();
+    }
+
+    @Override
+    protected void onStop() {
+        if (userListener != null) {
+            dbRef.removeEventListener(userListener);
         }
+        if (gameListener != null) {
+            dbRef.removeEventListener(gameListener);
+        }
+        userInactiveFirebaseUser();
+        super.onStop();
+        Log.e(TAG, TAG+": onStop");
     }
 
     @Override
     public void onResume() {
+        super.onResume();
+        Log.e(TAG, TAG+": onResume");
 
         // check if game has been paused by another user
-        if (passed_tests && currGame.getGameStatus() == GameStatus.PAUSED) {
-            Log.e("Game analysis", "LEAVING GAME ACTIVITY");
-            //return to GameSelect activity
-            Intent intent = new Intent(MultiplayerActivity.this, GameSelectActivity.class);
-            startActivity(intent);
-        }
-
-        Log.e("Game analysis", "RESUMING GAME ACTIVITY");
-
         if (passed_tests) {
+
             gamePlayHandler.postDelayed(gamePlayRunnable = new Runnable() {
                 @Override
                 public void run() {
-                    Log.e("Game analysis", "START GAME " + playerIdx);
+
+                    // check that all players are playing. If not, popup window
+                    if (currGame.allPlayersPlaying() && currGame.getGameStatus() == GameStatus.PAUSED) {
+                        Log.e(TAG, TAG+": Dismissing leave game popup menu");
+                        currGame.setGameStatus(GameStatus.ACTIVE);
+                        // dismiss the persistent popup menu
+                        dialog.dismiss();
+                        // user is now active and about to start playing the game
+                        userPlayingGameFirebase();
+                    } else if (!currGame.allPlayersPlaying() && currGame.getGameStatus() == GameStatus.ACTIVE) {
+                        Log.e(TAG, TAG+": Creating leave game popup menu");
+                        // update game status
+                        currGame.setGameStatus(GameStatus.PAUSED);
+                        updateMultiplayerGame(currGame);
+                        // user is joined in game but not playing
+                        userJoinedGameFirebase();
+                        // launch the persistent popup here
+                        createLeaveGameDialog();
+                    }
+
+                    // Do not play game if game is not active
+                    if (currGame.getGameStatus() != GameStatus.ACTIVE) {
+                        return;
+                    }
+
                     currGame.playGame();
                     // player can respond
-                    Log.e("Game analysis", "END GAME " + playerIdx);
                     // update UI - revealed hand, hidden hand, unused tile space, text
                     if (currGame.getAcceptingResponses()) {
                         updateUI();
@@ -101,27 +153,24 @@ public class MultiplayerActivity extends AppCompatActivity {
                         discardedImage.setVisibility(View.VISIBLE);
                         currGame.setUpdateDiscardedTileImage(false);
                     }
-                gamePlayHandler.postDelayed(gamePlayRunnable, gameDelay);
+                    gamePlayHandler.postDelayed(gamePlayRunnable, gameDelay);
                 }
             }, gameDelay);
         }
-        super.onResume();
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_multiplayer);
-        Log.e("Game analysis", "BEGINNING GAME ACTIVITY");
-        // set listener on user - and in turn Game
-        setCurrUserListener();
-        initializeUI();
-        // redirect Game system out and system error
-        redirectGameSystemOut(outputText);
-        redirectGameSystemErr(outputText);
-        // test the test vectors before Game
-        passed_tests = runAllGameTestVectors();
-        currGame.setGameStatus(GameStatus.ACTIVE);
+    public void onPause() {
+        super.onPause();
+        Log.e(TAG, TAG+": onPause");
+        gamePlayHandler.removeCallbacks(gamePlayRunnable);
+        // update Game status if not already Paused
+        if (currGame.getGameStatus() != GameStatus.PAUSED) {
+            Log.e(TAG, TAG+": Pausing game.");
+            currGame.setGameStatus(GameStatus.PAUSED);
+            updateMultiplayerGame(currGame);
+            userInactiveFirebaseUser();
+        }
     }
 
     private void initializeUI() {
@@ -205,9 +254,8 @@ public class MultiplayerActivity extends AppCompatActivity {
 
     // add a listener for users database that updates dynamic table with users
     private void setCurrUserListener() {
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference usersRef = database.getReference().child("users").child(getCurrentUserUid());
-        usersRef.addValueEventListener(new ValueEventListener() {
+        dbRef = FirebaseDatabase.getInstance().getReference();
+        userListener = dbRef.child("users").child(getCurrentUserUid()).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 currUser = getCurrUserDetailsFirebase(dataSnapshot);
@@ -221,20 +269,20 @@ public class MultiplayerActivity extends AppCompatActivity {
 
     // add a listener for multiplayer games database that updates dynamic table with users
     private void setCurrMulitplayerGameListener() {
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference gameRef = database.getReference().child("multiplayer_games").child(currUser.getLastGameId());
-        gameRef.addValueEventListener(new ValueEventListener() {
+        dbRef = FirebaseDatabase.getInstance().getReference();
+        gameListener = dbRef.child("multiplayer_games").child(currUser.getLastGameId()).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                Log.e(dataSnapshot.getKey(),dataSnapshot.getChildrenCount() + " CHILD NODES CHANGED FOR CURRENT GAME");
-
+                Log.e(TAG,TAG+": child nodes changed for game = "+dataSnapshot.getChildrenCount());
                 currGame = getCurrGameDetailsFirebase(dataSnapshot);
                 if (currGame.gameExists()) {
                     playerIdx = currGame.getPlayerIdx(currUser.getUid());
-                    Log.e("Response analysis", "PlayerIdx=" + playerIdx);
+                    //TODO: remove this
+                    /*
                     if (passed_tests) {
                         currGame.playGame();
                     }
+                    */
                 }
             }
             @Override
@@ -245,9 +293,7 @@ public class MultiplayerActivity extends AppCompatActivity {
     private void redirectGameSystemOut(final TextView tv) {
         // set System.out in all classes to be TextView
         System.setOut(new PrintStream(new OutputStream() {
-
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-
             @Override public void write(int oneByte) {
                 outputStream.write(oneByte);
                 tv.setText(new String(outputStream.toByteArray()));
@@ -258,9 +304,7 @@ public class MultiplayerActivity extends AppCompatActivity {
     private void redirectGameSystemErr(final TextView tv) {
         // set System.Err to write to TextView
         System.setErr(new PrintStream(new OutputStream() {
-
             ByteArrayOutputStream errorStream = new ByteArrayOutputStream();
-
             @Override public void write(int oneByte) {
                 errorStream.write(oneByte);
                 tv.setText(new String(errorStream.toByteArray()));
@@ -295,5 +339,39 @@ public class MultiplayerActivity extends AppCompatActivity {
         }
     }
 
+    public void createLeaveGameDialog() {
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+        //TODO: what is this root=null?
+        final View leaveGamePopupView = getLayoutInflater().inflate(R.layout.popup, null);
+        Button leaveButton = (Button) leaveGamePopupView.findViewById(R.id.leave_button);
+        dialogBuilder.setCancelable(false);
+        dialogBuilder.setView(leaveGamePopupView);
+        dialog = dialogBuilder.create();
+        dialog.show();
+
+        leaveButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //define leave button
+                dialog.dismiss();
+                Log.e(TAG, TAG+": leaving activity, going to GameSelectActivity");
+                //return to GameSelect activity
+                Intent intent = new Intent(MultiplayerActivity.this, GameSelectActivity.class);
+                startActivity(intent);
+            }
+        });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.e(TAG, TAG+": onDestroy");
+    }
+
+    @Override
+    public void onRestart() {
+        super.onRestart();
+        Log.e(TAG, TAG+": onRestart");
+    }
 }
 

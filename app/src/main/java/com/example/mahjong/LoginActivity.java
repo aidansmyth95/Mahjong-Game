@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -21,16 +22,15 @@ public class LoginActivity extends AppCompatActivity {
     private Button loginButton;
     private EditText emailText, pwdText;
     private FirebaseAuth mAuth;
+    private static final String TAG = "LoginActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.e(TAG, TAG+": onCreate");
         setContentView(R.layout.activity_login);
-
         mAuth = FirebaseAuth.getInstance();
-
         initializeUI();
-
         loginButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 loginUser();
@@ -46,11 +46,9 @@ public class LoginActivity extends AppCompatActivity {
 
     //https://blog.usejournal.com/firebase-email-and-password-authentication-for-android-e335c81a1dad
     private void loginUser() {
-
         String email, password;
         email = emailText.getText().toString();
         password = pwdText.getText().toString();
-
         if (TextUtils.isEmpty(email)) {
             Toast.makeText(getApplicationContext(), "Please enter email...", Toast.LENGTH_LONG).show();
             return;
@@ -59,12 +57,9 @@ public class LoginActivity extends AppCompatActivity {
             Toast.makeText(getApplicationContext(), "Please enter password!", Toast.LENGTH_LONG).show();
             return;
         }
-
         loginButton.setEnabled(false);
-
         emailText.setText("");
         pwdText.setText("");
-
         mAuth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                 @Override
@@ -80,5 +75,41 @@ public class LoginActivity extends AppCompatActivity {
                     }
                 }
             });
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.e(TAG, TAG+": onStart");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.e(TAG, TAG+": onStop");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.e(TAG, TAG+": onPause");
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        Log.e(TAG, TAG+": onRestart");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.e(TAG, TAG+": onResume");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.e(TAG, TAG+": onDestroy");
     }
 }

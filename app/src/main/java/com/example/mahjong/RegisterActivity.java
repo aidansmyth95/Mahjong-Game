@@ -35,12 +35,11 @@ public class RegisterActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.e(TAG, TAG+": onCreate");
+
         setContentView(R.layout.activity_register);
-
         mAuth = FirebaseAuth.getInstance();
-
         initializeUI();
-
         registerButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 registerNewUser();
@@ -57,12 +56,10 @@ public class RegisterActivity extends AppCompatActivity {
 
     private void registerNewUser() {
         String email, pwd, name;
-
         // copy and clear user input, sending it to game
         email = emailText.getText().toString();
         pwd = pwdText.getText().toString();
         name = nameText.getText().toString();
-
         if (TextUtils.isEmpty(email)) {
             Toast.makeText(getApplicationContext(), "Please enter email...", Toast.LENGTH_LONG).show();
         } else if (TextUtils.isEmpty(pwd)) {
@@ -97,14 +94,13 @@ public class RegisterActivity extends AppCompatActivity {
 
     private void sendVerificationEmail() {
         FirebaseUser user = mAuth.getCurrentUser();
-
         if (user != null) {
             user.sendEmailVerification()
                     .addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
                             if (task.isSuccessful()) {
-                                Log.d(TAG, "Email sent.");
+                                Log.d(TAG, TAG+": Email sent.");
                             }
                         }
                     });
@@ -126,6 +122,44 @@ public class RegisterActivity extends AppCompatActivity {
             // This will NOT work unless you have getters and setters. You can push the Map or the object, all that differs is _ prepended in DB if Object
             usersRef.child(user.getUid()).setValue(user);
         }
+    }
+
+    //TODO: Log.e vs Log.d in code - we use mostly e for now but not correct
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.e(TAG, TAG+": onStart");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.e(TAG, TAG+": onStop");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.e(TAG, TAG+": onPause");
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        Log.e(TAG, TAG+": onRestart");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.e(TAG, TAG+": onResume");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.e(TAG, TAG+": onDestroy");
     }
 
 }

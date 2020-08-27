@@ -51,4 +51,12 @@
     <string name="paused">Paused</string>
     <string name="player_input_here">player_input_here</string>
     <string name="player_input">player_input</string>
+    <string name="this_is_a_popup_window">This is a popup window.</string>
+    <string name="show_popup_menu">Show Popup Menu</string>
+    <string name="java">JAVA</string>
+    <string name="kotlin">Kotlin</string>
+    <string name="android">Android</string>
+    <string name="leave_game">Leave Game</string>
+    <string name="game_paused_waiting_on_players_to_rejoin_leave_game">Game paused. Waiting on players to rejoin. Leave game?</string>
+    <string name="todo">TODO</string>
 </resources>
