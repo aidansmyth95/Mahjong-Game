@@ -162,4 +162,10 @@ public class RegisterActivity extends AppCompatActivity {
         Log.e(TAG, TAG+": onDestroy");
     }
 
+    public void onBackPressed() {
+        Log.e(TAG, TAG+": onBackPressed");
+        Intent intent = new Intent(RegisterActivity.this, WelcomeActivity.class);
+        startActivity(intent);
+    }
+
 }

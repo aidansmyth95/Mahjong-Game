@@ -1,5 +1,6 @@
 package com.example.mahjong;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -372,6 +373,23 @@ public class MultiplayerActivity extends AppCompatActivity {
     public void onRestart() {
         super.onRestart();
         Log.e(TAG, TAG+": onRestart");
+    }
+
+    @Override
+    public void onBackPressed() {
+        Log.e(TAG, TAG+": onBackPressed");
+        new AlertDialog.Builder(this)
+                .setTitle("Really Exit Game?")
+                .setMessage("Are you sure you want to exit the game?")
+                .setNegativeButton(android.R.string.no, null)
+                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+
+                    public void onClick(DialogInterface arg0, int arg1) {
+                        Intent intent = new Intent(MultiplayerActivity.this, GameModeActivity.class);
+                        startActivity(intent);
+                        finish();
+                    }
+                }).create().show();
     }
 }
 

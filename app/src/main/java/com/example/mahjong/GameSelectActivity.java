@@ -1,5 +1,6 @@
 package com.example.mahjong;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -17,6 +18,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.LifecycleObserver;
 
@@ -336,5 +338,12 @@ public class GameSelectActivity extends AppCompatActivity implements LifecycleOb
     protected void onDestroy() {
         super.onDestroy();
         Log.e(TAG, TAG+": onDestroy");
+    }
+
+    @Override
+    public void onBackPressed() {
+        Log.e(TAG, TAG+": onBackPressed");
+        Intent intent = new Intent(GameSelectActivity.this, GameModeActivity.class);
+        startActivity(intent);
     }
 }

@@ -76,4 +76,11 @@ public class WelcomeActivity extends AppCompatActivity {
         Log.e(TAG, TAG+": onDestroy");
     }
 
+    public void onBackPressed() {
+        Log.e(TAG, TAG+": onBackPressed");
+        Intent intent = new Intent(WelcomeActivity.this, WelcomeActivity.class);
+        startActivity(intent);
+        finish();
+    }
+
 }

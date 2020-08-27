@@ -1,8 +1,10 @@
 package com.example.mahjong;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -112,4 +114,13 @@ public class LoginActivity extends AppCompatActivity {
         super.onDestroy();
         Log.e(TAG, TAG+": onDestroy");
     }
+
+    @Override
+    public void onBackPressed() {
+        Log.e(TAG, TAG+": onBackPressed");
+        Intent intent = new Intent(LoginActivity.this, WelcomeActivity.class);
+        startActivity(intent);
+        finish();
+    }
+
 }

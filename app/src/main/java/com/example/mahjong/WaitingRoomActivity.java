@@ -197,4 +197,12 @@ public class WaitingRoomActivity extends AppCompatActivity {
         super.onDestroy();
         Log.e(TAG, TAG+": onDestroy");
     }
+
+    @Override
+    public void onBackPressed() {
+        Log.e(TAG, TAG+": onBackPressed");
+        Intent intent = new Intent(WaitingRoomActivity.this, GameSelectActivity.class);
+        startActivity(intent);
+        finish();
+    }
 }
