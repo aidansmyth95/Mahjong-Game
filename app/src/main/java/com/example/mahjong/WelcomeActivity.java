@@ -17,7 +17,7 @@ public class WelcomeActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstance) {
         super.onCreate(savedInstance);
-        Log.e(TAG, TAG+": onCreate");
+        Log.i(TAG, TAG+": onCreate");
 
         setContentView(R.layout.activity_welcome);
         initializeUI();
@@ -36,51 +36,50 @@ public class WelcomeActivity extends AppCompatActivity {
     }
 
     private void initializeUI() {
-        loginRedirectButton = (Button) findViewById(R.id.login_redirect_button);
-        registerRedirectButton = (Button) findViewById(R.id.register_redirect_button);
+        loginRedirectButton = findViewById(R.id.login_redirect_button);
+        registerRedirectButton = findViewById(R.id.register_redirect_button);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        Log.e(TAG, TAG+": onStart");
+        Log.i(TAG, TAG+": onStart");
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        Log.e(TAG, TAG+": onStop");
+        Log.i(TAG, TAG+": onStop");
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        Log.e(TAG, TAG+": onPause");
+        Log.i(TAG, TAG+": onPause");
     }
 
     @Override
     protected void onRestart() {
         super.onRestart();
-        Log.e(TAG, TAG+": onRestart");
+        Log.i(TAG, TAG+": onRestart");
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        Log.e(TAG, TAG+": onResume");
+        Log.i(TAG, TAG+": onResume");
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Log.e(TAG, TAG+": onDestroy");
+        Log.i(TAG, TAG+": onDestroy");
     }
 
     public void onBackPressed() {
-        Log.e(TAG, TAG+": onBackPressed");
-        Intent intent = new Intent(WelcomeActivity.this, WelcomeActivity.class);
-        startActivity(intent);
-        finish();
+        Log.i(TAG, TAG+": onBackPressed");
+        finishAffinity();
+        System.exit(0);
     }
 
 }

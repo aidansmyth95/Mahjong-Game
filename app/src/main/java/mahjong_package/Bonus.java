@@ -1,5 +1,7 @@
 package mahjong_package;
 
+import android.util.Log;
+
 public class Bonus extends Tile {
 
     // Types of bonus
@@ -21,7 +23,9 @@ public class Bonus extends Tile {
     Bonus(int bonus_type, int bonus_rank, int bonus_ID) {
         super("Bonus", bonus_type, bonus_rank, bonus_ID);
         // assert valid
-        isValid(bonus_type, bonus_rank, bonus_ID);
+        if (!isValid(bonus_type, bonus_rank, bonus_ID)) {
+            Log.e("Bonus", "Bonus is not valid");
+        }
         super.setDescriptor(describeBonus());
     }
 
@@ -31,10 +35,7 @@ public class Bonus extends Tile {
     }
 
     public int getRank() { return super.getRank(); }
-    public int getType()
-    {
-        return super.getType();
-    }
+    public int getType() { return super.getType(); }
     public int getID() { return super.getID(); }
     public String getDescriptor() { return super.getDescriptor(); }
     public void setRank(int rank) { super.setRank(rank); }
@@ -42,9 +43,7 @@ public class Bonus extends Tile {
     public void setID(int id) { super.setID(id); }
     public void setDescriptor(String descriptor) { super.setDescriptor(descriptor); }
 
-    //TODO: boolean never used? Why?
     private static boolean isValid(int type, int rank, int ID) {
-
         if (type == SEASONS) {
             if (ID < 4 && ID >= 0) {
                 return true;
@@ -54,11 +53,9 @@ public class Bonus extends Tile {
                 return true;
             }
         }
-
-        System.out.printf("Warning, incorrect ID (%d), type (%d) or rank (%d) for bonus tile\n", ID, type, rank);
+        Log.e("Suits", "Warning, incorrect ID, type or rank for bonus tile\n");
         return false;
     }
-
 
     private String describeBonus() {
 
@@ -85,7 +82,7 @@ public class Bonus extends Tile {
                         break;
                     default:
                         total = "Warning, " + super.getRank() + " rank of bonus does not exist!";
-                        System.out.println(total);
+                        Log.e("Bonus", total);
                 }
                 break;
             case FLOWERS:
@@ -106,12 +103,12 @@ public class Bonus extends Tile {
                         break;
                     default:
                         total = "Warning, " + super.getRank() + " rank of bonus does not exist!";
-                        System.out.println(total);
+                        Log.e("Bonus", total);
                 }
                 break;
             default:
                 total = "Warning, " + super.getType() + " type of bonus does not exist!";
-                System.out.println(total);
+                Log.e("Bonus", total);
         }
 
         total = type + " " + rank;

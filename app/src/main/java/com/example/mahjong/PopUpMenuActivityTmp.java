@@ -2,6 +2,7 @@ package com.example.mahjong;
 
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -30,7 +31,8 @@ public class PopUpMenuActivityTmp extends AppCompatActivity {
 
     public void createLeaveGameDialog() {
         dialogBuilder = new AlertDialog.Builder(this);
-        final View leaveGamePopupView = getLayoutInflater().inflate(R.layout.popup, null);
+        final ViewGroup nullParent = null;
+        final View leaveGamePopupView = getLayoutInflater().inflate(R.layout.popup, nullParent);
         leaveButton = (Button) leaveGamePopupView.findViewById(R.id.leave_button);
 
         dialogBuilder.setCancelable(false);

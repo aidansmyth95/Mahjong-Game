@@ -107,25 +107,18 @@ public class Tiles {
 
 	// reveal tile
 	Tile revealTile() {
-
         Tile t = new Tile();
-
         if (this.hiddenTiles.isEmpty()) {
             System.out.println("\nNo hidden tiles in deck left to uncover. Please restart the game :)");
-            //System.exit(0);
             return t;
         }
-
         t = this.hiddenTiles.remove(0);
-
         // check this is actually a legitimate tile
         if (!t.getChildClass().equals("Suits") && !t.getChildClass().equals("Honors") && t.getChildClass().equals("Bonus")) {
             // problem
-            System.out.println("Error: This tile does not exist: " + t.getDescriptor());
-            //System.exit(0);
+            Log.e("Tile","Tiles: This tile does not exist: " + t.getDescriptor());
             return t;
         }
-
         // put revealed tile in ArrayList
         uncoveredTiles.add(t);
         return t;

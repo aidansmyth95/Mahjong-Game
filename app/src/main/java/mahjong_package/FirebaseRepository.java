@@ -82,13 +82,12 @@ public final class FirebaseRepository {
 
     // update a Game
     public static void updateMultiplayerGame(Game updated_game) {
-        Log.e("FirebaseRepository", "FirebaseRepository: updating Game");
+        Log.d("FirebaseRepository", "FirebaseRepository: updating Game");
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference();
         // fill empty arraylists so that they exist in Firebase too
-        Log.e("FirebaseRepository", "FirebaseRepository: Filling empty array list prior to update game");
+        Log.d("FirebaseRepository", "FirebaseRepository: Filling empty array list prior to update game");
         updated_game.fillEmptyArrayLists();
         // write Game with a completion listener too reporting on the write success
-        //FIXME: crashes here
         ref.child("multiplayer_games").child(updated_game.getGameID()).setValue(updated_game)
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
@@ -98,7 +97,7 @@ public final class FirebaseRepository {
                         }
                     }
         });
-        Log.e("FirebaseRepository", "FirebaseRepository: Cleaning empty array list after update game");
+        Log.d("FirebaseRepository", "FirebaseRepository: Cleaning empty array list after update game");
         // clean filled values from multiplayer games in Firebase
         updated_game.cleanEmptyArrayLists();
     }
@@ -115,13 +114,13 @@ public final class FirebaseRepository {
             for (Iterator<Game> iterator = games.iterator(); iterator.hasNext(); ) {
                 Game tmp = iterator.next();
                 if (g.getGameID().equals(tmp.getGameID())) {
-                    Log.e("FirebaseRepository","FirebaseRepository: Removed game from paused games \n");
+                    Log.d("FirebaseRepository","FirebaseRepository: Removed game from paused games \n");
                     iterator.remove();
                 }
             }
             if (g.getGameStatus() == GameStatus.PAUSED) {
                 games.add(g);
-                Log.e("FirebaseRepository","FirebaseRepository: Games is of size " + games.size() + " after adding the paused game\n");
+                Log.d("FirebaseRepository","FirebaseRepository: Games is of size " + games.size() + " after adding the paused game\n");
                 return true;
             }
         }
@@ -142,7 +141,7 @@ public final class FirebaseRepository {
 
             // add back in if still Paused or Waiting Room status
             if (g.getGameStatus() == GameStatus.PAUSED) {
-                Log.e("FirebaseRepository","FirebaseRepository: Games is of size " + games.size() + " before updating modified\n");
+                Log.d("FirebaseRepository","FirebaseRepository: Games is of size " + games.size() + " before updating modified\n");
                 games.add(g);
                 return true;
             }
@@ -171,14 +170,13 @@ public final class FirebaseRepository {
 
     // update multiplayer game based on firebase listener
     public static Game getCurrGameDetailsFirebase(DataSnapshot dataSnapshot) {
-        //TODO: find way to make sure we handle unexpected types
         Game g = dataSnapshot.getValue(Game.class);
         if (g == null) {
             Log.e("FirebaseRepository","FirebaseRepository: Game is null");
         } else {
             // clean Game object empty ArrayList placeholders for Firebase if any
             g.cleanEmptyArrayLists();
-            Log.e("FirebaseRepository","FirebaseRepository: Game "+g.getGameID()+" was successfully read");
+            Log.d("FirebaseRepository","FirebaseRepository: Game "+g.getGameID()+" was successfully read");
         }
         return g;
     }

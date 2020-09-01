@@ -101,7 +101,7 @@ public class SinglePlayerActivity extends AppCompatActivity {
 
 
         // tests before Game
-        game = new Game();
+        game = new Game(1);
         boolean clear_output;
         clear_output = game.test_true_pong();
         if (clear_output) {
@@ -133,7 +133,7 @@ public class SinglePlayerActivity extends AppCompatActivity {
         }
 
         // start Game
-        game = new Game();
+        game = new Game(1);
         // add dummy players
         this.game.addPlayer("player1", "player1");
         this.game.addPlayer("player2", "player2");
@@ -214,14 +214,12 @@ public class SinglePlayerActivity extends AppCompatActivity {
 
                 if (game.updateDiscardedTileImage) {
                     // get descriptor & its resource ID
-                    //TODO: use hash map?
                     resourceId = getResources().getIdentifier(game.getDiscardedDescriptor(), "drawable", "com.example.mahjong");
                     // update discarded tile image
                     discardedImage.setImageResource(resourceId);
                     discardedImage.setVisibility(View.VISIBLE);
                     game.updateDiscardedTileImage = false;
                 }
-                //TODO: an else making it invisinle again?
 
                 handler.postDelayed(runnable, delay);
             }

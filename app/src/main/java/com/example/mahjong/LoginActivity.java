@@ -29,7 +29,7 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.e(TAG, TAG+": onCreate");
+        Log.i(TAG, TAG+": onCreate");
         setContentView(R.layout.activity_login);
         mAuth = FirebaseAuth.getInstance();
         initializeUI();
@@ -41,9 +41,9 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void initializeUI() {
-        loginButton = (Button) findViewById(R.id.login_button);
-        emailText = (EditText) findViewById(R.id.emailText2);
-        pwdText = (EditText) findViewById(R.id.pwdText2);
+        loginButton = findViewById(R.id.login_button);
+        emailText = findViewById(R.id.emailText2);
+        pwdText = findViewById(R.id.pwdText2);
     }
 
     //https://blog.usejournal.com/firebase-email-and-password-authentication-for-android-e335c81a1dad
@@ -82,42 +82,42 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        Log.e(TAG, TAG+": onStart");
+        Log.i(TAG, TAG+": onStart");
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        Log.e(TAG, TAG+": onStop");
+        Log.i(TAG, TAG+": onStop");
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        Log.e(TAG, TAG+": onPause");
+        Log.i(TAG, TAG+": onPause");
     }
 
     @Override
     protected void onRestart() {
         super.onRestart();
-        Log.e(TAG, TAG+": onRestart");
+        Log.i(TAG, TAG+": onRestart");
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        Log.e(TAG, TAG+": onResume");
+        Log.i(TAG, TAG+": onResume");
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Log.e(TAG, TAG+": onDestroy");
+        Log.i(TAG, TAG+": onDestroy");
     }
 
     @Override
     public void onBackPressed() {
-        Log.e(TAG, TAG+": onBackPressed");
+        Log.i(TAG, TAG+": onBackPressed");
         Intent intent = new Intent(LoginActivity.this, WelcomeActivity.class);
         startActivity(intent);
         finish();

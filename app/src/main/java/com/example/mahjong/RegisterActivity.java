@@ -35,7 +35,7 @@ public class RegisterActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.e(TAG, TAG+": onCreate");
+        Log.i(TAG, TAG+": onCreate");
 
         setContentView(R.layout.activity_register);
         mAuth = FirebaseAuth.getInstance();
@@ -48,10 +48,10 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void initializeUI() {
-        registerButton = (Button) findViewById(R.id.register_button);
-        emailText = (EditText) findViewById(R.id.emailText1);
-        nameText = (EditText) findViewById(R.id.nameText1);
-        pwdText = (EditText) findViewById(R.id.pwdText1);
+        registerButton = findViewById(R.id.register_button);
+        emailText = findViewById(R.id.emailText1);
+        nameText = findViewById(R.id.nameText1);
+        pwdText = findViewById(R.id.pwdText1);
     }
 
     private void registerNewUser() {
@@ -83,6 +83,7 @@ public class RegisterActivity extends AppCompatActivity {
                             }
                             else {
                                 FirebaseAuthException e = (FirebaseAuthException)task.getException();
+                                assert e != null;
                                 Toast.makeText(getApplicationContext(), "Registration failed! " +e.getMessage() + ". Please try again later", Toast.LENGTH_LONG).show();
                                 // remove flags expecting user input and disable button
                                 registerButton.setEnabled(true);
@@ -124,46 +125,44 @@ public class RegisterActivity extends AppCompatActivity {
         }
     }
 
-    //TODO: Log.e vs Log.d in code - we use mostly e for now but not correct
-
     @Override
     protected void onStart() {
         super.onStart();
-        Log.e(TAG, TAG+": onStart");
+        Log.i(TAG, TAG+": onStart");
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        Log.e(TAG, TAG+": onStop");
+        Log.i(TAG, TAG+": onStop");
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        Log.e(TAG, TAG+": onPause");
+        Log.i(TAG, TAG+": onPause");
     }
 
     @Override
     protected void onRestart() {
         super.onRestart();
-        Log.e(TAG, TAG+": onRestart");
+        Log.i(TAG, TAG+": onRestart");
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        Log.e(TAG, TAG+": onResume");
+        Log.i(TAG, TAG+": onResume");
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Log.e(TAG, TAG+": onDestroy");
+        Log.i(TAG, TAG+": onDestroy");
     }
 
     public void onBackPressed() {
-        Log.e(TAG, TAG+": onBackPressed");
+        Log.i(TAG, TAG+": onBackPressed");
         Intent intent = new Intent(RegisterActivity.this, WelcomeActivity.class);
         startActivity(intent);
     }

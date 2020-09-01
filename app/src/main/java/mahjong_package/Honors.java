@@ -1,5 +1,7 @@
 package mahjong_package;
 
+import android.util.Log;
+
 public class Honors extends Tile {
 
     // enums for wind and dragon
@@ -21,7 +23,9 @@ public class Honors extends Tile {
     {
         super("Honors", honor_type, honor_rank, honor_rank);
         // assert valid
-        isValid(honor_type, honor_rank, honor_ID);
+        if (!isValid(honor_type, honor_rank, honor_ID)) {
+            Log.e("Honors", "Honors is not valid");
+        }
         super.setDescriptor(describeHonor());
     }
 
@@ -43,7 +47,6 @@ public class Honors extends Tile {
     public void setDescriptor(String descriptor) { super.setDescriptor(descriptor); }
 
     private static boolean isValid(int type, int rank, int ID) {
-
         if (ID >= 0 && ID < 4) {
             if (type == WIND) {
                 return true;
@@ -51,17 +54,14 @@ public class Honors extends Tile {
                 return true;
             }
         }
-
-        System.out.println("Warning, incorrect ID, type or rank for honor tile");
+        Log.e("Honors", "Warning, incorrect ID, type or rank for honor tile");
         return false;
     }
 
     private String describeHonor() {
-
         String type = "";
         String rank = "";
         String total;
-
         switch(super.getType()) {
             case WIND:
                 type = "Wind";
@@ -81,7 +81,7 @@ public class Honors extends Tile {
                         break;
                     default:
                         total = "Warning, " + super.getRank() + " rank of honor does not exist!";
-                        System.out.println(total);
+                        Log.e("Honors", total);
                 }
                 break;
             case DRAGON:
@@ -99,14 +99,13 @@ public class Honors extends Tile {
                         break;
                     default:
                         total = "Warning, " + super.getRank() + " rank of honor does not exist!";
-                        System.out.println(total);
+                        Log.e("Honors", total);
                 }
                 break;
             default:
                 total = "Warning, " + super.getType() + " type of honor does not exist!";
-                System.out.println(total);
+                Log.e("Honors", total);
         }
-
         total = type + " " + rank;
         return total;
     }

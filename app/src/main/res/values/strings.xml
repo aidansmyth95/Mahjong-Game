@@ -59,4 +59,13 @@
     <string name="leave_game">Leave Game</string>
     <string name="game_paused_waiting_on_players_to_rejoin_leave_game">Game paused. Waiting on players to rejoin. Leave game?</string>
     <string name="todo">TODO</string>
+    <string name="chb_game_name">%1$d: %2$s</string>
+    <string name="waiting_room_game_name">Game name: %1$s</string>
+    <string name="waiting_room_players_ready">Players ready: %1$s</string>
+    <string name="waiting_room_players_missing">Players missing: %1$s</string>
+    <string name="waiting_room_game_state">Game state: %1$s</string>
+    <string name="waiting_room_players_turn">Player turn: %1$d</string>
+    players_joined_out_of_max
+    <string name="players_joined_out_of_max">Players joined: %1$d/%2$d</string>
+
 </resources>

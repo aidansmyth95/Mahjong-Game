@@ -24,7 +24,9 @@ public class Suits extends Tile {
     Suits(int suit_type, int suit_rank, int suit_ID) {
         super("Suits", suit_type, suit_rank, suit_ID);
         // assert validity
-        isValid(suit_type, suit_rank, suit_ID);
+        if (!isValid(suit_type, suit_rank, suit_ID)) {
+            Log.e("Suits", "Suits is not valid");
+        }
         super.setDescriptor(describeSuit());
     }
 
@@ -46,7 +48,6 @@ public class Suits extends Tile {
     public void setDescriptor(String descriptor) { super.setDescriptor(descriptor); }
 
     private static boolean isValid(int type, int rank, int ID) {
-
         if (type == BAMBOO || type == DOTS || type == CHARS) {
             if (rank >= ONE && rank <= NINE) {
                 if (ID >= 0 && ID < 4) {
@@ -54,8 +55,7 @@ public class Suits extends Tile {
                 }
             }
         }
-
-        System.out.printf("Warning, incorrect ID (%d), type (%d) or rank (%d) for bonus tile\n", ID, type, rank);
+        Log.e("Suits", "Warning, incorrect ID, type or rank for suits tile\n");
         return false;
     }
 
@@ -78,7 +78,7 @@ public class Suits extends Tile {
                 break;
             default:
                 total = "Warning, " + super.getType() + " type of suits does not exist!";
-                System.out.println(total);
+                Log.e("Suits", total);
                 break;
         }
 
@@ -112,7 +112,7 @@ public class Suits extends Tile {
                 break;
             default:
                 total = "Warning, rank of " + super.getRank() + " does not exist!";
-                System.out.println(total);
+                Log.e("Suits", total);
                 break;
         }
 

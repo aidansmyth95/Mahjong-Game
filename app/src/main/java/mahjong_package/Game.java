@@ -7,23 +7,22 @@ import com.google.firebase.database.Exclude;
 import java.util.ArrayList;
 import java.util.Random;
 
-//TODO: incorrect data structures (too many ArrayLists) when we could use maps or sets etc.
+//TODO: optimize data structures (too many ArrayLists) - we could use maps or sets instead etc.
+// Keeping for now as working with Firebase
 
 public class Game {
 
 	private final long ACCEPTING_RESPONSE_TIME = 1000;	// n milliseconds after next player input for another player to have chance to interrupt
-	private final int maxPlayers = 4;
+	private int maxPlayers = 4;			//TODO: rename to numPlayers - we cant play unless all are present. Error catch for 0, 1, etc.
+	private int numPlayers = 0; 			// Number of players playing the game
 	private String gameName;
 	private String gameID;
 	private GameState gameState; 		// state of Game
-	private GameStatus gameStatus;			// status of Game - new, start, playing, saved ..(and more)... //TODO: use enums later for this
-	private int numPlayers; 			// Number of players playing the game
+	private GameStatus gameStatus;		// status of Game
 	private Tiles tiles = new Tiles(); 	// tile deck
 	private int playerTurn;				// player's turn to discard etc
-	//TODO: implement this
 	private int winnerIdx; 				// player who wins
 	private int loserIdx; 				// player who loses
-	//TODO: needed?
 	public boolean updateDiscardedTileImage; // update discarded image tiles cue
 	private Tile latestDiscard; 		// latest tile discarded
 	private ArrayList<Player> player = new ArrayList<>(); // Players playing game
@@ -33,9 +32,6 @@ public class Game {
 
 	// constructor
 	public Game() {
-		this.numPlayers = 0;
-		this.winnerIdx = -1;
-		this.loserIdx = -1;
 		this.latestDiscard = new Tile();
 		this.updateDiscardedTileImage = false;
 		this.gameState = GameState.START;
@@ -46,10 +42,28 @@ public class Game {
 		this.tiles.shuffleTiles();
 		this.setGameStatus(GameStatus.PAUSED);
 		this.setTseCalled(false);
+		this.setMaxPlayers(1);
+		this.setNumPlayers(0);
+		this.setWinnerIdx(-1);
+		this.setLoserIdx(-1);
 	}
 
-	public Boolean gameExists() {
-		return !this.getGameID().equals("NaN");
+	// constructor
+	public Game(int maxPlayers) {
+		this.latestDiscard = new Tile();
+		this.updateDiscardedTileImage = false;
+		this.gameState = GameState.START;
+		this.setAcceptingResponses(false);
+		this.setGameName("NaN");
+		this.setGameID("NaN");
+		// reset and shuffle deck
+		this.tiles.shuffleTiles();
+		this.setGameStatus(GameStatus.PAUSED);
+		this.setTseCalled(false);
+		this.setMaxPlayers(maxPlayers);
+		this.setNumPlayers(0);
+		this.setWinnerIdx(-1);
+		this.setLoserIdx(-1);
 	}
 
 	/*
@@ -86,23 +100,251 @@ public class Game {
 	public Boolean getTseCalled() { return this.tseCalled; }
 	public void setTseCalled(Boolean tse) { this.tseCalled = tse; }
 	public int getMaxPlayers() { return this.maxPlayers; }
-	@Exclude
-	public long getTseTimeElapsed() { return System.currentTimeMillis() - this.tseCalledTime; }
+	public void setMaxPlayers(int maxPlayers) { this.maxPlayers = maxPlayers; }
 
-	// provide access to player responses
+
+	/*
+	 * Return true if winner
+	 */
+	public Boolean playGame() {
+		// check all players are registered
+		if (this.numPlayers != this.maxPlayers) {
+			Log.i("Game","Game: Only " + this.numPlayers + " have joined out of " + this.maxPlayers);
+			return false;
+		}
+		// return if no more tiles
+		if (!this.tiles.tilesLeft()) {
+			System.out.println("No more tiles left.\n");
+			this.gameState = GameState.GAME_OVER;
+		}
+
+		int next_player = (this.playerTurn + 1) % this.numPlayers;
+		Log.i("Game","Game: "+this.gameState + " and player turn " + this.playerTurn);
+		switch (this.gameState) {
+			case START:
+				System.out.println("Welcome to the game\n");
+				this.playerTurn = this.getRandomPlayerID();
+				this.gameState = GameState.DRAWING_TILE;
+				break;
+
+			case CHECKING_HAND:
+				// check if players can Mahjong, Kong or Pong.
+				for (int i = 0; i<this.numPlayers; i++) {
+					// player cannot interrupt their own turn
+					if (i != this.playerTurn) {
+						// check for Mahjong
+						if (this.player.get(i).checkHandMahjong(this.latestDiscard)) {
+							this.player.get(i).setMahjongAvailable(true);
+							this.player.get(i).setRequestResponse(true);
+							System.out.println("Player " + i + ": Mahjong? \t1=Mahjong\tother=No");
+						} else if (this.player.get(i).checkHandKong(this.latestDiscard)) {
+							this.player.get(i).setKongAvailable(true);
+							this.player.get(i).setRequestResponse(true);
+							System.out.println("Player " + i + ": Kong? \t1=Kong\tother=No");
+						} else if (this.player.get(i).checkHandPong(this.latestDiscard)) {
+							this.player.get(i).setPongAvailable(true);
+							this.player.get(i).setRequestResponse(true);
+							this.player.get(i).showHiddenHand();
+						}
+					}
+				}
+				// next player will also have chance to tse
+				this.player.get(next_player).setRequestResponse(true);
+				this.setAcceptingResponses(true);
+				System.out.println("Player " + next_player + ": Tse? \t1=Tse\t0=No");
+				this.setGameState(GameState.CHECKING_RESPONSES);
+				break;
+
+			// Here we handle responses. The game will go immediately to next state if MJ, Pong, Kong response.
+			case CHECKING_RESPONSES:
+				// check for MJ
+				for (int i=0; i<this.numPlayers; i++) {
+					// if player can respond
+					if (i != this.playerTurn && this.getRequestResponse(i)) {
+						String resp = this.player.get(i).getPlayerResponse();
+						// if player could MJ
+						if (this.player.get(i).getMahjongAvailable()) {
+							// if player responded to MJ correctly
+							if (this.player.get(i).checkUserMahjong(resp)) {
+								this.acceptingResponses = false;
+								this.resetPlayerInput();
+								// loser is player who discarded the tile that was then used for MJ
+								this.loserIdx = this.playerTurn;
+								this.playerTurn = i;
+								this.player.get(this.playerTurn).Mahjong(this.latestDiscard);
+								this.setGameState(GameState.MAHJONG);
+								return false;
+							} else {
+								System.out.println("Incorrect input, please enter a correct response for Mahjong.");
+								this.setRequestResponse(next_player, true);
+								this.setPlayerResponse(next_player, "");
+							}
+						}
+					}
+				}
+				// check for Kong
+				for (int i=0; i<this.numPlayers; i++) {
+					if (i != this.playerTurn && this.getRequestResponse(i)) {
+						String resp = this.player.get(i).getPlayerResponse();
+						if (this.player.get(i).getKongAvailable()) {
+							if (this.player.get(i).checkUserKong(resp)) {
+								this.setGameState(GameState.KONG);
+								this.playerTurn = i;
+								this.resetPlayerInput();
+								return false;
+							} else {
+								System.out.println("Incorrect input, please enter a correct response for Kong.");
+								this.setRequestResponse(next_player, true);
+								this.setPlayerResponse(next_player, "");
+							}
+						}
+					}
+				}
+				// check for Pong
+				for (int i=0; i<this.numPlayers; i++) {
+					if (i != this.playerTurn && this.getRequestResponse(i)) {
+						String resp = this.player.get(i).getPlayerResponse();
+						if (this.player.get(i).getPongAvailable()) {
+							if (this.player.get(i).checkUserPong(resp)) {
+								this.setGameState(GameState.PONG);
+								this.playerTurn = i;
+								this.resetPlayerInput();
+								return false;
+							} else {
+								System.out.println("Incorrect input, please enter a correct response for Pong.");
+								this.setRequestResponse(next_player, true);
+								this.setPlayerResponse(next_player, "");
+							}
+						}
+					}
+				}
+				// check for Draw tile or Tse or drawing new tile
+				String nextPlayerResp = this.player.get(next_player).getPlayerResponse();
+				if (nextPlayerResp.equals("0") ||nextPlayerResp.equals("1")) {
+					// start timer if next player input
+					if (!this.tseCalled) {
+						this.tseCalled = true;
+						this.setTseCalledTime();
+						Log.d("timer analysis", "Time started at : " + this.getTseCalledTime() + " milliseconds.");
+					}
+					Log.d("timer analysis", "Time elapsed : " +this.getTseTimeElapsed() + " milliseconds.");
+					// check that time has elapsed before moving on
+					if (this.getTseTimeElapsed() >= ACCEPTING_RESPONSE_TIME) {
+						if (this.player.get(next_player).getPlayerResponse().equals("0")) {
+							this.setGameState(GameState.DRAWING_TILE);
+						} else if (this.player.get(next_player).getPlayerResponse().equals("1")) {
+							this.setGameState(GameState.TSE);
+						}
+						this.playerTurn = next_player;
+						this.resetPlayerInput();
+					}
+				} else if (nextPlayerResp.equals("")) {
+					break;
+				}
+				else {
+					System.out.println("Incorrect input, please enter a correct response for Tse.");
+					this.setRequestResponse(next_player, true);
+					this.setPlayerResponse(next_player, "");
+				}
+				break;
+
+			case MAHJONG:
+				this.gameState = GameState.GAME_OVER;
+				this.winnerIdx = this.playerTurn;
+				System.out.println("Player " + this.playerTurn + ": Mahjong!");
+				break;
+
+			case KONG:
+				this.player.get(this.playerTurn).kong(this.latestDiscard);
+				System.out.println("Player " + this.playerTurn + ": Kong!");
+				this.gameState = GameState.DRAWING_TILE;
+				break;
+
+			case PONG:
+				this.player.get(this.playerTurn).pong(this.latestDiscard);
+				System.out.println("Player " + this.playerTurn + ": Pong!");
+				this.gameState = GameState.DISCARD_OPTIONS;
+				break;
+
+			case TSE:
+				System.out.println("Tse!");
+				this.player.get(this.playerTurn).tse(this.latestDiscard);
+				this.gameState = GameState.DISCARD_OPTIONS;
+				break;
+
+			case DRAWING_TILE:
+				System.out.println("Player " + this.playerTurn + ": drawing tile");
+				// last tile drawn
+				Tile tile_drawn = this.tiles.revealTile();
+				// check hand for a Mahjong
+				if (this.player.get(this.playerTurn).checkHandMahjong(tile_drawn)) {
+					System.out.println("Player " + this.playerTurn + ": Mahjong By Your Own Hand!");
+					this.player.get(this.playerTurn).Mahjong(tile_drawn);
+					this.gameState = GameState.MAHJONG;
+				} else {
+					// add tile to hand MJ or not
+					this.player.get(this.playerTurn).addToHand(tile_drawn);
+					this.gameState = GameState.DISCARD_OPTIONS;
+				}
+				break;
+
+			case DISCARD_OPTIONS:
+				System.out.println("Player " + this.playerTurn + ": discard a tile from the following:");
+				this.player.get(this.playerTurn).showHiddenHand();
+				this.player.get(this.playerTurn).setRequestResponse(true);
+				this.setAcceptingResponses(true);
+				this.gameState = GameState.DISCARDING_TILE;
+				break;
+
+			// Discard a tile
+			case DISCARDING_TILE:
+				String resp = this.player.get(this.playerTurn).getPlayerResponse();
+				// if there is response
+				if (!resp.equals("")) {
+					int valid_idx = this.player.get(this.playerTurn).getUserDiscardIdx(resp);
+					// if the response is valid
+					if (valid_idx == -1) {
+						this.setRequestResponse(next_player, true);
+						this.setPlayerResponse(next_player, "");
+					} else {
+						this.latestDiscard = this.player.get(this.playerTurn).discardTile(resp);
+						this.tiles.addUncoveredTile(this.latestDiscard);
+						System.out.println("Player " + this.playerTurn + " discarded " + this.latestDiscard.getDescriptor());
+						this.updateDiscardedTileImage = true;
+						this.gameState = GameState.CHECKING_HAND;
+						this.resetPlayerInput();
+					}
+				}
+				break;
+
+			case GAME_OVER:
+				System.out.println("Game over!\n");
+				this.setGameStatus(GameStatus.FINISHED);
+				return true;
+
+			default:
+				System.out.println("ERROR: Game should not have reached this state.");
+				this.gameState = GameState.GAME_OVER;
+				return true;
+		}
+		return false;
+	}
+
+	public Boolean gameExists() {
+		return !this.getGameID().equals("NaN");
+	}
+	private long getTseTimeElapsed() { return System.currentTimeMillis() - this.tseCalledTime; }
 	public Boolean getRequestResponse(int player_idx) { return this.player.get(player_idx).getRequestResponse(); }
 	public void setRequestResponse(int player_idx, boolean b) { this.player.get(player_idx).setRequestResponse(b); }
 	public void setPlayerResponse(int player_idx, String resp) { this.player.get(player_idx).setPlayerResponse(resp); }
+	public String getGameMessage(int player_idx) { return this.player.get(player_idx).getGameMessage(); }
+	public void setGameMessage(int player_idx, String msg) { this.player.get(player_idx).setGameMessage(msg); }
+	public void setPlayerPlayingStatus(boolean status, int playerIdx) { this.player.get(playerIdx).setPlayerPlaying(status); }
 
-	public void fillEmptyArrayLists() {
-		ArrayList<int[]> emptyIntArrayArrayList = new ArrayList<>();
-		int [] intArr = new int[1];
-		intArr[0] = -1;
-		emptyIntArrayArrayList.add(intArr);
+	void fillEmptyArrayLists() {
 		Tile emptyTile = new Tile();
 		ArrayList<Tile> emptyTileArrayList = new ArrayList<>();
 		emptyTileArrayList.add(emptyTile);
-
 		for (int i=0; i<this.numPlayers; i++) {
 			// hand items hiddenHand and revealedHand
 			Hand playerHand = this.player.get(i).getHand();
@@ -113,8 +355,7 @@ public class Game {
 				playerHand.setRevealedHand(emptyTileArrayList);
 			}
 		}
-
-		//TODO: hidden and uncovered Tiles?
+		// hidden and uncovered Tiles?
 		if (tiles.getHiddenTiles().isEmpty()) {
 			tiles.setHiddenTiles(emptyTileArrayList);
 		}
@@ -124,17 +365,11 @@ public class Game {
 	}
 
 	// remove empty values added in above function
-	public void cleanEmptyArrayLists() {
-		ArrayList<int[]> emptyIntArrayArrayList = new ArrayList<>();
-		//ArrayList<int[]> tmp;
-		int [] intArr = new int[1];
-		intArr[0] = -1;
-		emptyIntArrayArrayList.add(intArr);
+	void cleanEmptyArrayLists() {
 		Tile emptyTile = new Tile();
 		ArrayList<Tile> emptyTileArrayList = new ArrayList<>();
 		ArrayList<Tile> emptyTileArrayListPattern = new ArrayList<>();
 		emptyTileArrayListPattern.add(emptyTile);
-
 		for (int i=0; i<this.numPlayers; i++) {
 			// hand items hiddenHand and revealedHand
 			Hand playerHand = this.player.get(i).getHand();
@@ -154,12 +389,8 @@ public class Game {
 		if (this.tiles.getUncoveredTiles().equals(emptyTileArrayListPattern)) {
 			this.tiles.getUncoveredTiles().clear();
 		}
-
 	}
 
-	public void setPlayerPlayingStatus(boolean status, int playerIdx) {
-		this.player.get(playerIdx).setPlayerPlaying(status);
-	}
 
 	public String namePlayersPlaying() {
 		ArrayList<String> names = new ArrayList<>();
@@ -196,247 +427,31 @@ public class Game {
 	}
 
 	public Boolean allPlayersPlaying() {
+		if (this.maxPlayers != this.numPlayers) {
+			return false;
+		} else {
+			for (int i=0; i<this.maxPlayers; i++) {
+				if (!this.player.get(i).getPlayerPlaying()) {
+					return false;
+				}
+			}
+			return true;
+		}
+	}
+
+	public int getNumPlayersPlaying() {
+		int num_playing = 0;
 		for (int i=0; i<this.numPlayers; i++) {
-			if (!this.player.get(i).getPlayerPlaying()) {
-				return false;
+			if (this.player.get(i).getPlayerPlaying()) {
+				num_playing++;
 			}
 		}
-		return true;
+		return num_playing;
 	}
 
-	/*
-	 * Return player index of winner.
-	 */
-	public void playGame() {
-
-		//TODO: change playGame to return an int on game over. For now we game over.
-		//TODO: remove all System.exit calls in package. Maybe replace with some kind of error flag?
-
-		// return if no more tiles
-		if (!this.tiles.tilesLeft()) {
-			System.out.println("No more tiles left.\n");
-			this.gameState = GameState.GAME_OVER;
-		}
-
-		int next_player = (this.playerTurn + 1) % this.numPlayers;
-
-		switch (this.gameState) {
-
-			case START:
-				Log.e(String.valueOf(1),"STATE STATUS: START");
-				System.out.println("Welcome to the game\n");
-				this.playerTurn = this.getRandomPlayerID();
-				this.gameState = GameState.DRAWING_TILE;
-				break;
-
-			case CHECKING_HAND:
-				Log.e(String.valueOf(1),"STATE STATUS: CHECKING_HAND");
-				// check if players can Mahjong, Kong or Pong.
-				for (int i = 0; i<this.numPlayers; i++) {
-					// player cannot interrupt their own turn
-					if (i != this.playerTurn) {
-						// check for Mahjong
-						if (this.player.get(i).checkHandMahjong(this.latestDiscard)) {
-							this.player.get(i).setMahjongAvailable(true);
-							this.player.get(i).setRequestResponse(true);
-							System.out.println("Player " + i + ": Mahjong? \t1=Mahjong\tother=No");
-						} else if (this.player.get(i).checkHandKong(this.latestDiscard)) {
-							this.player.get(i).setKongAvailable(true);
-							this.player.get(i).setRequestResponse(true);
-							System.out.println("Player " + i + ": Kong? \t1=Kong\tother=No");
-						} else if (this.player.get(i).checkHandPong(this.latestDiscard)) {
-							this.player.get(i).setPongAvailable(true);
-							this.player.get(i).setRequestResponse(true);
-							this.player.get(i).showHiddenHand();
-						}
-					}
-				}
-				// next player will also have chance to tse
-				this.player.get(next_player).setRequestResponse(true);
-				this.setAcceptingResponses(true);
-				System.out.println("Player " + next_player + ": Tse? \t1=Tse\t0=No");
-				this.setGameState(GameState.CHECKING_RESPONSES);
-				break;
-
-			// Here we handle responses. The game will go immediately to next state if MJ, Pong, Kong response.
-			//TODO: these might be eventually replaced by buttons...? How would that work for multiple choice?
-			case CHECKING_RESPONSES:
-				// check for MJ
-				for (int i=0; i<this.numPlayers; i++) {
-					// if player can respond
-					if (i != this.playerTurn && this.getRequestResponse(i)) {
-						String resp = this.player.get(i).getPlayerResponse();
-						// if player could MJ
-						if (this.player.get(i).getMahjongAvailable()) {
-							// if player responded to MJ correctly
-							if (this.player.get(i).checkUserMahjong(resp)) {
-								this.acceptingResponses = false;
-								this.setGameState(GameState.MAHJONG);
-								this.playerTurn = i;
-								this.resetPlayerInput();
-								return;
-							} else {
-								System.out.println("Incorrect input, please enter a correct response for Mahjong.");
-								this.setRequestResponse(next_player, true);
-								this.setPlayerResponse(next_player, "");
-							}
-						}
-					}
-				}
-				// check for Kong
-				for (int i=0; i<this.numPlayers; i++) {
-					if (i != this.playerTurn && this.getRequestResponse(i)) {
-						String resp = this.player.get(i).getPlayerResponse();
-						if (this.player.get(i).getKongAvailable()) {
-							if (this.player.get(i).checkUserKong(resp)) {
-								this.setGameState(GameState.KONG);
-								this.playerTurn = i;
-								this.resetPlayerInput();
-								return;
-							} else {
-								System.out.println("Incorrect input, please enter a correct response for Kong.");
-								this.setRequestResponse(next_player, true);
-								this.setPlayerResponse(next_player, "");
-							}
-						}
-					}
-				}
-				// check for Pong
-				for (int i=0; i<this.numPlayers; i++) {
-					if (i != this.playerTurn && this.getRequestResponse(i)) {
-						String resp = this.player.get(i).getPlayerResponse();
-						if (this.player.get(i).getPongAvailable()) {
-							if (this.player.get(i).checkUserPong(resp)) {
-								this.setGameState(GameState.PONG);
-								this.playerTurn = i;
-								this.resetPlayerInput();
-								return;
-							} else {
-								System.out.println("Incorrect input, please enter a correct response for Pong.");
-								this.setRequestResponse(next_player, true);
-								this.setPlayerResponse(next_player, "");
-							}
-						}
-					}
-				}
-				// check for Draw tile or Tse or drawing new tile
-				String nextPlayerResp = this.player.get(next_player).getPlayerResponse();
-				if (nextPlayerResp.equals("0") ||nextPlayerResp.equals("1")) {
-					// start timer if next player input
-					if (!this.tseCalled) {
-						this.tseCalled = true;
-						this.setTseCalledTime();
-						Log.e("timer analysis", "Time started at : " + this.getTseCalledTime() + " milliseconds.");
-					}
-					Log.e("timer analysis", "Time elapsed : " +this.getTseTimeElapsed() + " milliseconds.");
-					// check that time has elapsed before moving on
-					if (this.getTseTimeElapsed() >= ACCEPTING_RESPONSE_TIME) {
-						if (this.player.get(next_player).getPlayerResponse().equals("0")) {
-							this.setGameState(GameState.DRAWING_TILE);
-						} else if (this.player.get(next_player).getPlayerResponse().equals("1")) {
-							this.setGameState(GameState.TSE);
-						}
-						this.playerTurn = next_player;
-						this.resetPlayerInput();
-					}
-				} else if (nextPlayerResp.equals("")) {
-					break;
-				}
-				else {
-					System.out.println("Incorrect input, please enter a correct response for Tse.");
-					this.setRequestResponse(next_player, true);
-					this.setPlayerResponse(next_player, "");
-				}
-				break;
-
-			case MAHJONG:
-				Log.e(String.valueOf(1),"STATE STATUS: MJ");
-				this.gameState = GameState.GAME_OVER;
-				System.out.println("Player " + this.playerTurn + ": Mahjong!");
-				break;
-
-			case KONG:
-				Log.e(String.valueOf(1),"STATE STATUS: KONG");
-				this.player.get(this.playerTurn).kong(this.latestDiscard);
-				System.out.println("Player " + this.playerTurn + ": Kong!");
-				this.gameState = GameState.DRAWING_TILE;
-				break;
-
-			case PONG:
-				Log.e(String.valueOf(1),"STATE STATUS: PONG");
-				this.player.get(this.playerTurn).pong(this.latestDiscard);
-				System.out.println("Player " + this.playerTurn + ": Pong!");
-				this.gameState = GameState.DISCARD_OPTIONS;
-				break;
-
-			case TSE:
-				Log.e(String.valueOf(1),"STATE STATUS: TSE");
-				System.out.println("Tse!");
-				this.player.get(this.playerTurn).tse(this.latestDiscard);
-				this.gameState = GameState.DISCARD_OPTIONS;
-				break;
-
-			case DRAWING_TILE:
-				Log.e(String.valueOf(1),"STATE STATUS: DRAWING TILE");
-				System.out.println("Player " + this.playerTurn + ": drawing tile");
-				// last tile drawn
-				Tile tile_drawn = this.tiles.revealTile();
-				// check hand for a Mahjong //TODO: a user response to confirm/notice this
-				if (this.player.get(this.playerTurn).checkHandMahjong(tile_drawn)) {
-					System.out.println("Player " + this.playerTurn + ": Mahjong By Your Own Hand!");
-					this.gameState = GameState.MAHJONG;
-				} else {
-					// add tile to hand MJ or not
-					this.player.get(this.playerTurn).addToHand(tile_drawn);
-					this.gameState = GameState.DISCARD_OPTIONS;
-				}
-				break;
-
-			case DISCARD_OPTIONS:
-				Log.e(String.valueOf(1),"STATE STATUS: DISCARD OPTIONS");
-				System.out.println("Player " + this.playerTurn + ": discard a tile from the following:");
-				this.player.get(this.playerTurn).showHiddenHand();
-				this.player.get(this.playerTurn).setRequestResponse(true);
-				this.setAcceptingResponses(true);
-				this.gameState = GameState.DISCARDING_TILE;
-				break;
-
-			// Discard a tile
-			case DISCARDING_TILE:
-				Log.e(String.valueOf(1),"STATE STATUS: DISCARDING TILE");
-				String resp = this.player.get(this.playerTurn).getPlayerResponse();
-				// if there is response
-				if (!resp.equals("")) {
-					int valid_idx = this.player.get(this.playerTurn).getUserDiscardIdx(resp);
-					// if the response is valid
-					if (valid_idx == -1) {
-						this.setRequestResponse(next_player, true);
-						this.setPlayerResponse(next_player, "");
-					} else {
-						this.latestDiscard = this.player.get(this.playerTurn).discardTile(resp);
-						this.tiles.addUncoveredTile(this.latestDiscard);
-						System.out.println("Player " + this.playerTurn + " discarded " + this.latestDiscard.getDescriptor());
-						this.updateDiscardedTileImage = true;
-						this.gameState = GameState.CHECKING_HAND;
-						this.resetPlayerInput();
-					}
-				}
-				break;
-
-			case GAME_OVER:
-				Log.e(String.valueOf(1),"STATE STATUS: GAME OVER");
-				System.out.println("Game over!\n");
-				this.setGameStatus(GameStatus.FINISHED);
-				break;
-
-			default:
-				System.out.println("ERROR: Game should not have reached this state.");
-				this.gameState = GameState.GAME_OVER;
-				break;
-		}
-
+	public Boolean allPlayersJoined() {
+		return this.maxPlayers == this.numPlayers;
 	}
-
 
 	private void resetPlayerInput() {
 		for (int i=0; i<this.numPlayers; i++) {
@@ -472,6 +487,71 @@ public class Game {
 			drawables.add(descriptors.get(i).toLowerCase().replace(" ", "_"));
 		}
 		return drawables;
+	}
+
+	private int getRandomPlayerID() {
+		// this way of generating random number may not be truly random...
+		Random rand = new Random();
+		int max = this.numPlayers;
+		int min = 0;
+		int nextPlayerIdx = rand.nextInt((max - min) + 1) + min;
+		if (nextPlayerIdx == this.numPlayers) {
+			nextPlayerIdx--;
+		}
+		return nextPlayerIdx;
+	}
+
+	// non getter setter methods
+	public String listAllPlayer() {
+		if (this.player.size() == 0) {
+			return "No members";
+		}
+		StringBuilder s = new StringBuilder();
+		for (int i=0; i<this.player.size(); i++) {
+			Log.e(String.valueOf(1),i + " " + this.player.get(i).getPlayerUname() + " ADDED NAME");
+			s.append(this.player.get(i).getPlayerUname()).append("  ");
+		}
+		return s.toString();
+	}
+
+	public void addPlayer(String name, String uid) {
+		// check player does not already exist in game
+		for (int i=0; i<this.player.size(); i++) {
+			if (this.player.get(i).getPlayerUname().equals(name) || this.player.get(i).getPlayerUid().equals(uid)) {
+				System.out.println("Cannot add player " + name + ", player already exists!");
+				return;
+			}
+		}
+		Tile[] start_tiles = new Tile[13];
+		for (int j = 0; j < 13; j++) {
+			start_tiles[j] = this.tiles.revealTile();
+		}
+		this.player.add(new Player(name, uid, this.numPlayers, start_tiles));
+		this.numPlayers++;
+	}
+
+	// return index of player that matches name
+	public int getPlayerIdx(String uid) {
+		for (int i=0; i<this.player.size(); i++) {
+			if (this.player.get(i).getPlayerUid().equals(uid))
+				Log.i("Game", "Game: Getting player idx " + uid + " == " + this.player.get(i).getPlayerUid() + " ?");
+			if (uid.equals(this.player.get(i).getPlayerUid())) {
+				return this.player.get(i).getPlayerIdx();   // -1 to account for "names" as first value in ArrayList
+			}
+		}
+		// if no match, return -1
+		return -1;
+	}
+
+	public Boolean checkPlayerJoined(String uid) {
+		for (int i=0; i<this.player.size(); i++) {
+			if (this.player.get(i).getPlayerUid().equals(uid)) {
+				Log.i("Game", "Game: Game player idx was found");
+				return true;
+			}
+		}
+		// if no match, return false
+		return false;
 	}
 
 	public boolean test_true_pong() {
@@ -580,82 +660,5 @@ public class Game {
 		return true;
 	}
 
-	private int getRandomPlayerID() {
-		//TODO: this way of generating random number may not be truly random...
-		Random rand = new Random();
-		int max = this.numPlayers;
-		int min = 0;
-		int nextPlayerIdx = rand.nextInt((max - min) + 1) + min;
-		if (nextPlayerIdx == this.numPlayers) {
-			nextPlayerIdx--;
-		}
-		return nextPlayerIdx;
-	}
-
-	// non getter setter methods
-	public String listAllPlayer() {
-		if (this.player.size() == 0) {
-			return "No members";
-		}
-		StringBuilder s = new StringBuilder();
-		for (int i=0; i<this.player.size(); i++) {
-			Log.e(String.valueOf(1),i + " " + this.player.get(i).getPlayerUname() + " ADDED NAME");
-			s.append(this.player.get(i).getPlayerUname()).append("  ");
-		}
-		return s.toString();
-	}
-
-	public void addPlayer(String name, String uid) {
-		// check player does not already exist in game
-		for (int i=0; i<this.player.size(); i++) {
-			if (this.player.get(i).getPlayerUname().equals(name) || this.player.get(i).getPlayerUid().equals(uid)) {
-				System.out.println("Cannot add player " + name + ", player already exists!");
-				return;
-			}
-		}
-		Tile[] start_tiles = new Tile[13];
-		for (int j = 0; j < 13; j++) {
-			start_tiles[j] = this.tiles.revealTile();
-		}
-		this.player.add(new Player(name, uid, this.numPlayers, start_tiles));
-		this.numPlayers++;
-	}
-
-	//TODO: may be needed in later menus
-	/*
-	public void removePlayer(int player_idx) {
-		try {
-			this.player.remove(player_idx);
-			this.numPlayers--;
-		} catch (Exception e) {
-			System.out.println("Error: Encountered issue removing player " + player_idx + " from game.");
-		}
-	}
-
-	public void removePlayer(String uid) {
-		for (int i=0; i<this.player.size(); i++) {
-			if (uid.equals(this.player.get(i).getPlayerUid())) {
-				this.player.remove(i);
-				this.numPlayers--;
-				return;
-			}
-		}
-	}
-	*/
-
-	// return index of player that matches name
-	public int getPlayerIdx(String uid) {
-		for (int i=0; i<this.player.size(); i++) {
-			if (this.player.get(i).getPlayerUid().equals(uid))
-				Log.e("comparing_names", "Getting player idx " + uid + " == " + this.player.get(i).getPlayerUid() + " ?");
-			if (uid.equals(this.player.get(i).getPlayerUid())) {
-				return this.player.get(i).getPlayerIdx();   // -1 to account for "names" as first value in ArrayList
-			}
-		}
-		// if no match, return -1
-		return -1;
-	}
-
-	//TODO: resetGame
 }
 

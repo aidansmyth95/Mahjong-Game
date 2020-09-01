@@ -8,6 +8,7 @@ import android.text.TextUtils;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -41,14 +42,11 @@ import static mahjong_package.FirebaseRepository.userJoinedGameFirebase;
 import static mahjong_package.FirebaseRepository.userPlayingGameFirebase;
 
 
-//TODO: migrate code from onCreate to onStart & onStop as per:
-//https://stackoverflow.com/questions/48157959/calling-firebase-event-listeners-in-oncreate-of-fragment
-
 public class MultiplayerActivity extends AppCompatActivity {
 
     private final int nTotalTiles = 15;
     private final long gameDelay = 500;
-    private Game currGame = new Game();
+    private Game currGame = new Game(-1);
     private User currUser = new User();
     private int playerIdx;
     private boolean passed_tests = false;
@@ -62,6 +60,7 @@ public class MultiplayerActivity extends AppCompatActivity {
     private Runnable gamePlayRunnable;
     private AlertDialog dialog;
     private static final String TAG = "MultiplayerActivity";
+    public Boolean popup_active = false;
 
     private DatabaseReference dbRef;
     private ValueEventListener userListener, gameListener;
@@ -69,7 +68,7 @@ public class MultiplayerActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.e(TAG, TAG+": onCreate");
+        Log.i(TAG, TAG+": onCreate");
         setContentView(R.layout.activity_multiplayer);
         initializeUI();
         // redirect Game system out and system error
@@ -82,7 +81,7 @@ public class MultiplayerActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        Log.e(TAG, TAG+": onStart");
+        Log.i(TAG, TAG+": onStart");
         // set listener on user - and in turn Game
         setCurrUserListener();
         // user is at least joined when they start this activity
@@ -91,6 +90,12 @@ public class MultiplayerActivity extends AppCompatActivity {
 
     @Override
     protected void onStop() {
+        // save Game text output for reload on resume
+        if (!outputText.getText().toString().isEmpty()) {
+            currGame.setGameMessage(playerIdx, outputText.getText().toString());
+            updateMultiplayerGame(currGame);
+        }
+        // remove listeners
         if (userListener != null) {
             dbRef.removeEventListener(userListener);
         }
@@ -98,35 +103,36 @@ public class MultiplayerActivity extends AppCompatActivity {
             dbRef.removeEventListener(gameListener);
         }
         userInactiveFirebaseUser();
+        Log.i(TAG, TAG+": onStop");
         super.onStop();
-        Log.e(TAG, TAG+": onStop");
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        Log.e(TAG, TAG+": onResume");
-
+        Log.i(TAG, TAG+": onResume");
         // check if game has been paused by another user
         if (passed_tests) {
-
             gamePlayHandler.postDelayed(gamePlayRunnable = new Runnable() {
                 @Override
                 public void run() {
-
                     // this player is playing when we are in this state
                     currGame.setPlayerPlayingStatus(true, playerIdx);
-
                     // check that all players are playing. If not, popup window
                     if (currGame.allPlayersPlaying() && currGame.getGameStatus() == GameStatus.PAUSED) {
-                        Log.e(TAG, TAG+": Dismissing leave game popup menu");
+                        Log.i(TAG, TAG+": All " + currGame.getNumPlayersPlaying() + " are playing");
+                        Log.i(TAG, TAG+": Dismissing leave game popup menu");
                         currGame.setGameStatus(GameStatus.ACTIVE);
                         // dismiss the persistent popup menu
-                        dialog.dismiss();
+                        if (dialog != null && popup_active) {
+                            dialog.dismiss();
+                            popup_active = false;
+                        }
                         // user is now active and about to start playing the game
                         userPlayingGameFirebase();
-                    } else if (!currGame.allPlayersPlaying() && currGame.getGameStatus() == GameStatus.ACTIVE) {
-                        Log.e(TAG, TAG+": Creating leave game popup menu");
+                    } else if (!currGame.allPlayersPlaying() && !popup_active) {
+                        Log.i(TAG, TAG+": Only " + currGame.getNumPlayersPlaying() + " are playing");
+                        Log.i(TAG, TAG+": Creating leave game popup menu");
                         // update game status
                         currGame.setGameStatus(GameStatus.PAUSED);
                         updateMultiplayerGame(currGame);
@@ -134,15 +140,24 @@ public class MultiplayerActivity extends AppCompatActivity {
                         userJoinedGameFirebase();
                         // launch the persistent popup here
                         createLeaveGameDialog();
+                        Log.i(TAG, TAG+": Popup menu created");
+                        popup_active = true;
+                    } else {
+                        Log.i(TAG, TAG+": \n---------- Status update  ----------");
+                        Log.i(TAG, TAG+": Game name is " + currGame.getGameName());
+                        Log.i(TAG, TAG+": Number of players playing is " + currGame.getNumPlayersPlaying() + " are playing");
+                        Log.i(TAG, TAG+": All players are playing? = " + currGame.allPlayersPlaying());
+                        Log.i(TAG, TAG+": Players playing are " + currGame.namePlayersPlaying());
+                        Log.i(TAG, TAG+": Players not playing are " + currGame.namePlayersNotPlaying());
+                        Log.i(TAG, TAG+": Game status is " + currGame.getGameStatus());
+                        Log.i(TAG, TAG+": Popup active? = " + popup_active);
+                        Log.i(TAG, TAG+": -------------------------------\n");
                     }
-
                     // Do not play game if game is not active
                     if (currGame.getGameStatus() != GameStatus.ACTIVE) {
                         return;
                     }
-
                     currGame.playGame();
-                    // player can respond
                     // update UI - revealed hand, hidden hand, unused tile space, text
                     if (currGame.getAcceptingResponses()) {
                         updateUI();
@@ -166,11 +181,11 @@ public class MultiplayerActivity extends AppCompatActivity {
     @Override
     public void onPause() {
         super.onPause();
-        Log.e(TAG, TAG+": onPause");
+        Log.i(TAG, TAG+": onPause");
         gamePlayHandler.removeCallbacks(gamePlayRunnable);
         // update Game status if not already Paused
         if (currGame.getGameStatus() != GameStatus.PAUSED) {
-            Log.e(TAG, TAG+": Pausing game.");
+            Log.i(TAG, TAG+": Pausing game.");
             currGame.setGameStatus(GameStatus.PAUSED);
             currGame.setPlayerPlayingStatus(false, playerIdx);
             updateMultiplayerGame(currGame);
@@ -179,28 +194,28 @@ public class MultiplayerActivity extends AppCompatActivity {
     }
 
     private void initializeUI() {
-        outputTurn = (TextView) findViewById(R.id.p_turn);
-        outputText = (TextView) findViewById(R.id.textViewOut);
+        outputTurn = findViewById(R.id.p_turn);
+        outputText = findViewById(R.id.textViewOut);
         outputText.setMovementMethod(new ScrollingMovementMethod());
-        sendButton = (Button) findViewById(R.id.send_button);
+        sendButton = findViewById(R.id.send_button);
         sendButton.setEnabled(false);
-        userInputText = (EditText) findViewById(R.id.p_input);
-        discardedImage = (ImageView) findViewById(R.id.discarded);
-        handTiles[0] = (ImageView) findViewById(R.id.h0);
-        handTiles[1] = (ImageView) findViewById(R.id.h1);
-        handTiles[2] = (ImageView) findViewById(R.id.h2);
-        handTiles[3] = (ImageView) findViewById(R.id.h3);
-        handTiles[4] = (ImageView) findViewById(R.id.h4);
-        handTiles[5] = (ImageView) findViewById(R.id.h5);
-        handTiles[6] = (ImageView) findViewById(R.id.h6);
-        handTiles[7] = (ImageView) findViewById(R.id.h7);
-        handTiles[8] = (ImageView) findViewById(R.id.h8);
-        handTiles[9] = (ImageView) findViewById(R.id.h9);
-        handTiles[10] = (ImageView) findViewById(R.id.h10);
-        handTiles[11] = (ImageView) findViewById(R.id.h11);
-        handTiles[12] = (ImageView) findViewById(R.id.h12);
-        handTiles[13] = (ImageView) findViewById(R.id.h13);
-        handTiles[14] = (ImageView) findViewById(R.id.h14);
+        userInputText = findViewById(R.id.p_input);
+        discardedImage = findViewById(R.id.discarded);
+        handTiles[0] = findViewById(R.id.h0);
+        handTiles[1] = findViewById(R.id.h1);
+        handTiles[2] = findViewById(R.id.h2);
+        handTiles[3] = findViewById(R.id.h3);
+        handTiles[4] = findViewById(R.id.h4);
+        handTiles[5] = findViewById(R.id.h5);
+        handTiles[6] = findViewById(R.id.h6);
+        handTiles[7] = findViewById(R.id.h7);
+        handTiles[8] = findViewById(R.id.h8);
+        handTiles[9] = findViewById(R.id.h9);
+        handTiles[10] = findViewById(R.id.h10);
+        handTiles[11] = findViewById(R.id.h11);
+        handTiles[12] = findViewById(R.id.h12);
+        handTiles[13] = findViewById(R.id.h13);
+        handTiles[14] = findViewById(R.id.h14);
         for (int h=0; h<nTotalTiles; h++) {
             handTiles[h].setVisibility(View.INVISIBLE);
         }
@@ -251,7 +266,7 @@ public class MultiplayerActivity extends AppCompatActivity {
             handTiles[j].setVisibility(View.INVISIBLE);
         }
         // update player's turn textview
-        outputTurn.setText("Player " + currGame.getPlayerTurn() + " turn.");
+        outputTurn.setText(getString(R.string.waiting_room_players_turn, currGame.getPlayerTurn()));
         outputTurn.setVisibility(View.VISIBLE);
         // enable send button and its functionality if player's input is requested
         sendButton.setEnabled(currGame.getRequestResponse(playerIdx));
@@ -278,10 +293,15 @@ public class MultiplayerActivity extends AppCompatActivity {
         gameListener = dbRef.child("multiplayer_games").child(currUser.getLastGameId()).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                Log.e(TAG,TAG+": child nodes changed for game = "+dataSnapshot.getChildrenCount());
+                Log.d(TAG,TAG+": child nodes changed for game = "+dataSnapshot.getChildrenCount());
                 currGame = getCurrGameDetailsFirebase(dataSnapshot);
                 if (currGame.gameExists()) {
                     playerIdx = currGame.getPlayerIdx(currUser.getUid());
+                    // save Game text output for reload on resume
+                    if (outputText.getText().toString().isEmpty()) {
+                        outputText.setText(currGame.getGameMessage(playerIdx));
+                        currGame.setGameMessage(playerIdx,"");
+                    }
                 }
             }
             @Override
@@ -312,7 +332,8 @@ public class MultiplayerActivity extends AppCompatActivity {
     }
 
     private boolean runAllGameTestVectors() {
-        Game testGame = new Game();
+        Log.i(TAG, TAG+": Testing Game");
+        Game testGame = new Game(1);
         testGame.addPlayer("dummy_name", "dummy_uid");
         boolean clear_output = testGame.test_true_pong();
         if (clear_output) {
@@ -332,28 +353,29 @@ public class MultiplayerActivity extends AppCompatActivity {
             // reset output stream link to text box
             System.out.flush();
             redirectGameSystemOut(outputText);
+            Log.i(TAG, TAG+": Passed Game tests.");
             return true;
         } else {
+            Log.i(TAG, TAG+": Failed Game tests.");
             return false;
         }
     }
 
     public void createLeaveGameDialog() {
         AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
-        //TODO: what is this root=null?
-        final View leaveGamePopupView = getLayoutInflater().inflate(R.layout.popup, null);
-        Button leaveButton = (Button) leaveGamePopupView.findViewById(R.id.leave_button);
+        final ViewGroup nullParent = null;
+        final View leaveGamePopupView = getLayoutInflater().inflate(R.layout.popup, nullParent);
+        Button leaveButton = leaveGamePopupView.findViewById(R.id.leave_button);
         dialogBuilder.setCancelable(false);
         dialogBuilder.setView(leaveGamePopupView);
         dialog = dialogBuilder.create();
         dialog.show();
-
         leaveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //define leave button
                 dialog.dismiss();
-                Log.e(TAG, TAG+": leaving activity, going to GameSelectActivity");
+                Log.i(TAG, TAG+": leaving activity, going to GameSelectActivity");
                 //return to GameSelect activity
                 Intent intent = new Intent(MultiplayerActivity.this, GameSelectActivity.class);
                 startActivity(intent);
@@ -364,18 +386,18 @@ public class MultiplayerActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Log.e(TAG, TAG+": onDestroy");
+        Log.i(TAG, TAG+": onDestroy");
     }
 
     @Override
     public void onRestart() {
         super.onRestart();
-        Log.e(TAG, TAG+": onRestart");
+        Log.i(TAG, TAG+": onRestart");
     }
 
     @Override
     public void onBackPressed() {
-        Log.e(TAG, TAG+": onBackPressed");
+        Log.i(TAG, TAG+": onBackPressed");
         new AlertDialog.Builder(this)
                 .setTitle("Really Exit Game?")
                 .setMessage("Are you sure you want to exit the game?")

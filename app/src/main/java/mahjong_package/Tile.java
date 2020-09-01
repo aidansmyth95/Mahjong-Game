@@ -7,7 +7,6 @@ public class Tile {
     private int rank;
     private int type;
     private String descriptor;
-    //TODO: use this instead of isMember checks throuhout package
     private String childClass;
 
 

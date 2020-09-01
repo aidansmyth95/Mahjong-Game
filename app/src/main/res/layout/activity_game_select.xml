@@ -11,13 +11,14 @@
         android:id="@+id/join_game"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/join_game"
         android:gravity="center"
+        android:text="@string/join_game"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/new_game_text"
-        app:layout_constraintVertical_bias="0.1" />
+        app:layout_constraintTop_toBottomOf="@+id/new_game_num_players"
+        app:layout_constraintVertical_bias="0.061" />
 
     <Button
         android:id="@+id/create_game"
@@ -53,14 +54,30 @@
         android:id="@+id/new_game_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
         android:autofillHints=""
         android:background="@color/common_google_signin_btn_text_dark_default"
         android:ems="10"
         android:gravity="center"
         android:hint="@string/your_game_name_here"
         android:inputType="textPersonName"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/create_game" />
+
+    <EditText
+        android:id="@+id/new_game_num_players"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:autofillHints=""
+        android:background="@color/common_google_signin_btn_text_dark_default"
+        android:ems="10"
+        android:gravity="center"
+        android:hint="@string/number_of_players"
+        android:inputType="textPersonName"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/new_game_text" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

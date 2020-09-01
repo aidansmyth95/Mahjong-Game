@@ -1,8 +1,5 @@
 package com.example.mahjong;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,6 +9,9 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -19,23 +19,21 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import mahjong_package.Game;
-import mahjong_package.GameStatus;
 import mahjong_package.User;
 
 import static mahjong_package.FirebaseRepository.getCurrGameDetailsFirebase;
 import static mahjong_package.FirebaseRepository.getCurrUserDetailsFirebase;
 import static mahjong_package.FirebaseRepository.getCurrentUserUid;
-import static mahjong_package.FirebaseRepository.updateMultiplayerGame;
 import static mahjong_package.FirebaseRepository.userInactiveFirebaseUser;
 import static mahjong_package.FirebaseRepository.userJoinedGameFirebase;
-import static mahjong_package.FirebaseRepository.userPlayingGameFirebase;
 
 
 public class WaitingRoomActivity extends AppCompatActivity {
 
+    Button start_game;
     private TableLayout game_table_view;
     private User curr_user = new User();
-    private Game curr_game = new Game();
+    private Game curr_game = new Game(-1);
     private static final String TAG = "WaitingRoomActivity";
 
     private DatabaseReference dbRef;
@@ -45,11 +43,11 @@ public class WaitingRoomActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.e(TAG, TAG+": onCreate");
+        Log.i(TAG, TAG+": onCreate");
 
         setContentView(R.layout.activity_waiting_room);
-        game_table_view = (TableLayout) findViewById(R.id.single_game_table_layout);
-        Button start_game = (Button) findViewById(R.id.start_game);
+        game_table_view = findViewById(R.id.single_game_table_layout);
+        start_game = findViewById(R.id.start_game);
         start_game.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 if (curr_user.userExists()) {
@@ -63,7 +61,7 @@ public class WaitingRoomActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        Log.e(TAG, TAG+": onStart");
+        Log.i(TAG, TAG+": onStart");
         // set Firebase database listeners
         setCurrUserListener();
         // user is inactive if they are starting this activity - not joined or active in game yet
@@ -73,7 +71,7 @@ public class WaitingRoomActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        Log.e(TAG, TAG+": onPause");
+        Log.i(TAG, TAG+": onPause");
     }
 
     @Override
@@ -85,56 +83,59 @@ public class WaitingRoomActivity extends AppCompatActivity {
             dbRef.removeEventListener(gameListener);
         }
         super.onStop();
-        Log.e(TAG, TAG+": onStop");
+        Log.i(TAG, TAG+": onStop");
     }
 
-    private void initializeUI() {
+    private void updateUI() {
         // populate a row for game name, game state, players involved etc...
         game_table_view.removeAllViews();
         // row containing Game name
         TableRow game_name_row = new TableRow(this);
-        TextView tv0 = new TextView(this);
-        tv0.setText("Game name: " + curr_game.getGameName());
-        game_name_row.addView(tv0);
+        TextView game_name_text = new TextView(this);
+        game_name_text.setText(getString(R.string.waiting_room_game_name, curr_game.getGameName()));
+        game_name_row.addView(game_name_text);
         game_name_row.setBackgroundResource(R.drawable.border);
         game_table_view.addView(game_name_row);
 
         // row containing game members
         TableRow game_members_playing_row = new TableRow(this);
-        TextView tv1 = new TextView(this);
-        tv1.setText("Players ready: " + curr_game.namePlayersPlaying());
-        game_members_playing_row.addView(tv1);
+        TextView game_members_playing_text = new TextView(this);
+        game_members_playing_text.setText(getString(R.string.waiting_room_players_ready, curr_game.namePlayersPlaying()));
+        game_members_playing_row.addView(game_members_playing_text);
         game_name_row.setBackgroundResource(R.drawable.border);
         game_table_view.addView(game_members_playing_row);
 
         // row containing game members
         TableRow game_members_not_playing_row = new TableRow(this);
-        TextView tv2 = new TextView(this);
-        tv2.setText("Players missing: " + curr_game.namePlayersNotPlaying());
-        game_members_not_playing_row.addView(tv2);
+        TextView game_members_not_playing_text = new TextView(this);
+        game_members_not_playing_text.setText(getString(R.string.waiting_room_players_ready, curr_game.namePlayersNotPlaying()));
+        game_members_not_playing_row.addView(game_members_not_playing_text);
         game_name_row.setBackgroundResource(R.drawable.border);
         game_table_view.addView(game_members_not_playing_row);
 
         // row containing game state
         TableRow game_state_row = new TableRow(this);
-        TextView tv3 = new TextView(this);
-        tv3.setText("Game state: " + curr_game.getGameState());
-        game_state_row.addView(tv3);
+        TextView game_state_text = new TextView(this);
+        game_state_text.setText(getString(R.string.waiting_room_game_state, curr_game.getGameState()));
+        game_state_row.addView(game_state_text);
         game_table_view.addView(game_state_row);
+
+        // row containing number of players joined out of max players
+        TableRow game_players_joined_row = new TableRow(this);
+        TextView game_players_joined_text = new TextView(this);
+        game_players_joined_text.setText(getString(R.string.players_joined_out_of_max, curr_game.getNumPlayers(), curr_game.getMaxPlayers()));
+        game_players_joined_row.addView(game_players_joined_text);
+        game_table_view.addView(game_players_joined_row);
 
         // row containing player turn
         TableRow game_turn_row = new TableRow(this);
-        TextView tv4 = new TextView(this);
-        tv4.setText("Player's turn: " + curr_game.getPlayerTurn().toString());
-        game_turn_row.addView(tv4);
+        TextView game_turn_text = new TextView(this);
+        game_turn_text.setText(getString(R.string.waiting_room_players_turn, curr_game.getPlayerTurn()));
+        game_turn_row.addView(game_turn_text);
         game_table_view.addView(game_turn_row);
     }
 
     private void startGame() {
-        userPlayingGameFirebase();
-        // update Game status
-        curr_game.setGameStatus(GameStatus.ACTIVE);
-        updateMultiplayerGame(curr_game);
         Intent intent = new Intent(WaitingRoomActivity.this, MultiplayerActivity.class);
         startActivity(intent);
     }
@@ -143,14 +144,14 @@ public class WaitingRoomActivity extends AppCompatActivity {
     private void setCurrUserListener() {
         dbRef = FirebaseDatabase.getInstance().getReference();
         String uid = getCurrentUserUid();
-        Log.e(TAG, TAG+": Setting up listener for " + "users/"+uid);
+        Log.i(TAG, TAG+": Setting up listener for " + "users/"+uid);
         userListener = dbRef.child("users").child(uid).addValueEventListener(new ValueEventListener() {
 
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                Log.e(TAG,TAG+": child nodes changed for user = "+dataSnapshot.getChildrenCount());
+                Log.d(TAG,TAG+": child nodes changed for user = "+dataSnapshot.getChildrenCount());
                 curr_user = getCurrUserDetailsFirebase(dataSnapshot);
-                Log.e(TAG,TAG+": User identified as " + curr_user.getUid());
+                Log.d(TAG,TAG+": User identified as " + curr_user.getUid());
                 // now we have last Game ID, so set current game listener
                 setCurrMulitplayerGameListener();
             }
@@ -167,11 +168,13 @@ public class WaitingRoomActivity extends AppCompatActivity {
 
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                Log.e(dataSnapshot.getKey(), TAG+": child nodes changed for Game = "+dataSnapshot.getChildrenCount());
+                Log.d(dataSnapshot.getKey(), TAG+": child nodes changed for Game = "+dataSnapshot.getChildrenCount());
                 curr_game = getCurrGameDetailsFirebase(dataSnapshot);
                 if (curr_game.gameExists()) {
-                    initializeUI();
+                    updateUI();
                 }
+                // enable progression if enough players have signed up to / joined the Game
+                start_game.setEnabled(curr_game.allPlayersJoined());
             }
 
             @Override
@@ -182,25 +185,25 @@ public class WaitingRoomActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        Log.e(TAG, TAG+": onResume");
+        Log.i(TAG, TAG+": onResume");
         userJoinedGameFirebase();
     }
 
     @Override
     protected void onRestart() {
         super.onRestart();
-        Log.e(TAG, TAG+": onRestart");
+        Log.i(TAG, TAG+": onRestart");
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Log.e(TAG, TAG+": onDestroy");
+        Log.i(TAG, TAG+": onDestroy");
     }
 
     @Override
     public void onBackPressed() {
-        Log.e(TAG, TAG+": onBackPressed");
+        Log.i(TAG, TAG+": onBackPressed");
         Intent intent = new Intent(WaitingRoomActivity.this, GameSelectActivity.class);
         startActivity(intent);
         finish();

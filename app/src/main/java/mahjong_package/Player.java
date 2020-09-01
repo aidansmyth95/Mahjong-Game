@@ -1,5 +1,7 @@
 package mahjong_package;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.InputMismatchException;
@@ -18,8 +20,8 @@ public class Player {
 	private int chosenIdx;
 	private int playerIdx;
 	private Boolean playerPlaying;
+	private String gameMessage;
 
-	//TODO: use these in constructors
 	public String getPlayerUid() { return this.playerUid; }
 	public void setPlayerUid(String uid) { this.playerUid = uid; }
 	public String getPlayerUname() { return this.playerUname; }
@@ -44,19 +46,22 @@ public class Player {
 	public void setPlayerIdx(int p) { this.playerIdx = p; }
 	public Boolean getPlayerPlaying() { return this.playerPlaying; }
 	public void setPlayerPlaying(boolean p) { this.playerPlaying = p; }
+	public String getGameMessage() { return this.gameMessage; }
+	public void setGameMessage(String s) { this.gameMessage = s; }
 
 	private Player() {
-		this.playerIdx = -1;
-		this.chosenIdx = -1;
 		this.clearHand();
-		this.playerUname = "";
-		this.playerUid = "";
-		this.pongAvailable = false;
-		this.kongAvailable = false;
-		this.mahjongAvailable = false;
-		this.requestResponse = false;
-		this.playerResponse = "";
-		this.playerPlaying = false;
+		this.setPlayerIdx(-1);
+		this.setChosenIdx(-1);
+		this.setPlayerUname("");
+		this.setPlayerUid("");
+		this.setPongAvailable(false);
+		this.setKongAvailable(false);
+		this.setMahjongAvailable(false);
+		this.setRequestResponse(false);
+		this.setPlayerResponse("");
+		this.setPlayerPlaying(false);
+		this.setGameMessage("");
 	}
 
 	// constructor
@@ -65,13 +70,13 @@ public class Player {
 		this();
 		// assert ID is valid and assign
         if (!this.isValid(player_ID)) {
-			System.out.print("Error: Player ID %" + player_ID + "is not valid\n");
-        	System.exit(0);
-        }
-		this.playerUname = uname;
-		this.playerUid = uid;
-        this.playerIdx = player_ID;
-		this.createHand(start_tiles);
+			Log.e("Player","Player: Player ID %" + player_ID + "is not valid\n");
+        } else {
+			this.playerUname = uname;
+			this.playerUid = uid;
+			this.playerIdx = player_ID;
+			this.createHand(start_tiles);
+		}
 	}
 
 	// clear the hand
@@ -110,7 +115,7 @@ public class Player {
 	}
 
 	// Parse User input for discard idx
-	public int getUserDiscardIdx(String player_input) {
+	int getUserDiscardIdx(String player_input) {
 		int discard_idx = -1;
 		// try parse for a valid int
 		try {
@@ -155,12 +160,10 @@ public class Player {
 	// check hand for kong, update options for kong, return true if chance for kong
 	boolean checkHandKong(Tile t) {
 		this.ppk.clearKongs();
-		//this.possibleKongs.clear();
 		ArrayList<int[]> kongs;
 		kongs = this.hand.checkKong(t);
 		// if no Pong arrays in this ArrayList (size 0), return false
 		if (kongs.size() > 0) {
-			//this.possibleKongs.addAll(kongs);
 			String stringVal = Arrays.toString(kongs.get(0));
 			this.ppk.setPossibleKong(0, stringVal);
 			return true;
@@ -185,7 +188,6 @@ public class Player {
 			e.printStackTrace();
 		}
 		// if last idx, no Pong...
-		//if (resp < this.possiblePongs.size() && resp >= 0) {
 		if (resp < this.ppk.getNumPongs() && resp >= 0) {
 			this.chosenIdx = resp;
 			return true;
@@ -204,8 +206,7 @@ public class Player {
 	}
 
 	// check for win
-	//TODO: use this in Gameplay
-	void Mahjong(Tile t) {
+	public void Mahjong(Tile t) {
 		// if Mahjong, add tile to hand and reveal all tiles
 		this.hand.addToHand(t);
 		this.hand.revealTiles();
@@ -214,10 +215,10 @@ public class Player {
 	void kong(Tile t) {
 		this.hand.addToHand(t);
 		int[] hand_idx = new int[4];
-		//TODO: parse from string to get array elements
-		hand_idx[0] = Integer.parseInt(this.ppk.getPossibleKong(0));  //this.possibleKongs.get(0)[0];
-		hand_idx[1] = Integer.parseInt(this.ppk.getPossibleKong(1)); //this.possibleKongs.get(0)[1];
-		hand_idx[2] = Integer.parseInt(this.ppk.getPossibleKong(2)); //this.possibleKongs.get(0)[2];
+		// parse from string to get array elements
+		hand_idx[0] = Integer.parseInt(this.ppk.getPossibleKong(0));
+		hand_idx[1] = Integer.parseInt(this.ppk.getPossibleKong(1));
+		hand_idx[2] = Integer.parseInt(this.ppk.getPossibleKong(2));
 		hand_idx[3] = this.hand.getHiddenHandSize()-1;
 		this.hand.revealTiles(hand_idx, 4);
 	}
@@ -240,7 +241,7 @@ public class Player {
 	// get arraylist of Hidden tile descriptors
 	ArrayList<String> getHiddenDescriptors() { return this.hand.getHiddenDescriptors(); }
 
-	//TODO: a separate test vector class
+	// a separate test vector class
 	Tile[] createTruePongTestVectorHand(int test_num) {
 		Tile[] test_vector = new Tile[14];
 		switch (test_num) {
@@ -395,7 +396,7 @@ public class Player {
 				test_vector[1] = new Bonus(1,2,2);
 				test_vector[2] = new Suits(1,1,1); //1
 				test_vector[3] = new Suits(1,1,2); //2
-				test_vector[4] = new Suits(1,1,0); //4 //TODO: ID zero indexing but type and rank do not. Fix this
+				test_vector[4] = new Suits(1,1,0); //4
 				test_vector[5] = new Suits(1,7,1);
 				test_vector[6] = new Suits(1,2,1);
 				test_vector[7] = new Suits(2,3,1);
@@ -465,7 +466,3 @@ public class Player {
 		return result;
 	}
 }
-
-//TODO: these
-// player scores hand's likeliness of producing a win, or hand's closeness to a win
-// player also has an aim based on probability for different combinations of triples, pairs and sequences
