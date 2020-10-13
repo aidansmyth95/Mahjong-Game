@@ -12,58 +12,35 @@ import java.util.Random;
 
 public class Game {
 
-	private final long ACCEPTING_RESPONSE_TIME = 1000;	// n milliseconds after next player input for another player to have chance to interrupt
-	private int maxPlayers = 4;			//TODO: rename to numPlayers - we cant play unless all are present. Error catch for 0, 1, etc.
-	private int numPlayers = 0; 			// Number of players playing the game
-	private String gameName;
-	private String gameID;
-	private GameState gameState; 		// state of Game
-	private GameStatus gameStatus;		// status of Game
-	private Tiles tiles = new Tiles(); 	// tile deck
-	private int playerTurn;				// player's turn to discard etc
-	private int winnerIdx; 				// player who wins
-	private int loserIdx; 				// player who loses
-	public boolean updateDiscardedTileImage; // update discarded image tiles cue
-	private Tile latestDiscard; 		// latest tile discarded
-	private ArrayList<Player> player = new ArrayList<>(); // Players playing game
-	private Boolean acceptingResponses;								// Game is still allowing responses
+	private final long ACCEPTING_RESPONSE_TIME = 1000;				// n milliseconds after next player input for another player to have chance to interrupt
+	private int maxPlayers = 1;										// Maximum number of players that can play the game.
+	private int numPlayers = 0; 									// Number of players playing the game
+	private String gameName = "NaN";
+	private String gameID = "NaN";
+	private GameState gameState = GameState.START; 					// state of Game
+	private GameStatus gameStatus = GameStatus.PAUSED;				// status of Game
+	private Tiles tiles = new Tiles(); 								// tile deck
+	private int playerTurn;											// player's turn to discard etc
+	private int winnerIdx = -1; 									// player who wins
+	private int loserIdx = -1; 										// player who loses
+	public boolean updateDiscardedTileImage = false; 				// update discarded image tiles cue
+	private Tile latestDiscard = new Tile(); 						// latest tile discarded
+	private ArrayList<Player> player = new ArrayList<>(); 			// Players playing game
+	private Boolean acceptingResponses = false;						// Game is still allowing responses
 	private long tseCalledTime = 0;
-	private Boolean tseCalled;
+	private Boolean tseCalled = false;
 
 	// constructor
 	public Game() {
-		this.latestDiscard = new Tile();
-		this.updateDiscardedTileImage = false;
-		this.gameState = GameState.START;
-		this.setAcceptingResponses(false);
-		this.setGameName("NaN");
-		this.setGameID("NaN");
 		// reset and shuffle deck
 		this.tiles.shuffleTiles();
-		this.setGameStatus(GameStatus.PAUSED);
-		this.setTseCalled(false);
-		this.setMaxPlayers(1);
-		this.setNumPlayers(0);
-		this.setWinnerIdx(-1);
-		this.setLoserIdx(-1);
 	}
 
 	// constructor
 	public Game(int maxPlayers) {
-		this.latestDiscard = new Tile();
-		this.updateDiscardedTileImage = false;
-		this.gameState = GameState.START;
-		this.setAcceptingResponses(false);
-		this.setGameName("NaN");
-		this.setGameID("NaN");
+		this.setMaxPlayers(maxPlayers);
 		// reset and shuffle deck
 		this.tiles.shuffleTiles();
-		this.setGameStatus(GameStatus.PAUSED);
-		this.setTseCalled(false);
-		this.setMaxPlayers(maxPlayers);
-		this.setNumPlayers(0);
-		this.setWinnerIdx(-1);
-		this.setLoserIdx(-1);
 	}
 
 	/*
@@ -439,7 +416,7 @@ public class Game {
 		}
 	}
 
-	public int getNumPlayersPlaying() {
+	public int countNumPlayersPlaying() {
 		int num_playing = 0;
 		for (int i=0; i<this.numPlayers; i++) {
 			if (this.player.get(i).getPlayerPlaying()) {

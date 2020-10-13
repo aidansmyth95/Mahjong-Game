@@ -108,7 +108,7 @@ public class WaitingRoomActivity extends AppCompatActivity {
         // row containing game members
         TableRow game_members_not_playing_row = new TableRow(this);
         TextView game_members_not_playing_text = new TextView(this);
-        game_members_not_playing_text.setText(getString(R.string.waiting_room_players_ready, curr_game.namePlayersNotPlaying()));
+        game_members_not_playing_text.setText(getString(R.string.waiting_room_players_missing, curr_game.namePlayersNotPlaying()));
         game_members_not_playing_row.addView(game_members_not_playing_text);
         game_name_row.setBackgroundResource(R.drawable.border);
         game_table_view.addView(game_members_not_playing_row);

@@ -42,7 +42,7 @@ public final class FirebaseRepository {
         }
     }
 
-    // update user to indicate that they are waiting to join a game
+    // update user to indicate that they have joined a game but are waiting for all players to be joined to start playing
     public static void userJoinedGameFirebase() {
         FirebaseUser userAuth = FirebaseAuth.getInstance().getCurrentUser();
         if (userAuth != null) {

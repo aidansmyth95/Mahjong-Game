@@ -362,7 +362,7 @@ public class Player {
 				test_vector[10] = new Suits(1,9,1);
 				test_vector[11] = new Suits(2,9,1);
 				test_vector[12] = new Suits(1,1,3); //3
-				test_vector[13] = new Suits(1,1,0); //4 //TODO: ID zero indexing but type and rank do not. Fix this
+				test_vector[13] = new Suits(1,1,0); //4
 				break;
 			default:
 				createTrueKongTestVectorHand(0);

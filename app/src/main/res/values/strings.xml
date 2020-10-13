@@ -67,5 +67,6 @@
     <string name="waiting_room_players_turn">Player turn: %1$d</string>
     players_joined_out_of_max
     <string name="players_joined_out_of_max">Players joined: %1$d/%2$d</string>
+    <string name="wait">Wait</string>
 
 </resources>

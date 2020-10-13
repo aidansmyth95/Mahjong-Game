@@ -195,7 +195,7 @@ public class GameSelectActivity extends AppCompatActivity implements LifecycleOb
             Toast.makeText(getApplicationContext(), "Please enter a number of players for game.", Toast.LENGTH_LONG).show();
             return false;
         }
-        //TODO: limit options with drop down box instead of edittext
+        //TODO: limit options with drop down box instead of edittext - Spinner in Android studio?
         max_players = Integer.parseInt(str_num_players);
         if (max_players < 1 || max_players > 4) {
             Toast.makeText(getApplicationContext(), "Please enter a number of players for game between 1 and 4.", Toast.LENGTH_LONG).show();

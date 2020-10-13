@@ -8,11 +8,11 @@ import android.text.TextUtils;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -41,6 +41,8 @@ import static mahjong_package.FirebaseRepository.userInactiveFirebaseUser;
 import static mahjong_package.FirebaseRepository.userJoinedGameFirebase;
 import static mahjong_package.FirebaseRepository.userPlayingGameFirebase;
 
+//TODO: touch listener for tile to get its descriptor as toast form
+//TODO: a scrolling activity for rules etc
 
 public class MultiplayerActivity extends AppCompatActivity {
 
@@ -56,14 +58,14 @@ public class MultiplayerActivity extends AppCompatActivity {
     private TextView outputTurn;
     private ImageView discardedImage;
     private ImageView[] handTiles = new ImageView[15];
-    private Handler gamePlayHandler = new Handler();
+    private Handler gamePlayHandler;
     private Runnable gamePlayRunnable;
-    private AlertDialog dialog;
     private static final String TAG = "MultiplayerActivity";
-    public Boolean popup_active = false;
 
     private DatabaseReference dbRef;
     private ValueEventListener userListener, gameListener;
+    private Boolean gamePaused;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,6 +78,7 @@ public class MultiplayerActivity extends AppCompatActivity {
         redirectGameSystemErr(outputText);
         // test the test vectors before Game
         passed_tests = runAllGameTestVectors();
+        gamePlayHandler = new Handler();
     }
 
     @Override
@@ -86,15 +89,21 @@ public class MultiplayerActivity extends AppCompatActivity {
         setCurrUserListener();
         // user is at least joined when they start this activity
         userJoinedGameFirebase();
+        gamePaused = false;
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.i(TAG, TAG+": onPause");
     }
 
     @Override
     protected void onStop() {
-        // save Game text output for reload on resume
-        if (!outputText.getText().toString().isEmpty()) {
-            currGame.setGameMessage(playerIdx, outputText.getText().toString());
-            updateMultiplayerGame(currGame);
-        }
+        Log.i(TAG, TAG+": onStop");
+        // remove handler runnable
+        boolean update_game = false;
+        gamePlayHandler.removeCallbacks(gamePlayRunnable);
         // remove listeners
         if (userListener != null) {
             dbRef.removeEventListener(userListener);
@@ -102,8 +111,30 @@ public class MultiplayerActivity extends AppCompatActivity {
         if (gameListener != null) {
             dbRef.removeEventListener(gameListener);
         }
-        userInactiveFirebaseUser();
-        Log.i(TAG, TAG+": onStop");
+        // update Game status if not already Paused
+        if (currGame.getGameStatus() != GameStatus.PAUSED) {
+            Log.i(TAG, TAG+": Pausing game.");
+            currGame.setGameStatus(GameStatus.PAUSED);
+            currGame.setPlayerPlayingStatus(false, playerIdx);
+            update_game = true;
+        }
+        if (gamePaused) {
+            userJoinedGameFirebase();
+        } else {
+            // if player leaving Game and it is not because it is paused
+            userInactiveFirebaseUser();
+            currGame.setPlayerPlayingStatus(false, playerIdx);
+            update_game = true;
+        }
+        // save Game text output for reload on resume
+        if (!outputText.getText().toString().isEmpty()) {
+            currGame.setGameMessage(playerIdx, outputText.getText().toString());
+            update_game = true;
+        }
+        // if we need to update game, update it in Firebase DB
+        if (update_game) {
+            updateMultiplayerGame(currGame);
+        }
         super.onStop();
     }
 
@@ -118,40 +149,16 @@ public class MultiplayerActivity extends AppCompatActivity {
                 public void run() {
                     // this player is playing when we are in this state
                     currGame.setPlayerPlayingStatus(true, playerIdx);
-                    // check that all players are playing. If not, popup window
+                    // if all players are playing and game was previously paused, set game to be active and user to be playing
                     if (currGame.allPlayersPlaying() && currGame.getGameStatus() == GameStatus.PAUSED) {
-                        Log.i(TAG, TAG+": All " + currGame.getNumPlayersPlaying() + " are playing");
-                        Log.i(TAG, TAG+": Dismissing leave game popup menu");
+                        Log.i(TAG, TAG + ": All " + currGame.countNumPlayersPlaying() + " are playing");
                         currGame.setGameStatus(GameStatus.ACTIVE);
-                        // dismiss the persistent popup menu
-                        if (dialog != null && popup_active) {
-                            dialog.dismiss();
-                            popup_active = false;
-                        }
-                        // user is now active and about to start playing the game
                         userPlayingGameFirebase();
-                    } else if (!currGame.allPlayersPlaying() && !popup_active) {
-                        Log.i(TAG, TAG+": Only " + currGame.getNumPlayersPlaying() + " are playing");
-                        Log.i(TAG, TAG+": Creating leave game popup menu");
-                        // update game status
-                        currGame.setGameStatus(GameStatus.PAUSED);
-                        updateMultiplayerGame(currGame);
-                        // user is joined in game but not playing
-                        userJoinedGameFirebase();
-                        // launch the persistent popup here
-                        createLeaveGameDialog();
-                        Log.i(TAG, TAG+": Popup menu created");
-                        popup_active = true;
-                    } else {
-                        Log.i(TAG, TAG+": \n---------- Status update  ----------");
-                        Log.i(TAG, TAG+": Game name is " + currGame.getGameName());
-                        Log.i(TAG, TAG+": Number of players playing is " + currGame.getNumPlayersPlaying() + " are playing");
-                        Log.i(TAG, TAG+": All players are playing? = " + currGame.allPlayersPlaying());
-                        Log.i(TAG, TAG+": Players playing are " + currGame.namePlayersPlaying());
-                        Log.i(TAG, TAG+": Players not playing are " + currGame.namePlayersNotPlaying());
-                        Log.i(TAG, TAG+": Game status is " + currGame.getGameStatus());
-                        Log.i(TAG, TAG+": Popup active? = " + popup_active);
-                        Log.i(TAG, TAG+": -------------------------------\n");
+                    } else if (!currGame.allPlayersPlaying()) {
+                        Log.i(TAG, TAG + ": Only " + currGame.countNumPlayersPlaying() + " are playing");
+                        gamePaused = true;
+                        // go to pause game activity
+                        pauseGame();
                     }
                     // Do not play game if game is not active
                     if (currGame.getGameStatus() != GameStatus.ACTIVE) {
@@ -172,24 +179,11 @@ public class MultiplayerActivity extends AppCompatActivity {
                         discardedImage.setVisibility(View.VISIBLE);
                         currGame.setUpdateDiscardedTileImage(false);
                     }
+                    logGameStatus(currGame);
                     gamePlayHandler.postDelayed(gamePlayRunnable, gameDelay);
                 }
             }, gameDelay);
-        }
-    }
 
-    @Override
-    public void onPause() {
-        super.onPause();
-        Log.i(TAG, TAG+": onPause");
-        gamePlayHandler.removeCallbacks(gamePlayRunnable);
-        // update Game status if not already Paused
-        if (currGame.getGameStatus() != GameStatus.PAUSED) {
-            Log.i(TAG, TAG+": Pausing game.");
-            currGame.setGameStatus(GameStatus.PAUSED);
-            currGame.setPlayerPlayingStatus(false, playerIdx);
-            updateMultiplayerGame(currGame);
-            userInactiveFirebaseUser();
         }
     }
 
@@ -361,28 +355,6 @@ public class MultiplayerActivity extends AppCompatActivity {
         }
     }
 
-    public void createLeaveGameDialog() {
-        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
-        final ViewGroup nullParent = null;
-        final View leaveGamePopupView = getLayoutInflater().inflate(R.layout.popup, nullParent);
-        Button leaveButton = leaveGamePopupView.findViewById(R.id.leave_button);
-        dialogBuilder.setCancelable(false);
-        dialogBuilder.setView(leaveGamePopupView);
-        dialog = dialogBuilder.create();
-        dialog.show();
-        leaveButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //define leave button
-                dialog.dismiss();
-                Log.i(TAG, TAG+": leaving activity, going to GameSelectActivity");
-                //return to GameSelect activity
-                Intent intent = new Intent(MultiplayerActivity.this, GameSelectActivity.class);
-                startActivity(intent);
-            }
-        });
-    }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -410,6 +382,31 @@ public class MultiplayerActivity extends AppCompatActivity {
                         finish();
                     }
                 }).create().show();
+    }
+
+    public void pauseGame() {
+        if (gamePaused) {
+            Log.i(TAG, "Pausing game and moving to PausedGameActivity...");
+            // update game status
+            currGame.setGameStatus(GameStatus.PAUSED);
+            updateMultiplayerGame(currGame);
+            // go to new activity
+            Intent intent = new Intent(MultiplayerActivity.this, PausedGameActivity.class);
+            startActivity(intent);
+        } else {
+            Log.e(TAG, "Cannot pause Game if Boolean pauseGame value is false");
+        }
+    }
+
+    public static void logGameStatus(Game game) {
+        Log.i(TAG, TAG + ": \n---------- Status update  ----------");
+        Log.i(TAG, TAG + ": Game name is " + game.getGameName());
+        Log.i(TAG, TAG + ": Number of players playing is " + game.countNumPlayersPlaying() + " are playing");
+        Log.i(TAG, TAG + ": All players are playing? = " + game.allPlayersPlaying());
+        Log.i(TAG, TAG + ": Players playing are " + game.namePlayersPlaying());
+        Log.i(TAG, TAG + ": Players not playing are " + game.namePlayersNotPlaying());
+        Log.i(TAG, TAG + ": Game status is " + game.getGameStatus());
+        Log.i(TAG, TAG + ": -------------------------------\n");
     }
 }
 
