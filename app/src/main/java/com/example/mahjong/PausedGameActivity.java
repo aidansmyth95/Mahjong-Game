@@ -11,6 +11,7 @@ import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -43,7 +44,6 @@ public class PausedGameActivity extends AppCompatActivity {
     private ValueEventListener userListener, gameListener;
     private Boolean resumingGame;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,6 +55,14 @@ public class PausedGameActivity extends AppCompatActivity {
             public void onClick(View v) {
                 // go back to the GameModeActivity
                 Intent intent = new Intent(PausedGameActivity.this, GameModeActivity.class);
+                startActivity(intent);
+            }
+        });
+        // set rulebook listener
+        ImageButton rulebook = findViewById(R.id.rules_at_paused_game);
+        rulebook.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent intent = new Intent(PausedGameActivity.this, RulebookActivity.class);
                 startActivity(intent);
             }
         });

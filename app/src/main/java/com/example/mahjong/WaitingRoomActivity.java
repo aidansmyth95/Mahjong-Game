@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -30,7 +31,7 @@ import static mahjong_package.FirebaseRepository.userJoinedGameFirebase;
 
 public class WaitingRoomActivity extends AppCompatActivity {
 
-    Button start_game;
+    private Button start_game;
     private TableLayout game_table_view;
     private User curr_user = new User();
     private Game curr_game = new Game(-1);
@@ -54,6 +55,15 @@ public class WaitingRoomActivity extends AppCompatActivity {
                     // move to playing game
                     startGame();
                 }
+            }
+        });
+
+        // set rulebook listener
+        ImageButton rulebook = findViewById(R.id.rules_at_waiting_room);
+        rulebook.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent intent = new Intent(WaitingRoomActivity.this, RulebookActivity.class);
+                startActivity(intent);
             }
         });
     }

@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 
 import static mahjong_package.FirebaseRepository.userInactiveFirebaseUser;
 
@@ -33,6 +34,14 @@ public class GameModeActivity extends AppCompatActivity {
         mpButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 Intent intent = new Intent(GameModeActivity.this, GameSelectActivity.class);
+                startActivity(intent);
+            }
+        });
+        // set rulebook listener
+        ImageButton rulebook = findViewById(R.id.rules_at_game_mode);
+        rulebook.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent intent = new Intent(GameModeActivity.this, RulebookActivity.class);
                 startActivity(intent);
             }
         });

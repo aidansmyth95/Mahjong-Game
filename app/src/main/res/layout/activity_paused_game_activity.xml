@@ -6,6 +6,17 @@
     android:background="@drawable/unnamed"
     android:orientation="vertical">
 
+    <ImageButton
+        android:id="@+id/rules_at_paused_game"
+        style="@style/RulebookFeatures"
+        android:contentDescription="@string/rulebook_link"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.05"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintVertical_bias="0.03"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <ImageView
         android:id="@+id/new_list_icon"
         android:layout_width="150dp"

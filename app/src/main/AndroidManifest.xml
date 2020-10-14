@@ -12,8 +12,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".PausedGameActivity"></activity>
-        <activity android:name=".PopUpMenuActivityTmp" />
+        <activity android:name=".RulebookActivity"></activity>
+        <activity android:name=".PausedGameActivity" />
         <activity android:name=".MultiplayerActivity" />
         <activity android:name=".WaitingRoomActivity" />
         <activity android:name=".GameSelectActivity" />

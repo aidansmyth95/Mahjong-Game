@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -96,6 +97,14 @@ public class GameSelectActivity extends AppCompatActivity implements LifecycleOb
                         startActivity(intent);
                     }
                 }
+            }
+        });
+        // set rulebook listener
+        ImageButton rulebook = findViewById(R.id.rules_at_game_select);
+        rulebook.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent intent = new Intent(GameSelectActivity.this, RulebookActivity.class);
+                startActivity(intent);
             }
         });
     }

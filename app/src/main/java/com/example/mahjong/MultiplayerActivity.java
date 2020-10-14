@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -42,7 +43,8 @@ import static mahjong_package.FirebaseRepository.userJoinedGameFirebase;
 import static mahjong_package.FirebaseRepository.userPlayingGameFirebase;
 
 //TODO: touch listener for tile to get its descriptor as toast form
-//TODO: a scrolling activity for rules etc
+
+//TODO: I think we have pong logic wrong. Pong is only for a three of a kind. Separate pong from seq of three checks (all are melds)
 
 public class MultiplayerActivity extends AppCompatActivity {
 
@@ -79,6 +81,14 @@ public class MultiplayerActivity extends AppCompatActivity {
         // test the test vectors before Game
         passed_tests = runAllGameTestVectors();
         gamePlayHandler = new Handler();
+        // set rulebook listener
+        ImageButton rulebook = findViewById(R.id.rules_at_multiplayer_game);
+        rulebook.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent intent = new Intent(MultiplayerActivity.this, RulebookActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
     @Override

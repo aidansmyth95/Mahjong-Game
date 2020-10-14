@@ -7,12 +7,14 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 
 
 public class WelcomeActivity extends AppCompatActivity {
 
     private Button loginRedirectButton, registerRedirectButton;
     private static final String TAG = "WelcomeActivity";
+    private ImageButton rulebook;
 
     @Override
     protected void onCreate(Bundle savedInstance) {
@@ -33,11 +35,18 @@ public class WelcomeActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+        rulebook.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent intent = new Intent(WelcomeActivity.this, RulebookActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
     private void initializeUI() {
         loginRedirectButton = findViewById(R.id.login_redirect_button);
         registerRedirectButton = findViewById(R.id.register_redirect_button);
+        rulebook = findViewById(R.id.rules_at_welcome_activity);
     }
 
     @Override
