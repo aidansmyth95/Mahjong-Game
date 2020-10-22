@@ -106,7 +106,7 @@ public class Tiles {
     }
 
 	// reveal tile
-	Tile revealTile() {
+	Tile revealWallTile() {
         Tile t = new Tile();
         if (this.hiddenTiles.isEmpty()) {
             System.out.println("\nNo hidden tiles in deck left to uncover. Please restart the game :)");

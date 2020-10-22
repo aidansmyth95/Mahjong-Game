@@ -10,16 +10,22 @@ public class Hand {
 	// largest number of items in a hand
 	private final int maxHandSize = 14;
 
-	// hand of hidden and revealed tiles - empty unassigned Tile
+	// tiles that remain hidden in hand to other players
 	private ArrayList<Tile> hiddenHand = new ArrayList<>();
+	// tiles that have been revealed already
 	private ArrayList<Tile> revealedHand = new ArrayList<>();
+	// tiles that are flowers collected
+	private ArrayList<Tile> flowersCollected = new ArrayList<>();
 
+	// some of these are for purpose of Firebase //TODO: verify they are all needed
 	public void setMaxHandSize(int n) { }
 	public void setHiddenHand(ArrayList<Tile> hand) { this.hiddenHand = hand; }
 	public void setRevealedHand(ArrayList<Tile> hand) { this.revealedHand = hand; }
+	public void setFlowersCollected(ArrayList<Tile> tiles) { this.flowersCollected = tiles; }
 	public int getMaxHandSize() { return this.maxHandSize; }
 	public ArrayList<Tile> getHiddenHand() { return this.hiddenHand; }
 	public ArrayList<Tile> getRevealedHand() { return this.revealedHand; }
+	public ArrayList<Tile> getFlowersCollected() { return this.flowersCollected; }
 
 	// constructor
 	Hand() {}
@@ -27,18 +33,25 @@ public class Hand {
 	/*
 	 *  Create a hand of tiles from an array of tiles drawn
 	 */
-	void createHand(Tile[] tiles_drawn) {
+	HandStatus createHand(ArrayList<Tile> tiles_drawn) {
+		HandStatus hs = HandStatus.ADD_FAILED;
+		// clear hands
+		this.clearHand();
 		// check size of tiles_drawn[] input is correct
-		if (tiles_drawn.length != this.maxHandSize -1) {
+		if (tiles_drawn.size() != this.maxHandSize -1) {
 			// all is not good
-			Log.e("HAND","HAND: Unexpected number of tiles in hand created: " + tiles_drawn.length + "\n");
+			Log.e("HAND","HAND: Unexpected number of tiles in hand created: " + tiles_drawn.size() + "\n");
+			return hs;
 		}
-		// clear hand
-		this.hiddenHand.clear();
-		// copy to hand
-		Collections.addAll(this.hiddenHand, tiles_drawn);
-		// sort hand
-		Collections.sort(this.hiddenHand, new TileOrderComparator());
+		hs = HandStatus.ADD_SUCCESS;
+		for (int i=0; i<tiles_drawn.size(); i++) {
+			// add tiles to hand and update hand status if a flower is added
+			HandStatus tmp_hs = this.addToHand(tiles_drawn.get(i));
+			if (tmp_hs == HandStatus.FLOWERS_ADDED) {
+				hs = tmp_hs;
+			}
+		}
+		return hs;
 	}
 
 	/*
@@ -48,25 +61,37 @@ public class Hand {
 		return this.hiddenHand.size();
 	}
 
+	int getRevealedHandSize() { return this.revealedHand.size(); }
+
+	int getFlowersCollectedSize() { return this.flowersCollected.size(); }
 
 	void clearHand() {
 		this.hiddenHand.clear();
+		this.revealedHand.clear();
 	}
 
-	
+	private Boolean checkFlower(Tile t) {
+		return t.getChildClass().equals("Bonus") && t.getType() == 2;
+	}
+
 	/*
 	 * Add a tile to the empty space in hand
 	 */
-	void addToHand(Tile tile) {
-		// if no free space to place drawn tile
-		if (this.hiddenHand.size() >= this.maxHandSize) {
+	HandStatus addToHand(Tile t) {
+		if (this.checkFlower(t)) {
+			this.flowersCollected.add(t);
+			Log.i("Hand", "Hand: Added " + t.getDescriptor() + " to flower collection\n");
+			return HandStatus.FLOWERS_ADDED;
+		} else if (this.getHiddenHandSize() >= this.maxHandSize) {
 			Log.e("Hand", "Hand: No free space to place drawn tile. Code check required!\n");
-		}
-		else {
+			return HandStatus.ADD_FAILED;
+		} else {
 			// assign tile to free space in idx
-			this.hiddenHand.add(tile);
-			// order hand
+			this.hiddenHand.add(t);
+			// order hidden hand
 			Collections.sort(this.hiddenHand, new TileOrderComparator());
+			Log.i("Hand", "Hand: Added tile " + t.getDescriptor() + " to hidden hand\n");
+			return HandStatus.ADD_SUCCESS;
 		}
 	}
 	
@@ -84,11 +109,12 @@ public class Hand {
 		tmp = this.hiddenHand.remove(idx);
 		// order hand
 		Collections.sort(this.hiddenHand, new TileOrderComparator());
+		Log.i("Hand","Hand: Discarded from hidden hand " + tmp.getDescriptor());
 		return tmp;
 	}
 
 	// reveal all tiles in hidden hand
-	void revealTiles() {
+	void revealAllHiddenHandTiles() {
 		// tmp list of tiles that will be discarded from hidden hand
 		Tile tmp_tile;
 		// put tiles in revealed from revealed index
@@ -96,21 +122,25 @@ public class Hand {
 			tmp_tile = this.discardTile(i);
 			this.revealedHand.add(tmp_tile);
 		}
+		Log.i("Hand","Hand: Revealed entire hidden hand");
 	}
 
 	// reveal tiles of hand given a hidden_hand idx
-	void revealTiles(int[] hand_idx, int n) {
+	Boolean revealIndexedHiddenTiles(int[] hand_idx, int n) {
 		Tile tmp_tile;
 		// should be at least two tiles per time
 		if (n < 2) {
 			Log.e("Hand","Error: Should not reveal less that 2 tiles at at time!");
+			return false;
 		} else {
 			// put tiles in revealed from revealed index
 			for (int i=0; i<n; i++) {
 				tmp_tile = this.discardTile(hand_idx[i]);
 				this.revealedHand.add(tmp_tile);
+				Log.i("Hand","Hand: Added to revealed hand " + tmp_tile.getDescriptor());
 			}
 		}
+		return true;
 	}
 	
 	/*
@@ -126,7 +156,7 @@ public class Hand {
 		int len = 0;
 		int[] hand_idx;
 		hand_idx = this.findHiddenIndex(t);
-		for (int i = 0; i<this.hiddenHand.size(); i++) {
+		for (int i = 0; i<this.getHiddenHandSize(); i++) {
 			if (hand_idx[i] >= 0 && i < 3) {
 				match_idx[len] = hand_idx[len];
 				len ++;
@@ -148,7 +178,6 @@ public class Hand {
 		ArrayList<int[]> pongs = new ArrayList<>();
 		// arrays of pong matches or sequences in the hidden hand
 		int[] match_idx = new int[2];
-		int[] seq_idx = new int[2];
 		// find hand idx of triple matches if any
 		int len = 0;
 		int[] hand_idx;
@@ -162,37 +191,49 @@ public class Hand {
 		if (len >= 2) {
 			pongs.add(match_idx);
 		}
-		if (!t.getChildClass().equals("Suits")) {
-			return pongs;
-		}
-        ArrayList<Tile> tmp_list = new ArrayList<>(this.hiddenHand);
-    	int loop_size = tmp_list.size();
+		return pongs;
+	}
+
+	/*
+		Check for chow - a meld of three suits in a sequence of consecutive order
+	 */
+	ArrayList<int[]> checkChow(Tile t) {
+		// ArrayList of integers for hidden hand index combos of pongs
+		ArrayList<int[]> chows = new ArrayList<>();
+		// arrays of pong matches or sequences in the hidden hand
+		int[] seq_idx = new int[2];
+		ArrayList<Tile> tmp_hand_list = new ArrayList<>(this.hiddenHand);
+		int loop_size = tmp_hand_list.size();
 		Tile tmp_tile;
-        // check for sequence - Suits only
+		// if it is not a suit we cannot chow
+		if (!t.getChildClass().equals("Suits")) {
+			return chows;
+		}
+		// check for sequence - Suits only
 		int idx = 0;
-    	while (tmp_list.size() > 0 && loop_size > 0) {
-			tmp_tile = tmp_list.get(idx);
+		while (tmp_hand_list.size() > 0 && loop_size > 0) {
+			tmp_tile = tmp_hand_list.get(idx);
 			if (tmp_tile.getType() == t.getType() && tmp_tile.getChildClass().equals("Suits")) {
 				// do nothing
 				idx++;
 			} else {
 				// not needed if not suit, remove from list
-				tmp_list.remove(idx);
+				tmp_hand_list.remove(idx);
 			}
 			loop_size--;
 		}
-        // add new tile to list of suits
-        tmp_list.add(t);
-        // sort by rank
-        Collections.sort(tmp_list, new RankComparator());
-        // Tile to be compared
-        Tile[] tn = new Tile[3];
-        // check if 3 with 1 difference in rank in hand
-        for (int i=0; i<tmp_list.size()-2; i++) {
-        	tn[0] = tmp_list.get(i);
-        	tn[1] = tmp_list.get(i+1);
-        	tn[2] = tmp_list.get(i+2);
-        	// three same types in a row
+		// add new tile to list of suits
+		tmp_hand_list.add(t);
+		// sort by rank
+		Collections.sort(tmp_hand_list, new RankComparator());
+		// Tile to be compared
+		Tile[] tn = new Tile[3];
+		// check if 3 with 1 difference in rank in hand
+		for (int i=0; i<tmp_hand_list.size()-2; i++) {
+			tn[0] = tmp_hand_list.get(i);
+			tn[1] = tmp_hand_list.get(i+1);
+			tn[2] = tmp_hand_list.get(i+2);
+			// three same types in a row
 			boolean t_is_member = false;
 			for (int n=0; n<3; n++) {
 				if (tn[n].getDescriptor().equals(t.getDescriptor())) {
@@ -220,13 +261,13 @@ public class Hand {
 								seq_idx[0] = this.findHiddenIndex(tn[0])[0];
 								seq_idx[1] = this.findHiddenIndex(tn[1])[0];
 							}
-							pongs.add(seq_idx);
+							chows.add(seq_idx);
 						}
 					}
 				}
 			}
-        }
-        return pongs;
+		}
+		return chows;
 	}
 
 	/*

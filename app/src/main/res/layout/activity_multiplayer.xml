@@ -21,6 +21,19 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
+        android:id="@+id/flower_pile"
+        android:layout_width="26dp"
+        android:layout_height="50dp"
+        android:contentDescription="@string/tile_for_player_at_hand_position_0"
+        android:scaleType="fitXY"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.35"
+        app:layout_constraintHorizontal_bias="0.85"
+        app:srcCompat="@drawable/play" />
+    <ImageView
         android:id="@+id/h0"
         android:layout_width="26dp"
         android:layout_height="50dp"

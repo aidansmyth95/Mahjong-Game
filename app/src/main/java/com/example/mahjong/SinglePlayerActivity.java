@@ -211,16 +211,16 @@ public class SinglePlayerActivity extends AppCompatActivity {
                         sendButton.setEnabled(true);
                     }
                 }
-
+                /*
                 if (game.updateDiscardedTileImage) {
                     // get descriptor & its resource ID
-                    resourceId = getResources().getIdentifier(game.getDiscardedDescriptor(), "drawable", "com.example.mahjong");
+                    resourceId = getResources().getIdentifier(game.getLatestDiscardedDescriptor(), "drawable", "com.example.mahjong");
                     // update discarded tile image
                     discardedImage.setImageResource(resourceId);
                     discardedImage.setVisibility(View.VISIBLE);
                     game.updateDiscardedTileImage = false;
                 }
-
+                */
                 handler.postDelayed(runnable, delay);
             }
         }, delay);

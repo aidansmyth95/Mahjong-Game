@@ -44,30 +44,26 @@ import static mahjong_package.FirebaseRepository.userPlayingGameFirebase;
 
 //TODO: touch listener for tile to get its descriptor as toast form
 
-//TODO: I think we have pong logic wrong. Pong is only for a three of a kind. Separate pong from seq of three checks (all are melds)
 
 public class MultiplayerActivity extends AppCompatActivity {
 
-    private final int nTotalTiles = 15;
-    private final long gameDelay = 500;
+    private static final String TAG = "MultiplayerActivity";
     private Game currGame = new Game(-1);
     private User currUser = new User();
+    private final int nTotalTiles = 15;
+    private final long gameDelayMs = 500;
     private int playerIdx;
     private boolean passed_tests = false;
+    private boolean gamePausedAwaitingPlayers;
     private Button sendButton;
     private EditText userInputText;
-    private TextView outputText;
-    private TextView outputTurn;
-    private ImageView discardedImage;
+    private TextView outputText, outputTurn;
+    private ImageView discardedImage, flowerPileImage;
     private ImageView[] handTiles = new ImageView[15];
     private Handler gamePlayHandler;
     private Runnable gamePlayRunnable;
-    private static final String TAG = "MultiplayerActivity";
-
     private DatabaseReference dbRef;
     private ValueEventListener userListener, gameListener;
-    private Boolean gamePaused;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,7 +95,7 @@ public class MultiplayerActivity extends AppCompatActivity {
         setCurrUserListener();
         // user is at least joined when they start this activity
         userJoinedGameFirebase();
-        gamePaused = false;
+        gamePausedAwaitingPlayers = false;
     }
 
     @Override
@@ -110,6 +106,14 @@ public class MultiplayerActivity extends AppCompatActivity {
 
     @Override
     protected void onStop() {
+        /*
+            Remove listeners.
+            Set game status to paused (it previously was playing)
+            Update user's status based on what they are doing.
+            Save Game text if any.
+            Update game if needed.
+         */
+
         Log.i(TAG, TAG+": onStop");
         // remove handler runnable
         boolean update_game = false;
@@ -123,15 +127,16 @@ public class MultiplayerActivity extends AppCompatActivity {
         }
         // update Game status if not already Paused
         if (currGame.getGameStatus() != GameStatus.PAUSED) {
-            Log.i(TAG, TAG+": Pausing game.");
+            Log.i(TAG, TAG + ": Pausing game.");
             currGame.setGameStatus(GameStatus.PAUSED);
             currGame.setPlayerPlayingStatus(false, playerIdx);
             update_game = true;
         }
-        if (gamePaused) {
+        if (gamePausedAwaitingPlayers) {
+            // if the game was paused for not having enough players
             userJoinedGameFirebase();
         } else {
-            // if player leaving Game and it is not because it is paused
+            // otherwise player leaving Game and not waiting to resume
             userInactiveFirebaseUser();
             currGame.setPlayerPlayingStatus(false, playerIdx);
             update_game = true;
@@ -152,21 +157,23 @@ public class MultiplayerActivity extends AppCompatActivity {
     public void onResume() {
         super.onResume();
         Log.i(TAG, TAG+": onResume");
-        // check if game has been paused by another user
+        // create a runnable
         if (passed_tests) {
             gamePlayHandler.postDelayed(gamePlayRunnable = new Runnable() {
                 @Override
                 public void run() {
                     // this player is playing when we are in this state
                     currGame.setPlayerPlayingStatus(true, playerIdx);
-                    // if all players are playing and game was previously paused, set game to be active and user to be playing
+                    // if all players are playing and game was previously paused
                     if (currGame.allPlayersPlaying() && currGame.getGameStatus() == GameStatus.PAUSED) {
                         Log.i(TAG, TAG + ": All " + currGame.countNumPlayersPlaying() + " are playing");
+                        // set game to be active and user to be playing
                         currGame.setGameStatus(GameStatus.ACTIVE);
                         userPlayingGameFirebase();
                     } else if (!currGame.allPlayersPlaying()) {
+                        // otherwise all players are not playing and we need to pause game
                         Log.i(TAG, TAG + ": Only " + currGame.countNumPlayersPlaying() + " are playing");
-                        gamePaused = true;
+                        gamePausedAwaitingPlayers = true;
                         // go to pause game activity
                         pauseGame();
                     }
@@ -176,23 +183,18 @@ public class MultiplayerActivity extends AppCompatActivity {
                     }
                     currGame.playGame();
                     // update UI - revealed hand, hidden hand, unused tile space, text
-                    if (currGame.getAcceptingResponses()) {
+                    if (currGame.getUpdateUI()) {
                         updateUI();
+                        currGame.setUpdateUI(false);
                     }
-                    // update most recently discarded tile
-                    if (currGame.getUpdateDiscardedTileImage()) {
-                        // get descriptor & its resource ID
-                        //TODO: use hash map?
-                        int resourceId = getResources().getIdentifier(currGame.getDiscardedDescriptor(), "drawable", "com.example.mahjong");
-                        // update discarded tile image
-                        discardedImage.setImageResource(resourceId);
-                        discardedImage.setVisibility(View.VISIBLE);
-                        currGame.setUpdateDiscardedTileImage(false);
-                    }
-                    logGameStatus(currGame);
-                    gamePlayHandler.postDelayed(gamePlayRunnable, gameDelay);
+                    // enable send button and its functionality if player's input is requested
+                    sendButton.setEnabled(currGame.getRequestResponse(playerIdx) && currGame.getAcceptingResponses());
+                    // debug info on Game status and values of concern
+                    logcatGameStatus(currGame, playerIdx);
+                    // delay runnable by gameDelayMs milliseconds - reduces annoying refresh
+                    gamePlayHandler.postDelayed(gamePlayRunnable, gameDelayMs);
                 }
-            }, gameDelay);
+            }, gameDelayMs);
 
         }
     }
@@ -205,6 +207,7 @@ public class MultiplayerActivity extends AppCompatActivity {
         sendButton.setEnabled(false);
         userInputText = findViewById(R.id.p_input);
         discardedImage = findViewById(R.id.discarded);
+        flowerPileImage = findViewById(R.id.flower_pile);
         handTiles[0] = findViewById(R.id.h0);
         handTiles[1] = findViewById(R.id.h1);
         handTiles[2] = findViewById(R.id.h2);
@@ -225,6 +228,7 @@ public class MultiplayerActivity extends AppCompatActivity {
         }
         outputTurn.setVisibility(View.INVISIBLE);
         discardedImage.setVisibility(View.INVISIBLE);
+        flowerPileImage.setVisibility(View.INVISIBLE);
         sendButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 // if there is text, use it as player_input
@@ -247,12 +251,30 @@ public class MultiplayerActivity extends AppCompatActivity {
     }
 
     private void updateUI() {
-        // update visualization of hidden hand
+        Log.i(TAG, TAG + " Updating UI...");
+        // set all handTiles to be invisible
+        for (int i=0; i<14; i++) {
+            handTiles[i].setVisibility(View.INVISIBLE);
+        }
+        // update visualization of hidden hand, set visible
         ArrayList<String> hidden_tile_paths = currGame.descriptorToDrawablePath(currGame.getHiddenDescriptors());
         for (int j=0; j<hidden_tile_paths.size(); j++) {
-            int resourceId = getResources().getIdentifier(hidden_tile_paths.get(j), "drawable", "com.example.mahjong");
-            handTiles[j].setImageResource(resourceId);
-            handTiles[j].setVisibility(View.VISIBLE);
+            String hidden_tile_path = hidden_tile_paths.get(j);
+            Log.e(TAG, TAG + " hidden tile " + hidden_tile_path);
+
+            int resourceId = getResources().getIdentifier(hidden_tile_path, "drawable", "com.example.mahjong");
+            if (resourceId == 0) {
+                // if resource does not exist
+                Log.e(TAG, TAG + " Resource ID for hidden tile " + j + " is " + resourceId);
+            } else {
+                handTiles[j].setImageResource(resourceId);
+                handTiles[j].setVisibility(View.VISIBLE);
+            }
+            // set invisible if no tile
+            if (hidden_tile_path.equals("no_tile")) {
+                // we have a no tile, set invisible
+                handTiles[j].setVisibility(View.INVISIBLE);
+            }
         }
         // update revealed hand
         ArrayList<String> revealed_tile_paths = currGame.descriptorToDrawablePath(currGame.getRevealedDescriptors());
@@ -272,8 +294,37 @@ public class MultiplayerActivity extends AppCompatActivity {
         // update player's turn textview
         outputTurn.setText(getString(R.string.waiting_room_players_turn, currGame.getPlayerTurn()));
         outputTurn.setVisibility(View.VISIBLE);
-        // enable send button and its functionality if player's input is requested
-        sendButton.setEnabled(currGame.getRequestResponse(playerIdx));
+
+        // show flower pile if there are any for that player
+        String latest_flower = currGame.getLatestFlowersCollectedDescriptorResource(this.playerIdx);
+        int resourceId = getResources().getIdentifier(latest_flower, "drawable", "com.example.mahjong");
+        if (resourceId == 0) {
+            // if resource does not exist
+            Log.e(TAG, TAG + ": Resource ID for latest flower is " + resourceId);
+        } else {
+            //TODO: update with latest flower and a count int beside it
+            flowerPileImage.setImageResource(resourceId);
+            flowerPileImage.setVisibility(View.VISIBLE);
+        }
+        // if no tile or no valid resource, set invisible
+        if (latest_flower.equals("no_tile") || resourceId == 0) {
+            flowerPileImage.setVisibility(View.INVISIBLE);
+        }
+
+        // update most recently discarded tile
+        String latest_discard = currGame.getLatestDiscardedDescriptorResource();
+        resourceId = getResources().getIdentifier(currGame.getLatestDiscardedDescriptorResource(), "drawable", "com.example.mahjong");
+        if (resourceId == 0) {
+            // if resource does not exist
+            Log.e(TAG, TAG + ": Resource ID for latest discard is " + resourceId);
+        } else {
+            discardedImage.setImageResource(resourceId);
+            discardedImage.setVisibility(View.VISIBLE);
+        }
+        // if no tile or no valid resource, set invisible
+        if (latest_discard.equals("no_tile") || resourceId == 0) {
+            discardedImage.setVisibility(View.INVISIBLE);
+        }
     }
 
     // add a listener for users database that updates dynamic table with users
@@ -344,6 +395,12 @@ public class MultiplayerActivity extends AppCompatActivity {
             clear_output = testGame.test_false_pong();
         }
         if (clear_output) {
+            clear_output = testGame.test_true_chow();
+        }
+        if (clear_output) {
+            clear_output = testGame.test_false_chow();
+        }
+        if (clear_output) {
             clear_output = testGame.test_true_kong();
         }
         if (clear_output) {
@@ -395,7 +452,7 @@ public class MultiplayerActivity extends AppCompatActivity {
     }
 
     public void pauseGame() {
-        if (gamePaused) {
+        if (gamePausedAwaitingPlayers) {
             Log.i(TAG, "Pausing game and moving to PausedGameActivity...");
             // update game status
             currGame.setGameStatus(GameStatus.PAUSED);
@@ -408,7 +465,7 @@ public class MultiplayerActivity extends AppCompatActivity {
         }
     }
 
-    public static void logGameStatus(Game game) {
+    public static void logcatGameStatus(Game game, int playerIdx) {
         Log.i(TAG, TAG + ": \n---------- Status update  ----------");
         Log.i(TAG, TAG + ": Game name is " + game.getGameName());
         Log.i(TAG, TAG + ": Number of players playing is " + game.countNumPlayersPlaying() + " are playing");
@@ -416,7 +473,11 @@ public class MultiplayerActivity extends AppCompatActivity {
         Log.i(TAG, TAG + ": Players playing are " + game.namePlayersPlaying());
         Log.i(TAG, TAG + ": Players not playing are " + game.namePlayersNotPlaying());
         Log.i(TAG, TAG + ": Game status is " + game.getGameStatus());
-        Log.i(TAG, TAG + ": -------------------------------\n");
+        Log.i(TAG, TAG + ": Game accepting responses? " + game.getAcceptingResponses());
+        Log.i(TAG, TAG + ": Players asked to respond? " + game.listRequestResponse());
+        Log.i(TAG, TAG + ": This Player's ID? " + playerIdx);
+        Log.i(TAG, TAG + ": Latest flower descriptor? " + game.getLatestFlowersCollectedDescriptorResource(playerIdx));
+        Log.i(TAG, TAG + ": \n-------------------------------\n");
     }
 }
 

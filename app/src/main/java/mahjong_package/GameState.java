@@ -7,6 +7,7 @@ public enum GameState {
     MAHJONG,
     KONG,
     PONG,
+    CHOW,
     TSE,
     DRAWING_TILE,
     DISCARD_OPTIONS,

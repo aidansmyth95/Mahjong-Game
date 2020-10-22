@@ -8,24 +8,27 @@ import java.util.InputMismatchException;
 
 public class Player {
 
-	private String playerUname;
-	private String playerUid;
-	private Boolean pongAvailable; 		// Users ability to pong
-	private Boolean kongAvailable; 		// Users ability to kong
-	private Boolean mahjongAvailable; 	// Users ability to mahjong
-	private Boolean requestResponse; 	// Users chance to respond
-	private String playerResponse;	// Users responses
+	private String playerUname = "";
+	private String playerUid = "";
+	private Boolean chowAvailable = false; 		// Users ability to chow
+	private Boolean pongAvailable = false; 		// Users ability to pong
+	private Boolean kongAvailable = false; 		// Users ability to kong
+	private Boolean mahjongAvailable = false; 	// Users ability to mahjong
+	private Boolean requestResponse = false; 	// Users chance to respond
+	private String playerResponse = "";	// Users responses
 	private Hand hand = new Hand();		// player's hand
-	private PossiblePongsKongs ppk = new PossiblePongsKongs();
-	private int chosenIdx;
-	private int playerIdx;
-	private Boolean playerPlaying;
-	private String gameMessage;
+	private PossibleChowsPongsKongs ppk = new PossibleChowsPongsKongs();
+	private int chosenIdx = -1;
+	private int playerIdx = -1;
+	private Boolean playerPlaying = false;
+	private String gameMessage = "";
 
 	public String getPlayerUid() { return this.playerUid; }
 	public void setPlayerUid(String uid) { this.playerUid = uid; }
 	public String getPlayerUname() { return this.playerUname; }
 	public void setPlayerUname(String uname) { this.playerUname = uname; }
+	public Boolean getChowAvailable() { return this.chowAvailable; }
+	public void setChowAvailable(boolean b) { this.chowAvailable = b; }
 	public Boolean getPongAvailable() { return this.pongAvailable; }
 	public void setPongAvailable(boolean b) { this.pongAvailable = b; }
 	public void setKongAvailable(boolean b) { this.kongAvailable = b; }
@@ -38,8 +41,8 @@ public class Player {
 	public String getPlayerResponse() { return this.playerResponse; }
 	public Hand getHand() { return this.hand; }
 	public void setHand(Hand hand) { this.hand = hand; }
-	public PossiblePongsKongs getPpk() { return this.ppk; }
-	public void setPpk(PossiblePongsKongs ppk) { this.ppk = ppk; }
+	public PossibleChowsPongsKongs getPpk() { return this.ppk; }
+	public void setPpk(PossibleChowsPongsKongs ppk) { this.ppk = ppk; }
 	public Integer getChosenIdx() { return this.chosenIdx; }
 	public void setChosenIdx(int c) { this.chosenIdx = c; }
 	public Integer getPlayerIdx() { return this.playerIdx; }
@@ -51,21 +54,10 @@ public class Player {
 
 	private Player() {
 		this.clearHand();
-		this.setPlayerIdx(-1);
-		this.setChosenIdx(-1);
-		this.setPlayerUname("");
-		this.setPlayerUid("");
-		this.setPongAvailable(false);
-		this.setKongAvailable(false);
-		this.setMahjongAvailable(false);
-		this.setRequestResponse(false);
-		this.setPlayerResponse("");
-		this.setPlayerPlaying(false);
-		this.setGameMessage("");
 	}
 
-	// constructor
-	Player(String uname, String uid, int player_ID, Tile[] start_tiles)
+	// this constructor is only used when we are adding tiles and know that they are not flowers - e.g. test vectors
+	Player(String uname, String uid, int player_ID, ArrayList<Tile> start_tiles)
     {
 		this();
 		// assert ID is valid and assign
@@ -75,9 +67,27 @@ public class Player {
 			this.playerUname = uname;
 			this.playerUid = uid;
 			this.playerIdx = player_ID;
-			this.createHand(start_tiles);
+			HandStatus hs = this.createHand(start_tiles);
+			if (hs != HandStatus.ADD_SUCCESS) {
+				Log.e("Player", "Issue creating player hand for overloaded constructor");
+				Log.e("Player", "Hand status is " + hs + " for player " + player_ID);
+			}
 		}
 	}
+
+	// return latest added descriptor
+	public String getLatestFlowersCollectedDescriptor() {
+		ArrayList<Tile> flowers = this.hand.getFlowersCollected();
+		if (flowers.isEmpty()) {
+			return "No tile";
+		} else {
+			return flowers.get(flowers.size()-1).getDescriptor();
+		}
+	}
+
+	public int getHiddenHandCount() { return this.hand.getHiddenHandSize(); }
+
+	public int getFlowersCount() { return this.hand.getFlowersCollectedSize(); }
 
 	// clear the hand
 	void clearHand() { this.hand.clearHand(); }
@@ -86,17 +96,12 @@ public class Player {
 	private boolean isValid(int player_ID) {
 		return player_ID < 4;
 	}
-	
+
 	// create hand for player
-	void createHand(Tile[] tiles_drawn) {
-		this.hand.createHand(tiles_drawn);
-	}
+	public HandStatus createHand(ArrayList<Tile> tiles_drawn) { return this.hand.createHand(tiles_drawn); }
 
 	// a Tse has been called. Add tile and discard a chosen tile.
-	void tse(Tile t) {
-		// add Tse claimed tile to hand
-		this.addToHand(t);
-	}
+	void tse(Tile t) { this.addToHand(t); }
 
 	// show Hand
 	void showHiddenHand() {
@@ -104,9 +109,7 @@ public class Player {
 	}
 
 	// add a tile to hand
-	void addToHand(Tile tile) {
-		this.hand.addToHand(tile);
-	}
+	HandStatus addToHand(Tile tile) { return this.hand.addToHand(tile); }
 
 	// discard tile from hand
 	Tile discardTile(String player_input) {
@@ -136,22 +139,22 @@ public class Player {
 
 	// check hand for Pong
 	// check for Pong given a potential tile - Three-of-a-kind or a sequence of three.
-	boolean checkHandPong(Tile t) {
-		this.ppk.clearPongs();
+	boolean checkHandChow(Tile t) {
+		this.ppk.clearChows();
 		//this.possiblePongs.clear();
-		ArrayList<int[]> pongs;
-		pongs = this.hand.checkPong(t);
+		ArrayList<int[]> chows;
+		chows = this.hand.checkChow(t);
 		// if no Pong arrays in this ArrayList (size 0), return false
-		if (pongs.size() > 0) {
+		if (chows.size() > 0) {
 			// if Pong option(s), list options & ask user to choose Pong, or decline
-			System.out.println("Player " + this.playerIdx + ": Pong?");
-			for (int i=0; i<pongs.size(); i++) {
-				System.out.printf("\t%d. idx {%d %d}\n", i, pongs.get(i)[0], pongs.get(i)[1]);
+			System.out.println("Player " + this.playerIdx + ": Chow?");
+			for (int i=0; i<chows.size(); i++) {
+				System.out.printf("\t%d. idx {%d %d}\n", i, chows.get(i)[0], chows.get(i)[1]);
 				//this.possiblePongs.add(pongs.get(i));
-				String stringVal = Arrays.toString(pongs.get(i));
-				this.ppk.setPossiblePong(i, stringVal);
+				String stringVal = Arrays.toString(chows.get(i));
+				this.ppk.setPossibleChow(i, stringVal);
 			}
-			System.out.printf("\t%d. Skip pong\n", pongs.size());
+			System.out.printf("\t%d. Skip pong\n", chows.size());
 			return true;
 		}
 		return false;
@@ -162,10 +165,24 @@ public class Player {
 		this.ppk.clearKongs();
 		ArrayList<int[]> kongs;
 		kongs = this.hand.checkKong(t);
-		// if no Pong arrays in this ArrayList (size 0), return false
+		// if no Kong arrays in this ArrayList (size 0), return false
 		if (kongs.size() > 0) {
 			String stringVal = Arrays.toString(kongs.get(0));
 			this.ppk.setPossibleKong(0, stringVal);
+			return true;
+		}
+		return false;
+	}
+
+	// check hand for kong, update options for kong, return true if chance for kong
+	boolean checkHandPong(Tile t) {
+		this.ppk.clearPongs();
+		ArrayList<int[]> pongs;
+		pongs = this.hand.checkPong(t);
+		// if no Pong arrays in this ArrayList (size 0), return false
+		if (pongs.size() > 0) {
+			String stringVal = Arrays.toString(pongs.get(0));
+			this.ppk.setPossiblePong(0, stringVal);
 			return true;
 		}
 		return false;
@@ -177,7 +194,7 @@ public class Player {
 	}
 
 	// check user response for Pong
-	boolean checkUserPong(String player_input) {
+	boolean checkUserChow(String player_input) {
 		int resp = -1;
 		try {
 			resp = Integer.parseInt(player_input);
@@ -187,12 +204,17 @@ public class Player {
 		} catch (NumberFormatException e) {
 			e.printStackTrace();
 		}
-		// if last idx, no Pong...
-		if (resp < this.ppk.getNumPongs() && resp >= 0) {
+		// if last idx, no chow...
+		if (resp < this.ppk.getNumChows() && resp >= 0) {
 			this.chosenIdx = resp;
 			return true;
 		}
 		return false;
+	}
+
+	// check user response for Kong
+	boolean checkUserPong(String player_input) {
+		return player_input.equals("1");
 	}
 
 	// check user response for Kong
@@ -209,7 +231,7 @@ public class Player {
 	public void Mahjong(Tile t) {
 		// if Mahjong, add tile to hand and reveal all tiles
 		this.hand.addToHand(t);
-		this.hand.revealTiles();
+		this.hand.revealAllHiddenHandTiles();
 	}
 
 	void kong(Tile t) {
@@ -220,19 +242,29 @@ public class Player {
 		hand_idx[1] = Integer.parseInt(this.ppk.getPossibleKong(1));
 		hand_idx[2] = Integer.parseInt(this.ppk.getPossibleKong(2));
 		hand_idx[3] = this.hand.getHiddenHandSize()-1;
-		this.hand.revealTiles(hand_idx, 4);
+		this.hand.revealIndexedHiddenTiles(hand_idx, 4);
 	}
 
 	// We will transform string array to int array
 	void pong(Tile t) {
-		int[] hand_idx = new int[3];
 		this.hand.addToHand(t);
-		int[] pongs = new int[2];
-		pongs = fromString(this.ppk.getPossiblePong(this.chosenIdx));
-		hand_idx[0] = pongs[0]; // this.possiblePongs.get(this.chosenIdx)[0];
-		hand_idx[1] = pongs[1]; // this.possiblePongs.get(this.chosenIdx)[1];
+		int[] hand_idx = new int[3];
+		// parse from string to get array elements
+		hand_idx[0] = Integer.parseInt(this.ppk.getPossiblePong(0));
+		hand_idx[1] = Integer.parseInt(this.ppk.getPossiblePong(1));
+		hand_idx[2] = this.hand.getHiddenHandSize() - 1;
+		this.hand.revealIndexedHiddenTiles(hand_idx, 3);
+	}
+
+	void chow(Tile t) {
+		this.hand.addToHand(t);
+		int[] hand_idx = new int[3];
+		int[] chows;
+		chows = fromString(this.ppk.getPossibleChow(this.chosenIdx));
+		hand_idx[0] = chows[0];
+		hand_idx[1] = chows[1];
 		hand_idx[2] = this.hand.getHiddenHandSize()-1; // the last idx where the new tile to pong will be
-		this.hand.revealTiles(hand_idx, 3);
+		this.hand.revealIndexedHiddenTiles(hand_idx, 3);
 	}
 
 	// get arraylist of Revealed tile descriptors
@@ -241,42 +273,136 @@ public class Player {
 	// get arraylist of Hidden tile descriptors
 	ArrayList<String> getHiddenDescriptors() { return this.hand.getHiddenDescriptors(); }
 
+
+	//TODO: test vector class
+
+	/*
+
+		Test vectors - Important that last tile is part of the pong/kong/chow/mahjong
+
+	 */
+
+	ArrayList<Tile> createTrueChowTestVectorHand(int test_num) {
+		ArrayList<Tile> test_vector = new ArrayList<>();
+		switch (test_num) {
+			// tests three of a kind hand
+			case 0:
+				test_vector.add(0,new Bonus(1,1,1));
+				test_vector.add(1, new Bonus(1,2,2));
+				test_vector.add(2, new Suits(1,1,1)); // Bamboo 1 #1
+				test_vector.add(3, new Suits(2,1,1));
+				test_vector.add(4, new Suits(3,1,1));
+				test_vector.add(5, new Suits(1,7,1));
+				test_vector.add(6, new Suits(1,2,1)); // Bamboo 2 #1
+				test_vector.add(7, new Suits(2,3,1));
+				test_vector.add(8, new Suits(3,3,1));
+				test_vector.add(9, new Suits(1,5,1));
+				test_vector.add(10, new Suits(1,9,1));
+				test_vector.add(11, new Suits(2,9,1));
+				test_vector.add(12, new Suits(3,9,1));
+				test_vector.add(13, new Suits(1,3,1)); // Bamboo 3 #1
+				break;
+			case 1:
+				test_vector.add(0, new Bonus(1,1,1));
+				test_vector.add(1, new Bonus(1,2,2));
+				test_vector.add(2, new Suits(3,9,1));
+				test_vector.add(3, new Suits(2,1,1));
+				test_vector.add(4, new Suits(3,1,0));
+				test_vector.add(5, new Suits(1,7,1));
+				test_vector.add(6, new Suits(2,7,1)); // Dots 7 #1
+				test_vector.add(7, new Suits(2,3,1));
+				test_vector.add(8, new Suits(3,3,1));
+				test_vector.add(9, new Suits(1,5,1));
+				test_vector.add(10, new Suits(1,9,1));
+				test_vector.add(11, new Suits(2,9,1));
+				test_vector.add(12, new Suits(2,6,1)); // Dots 6 #1
+				test_vector.add(13, new Suits(2,8,1)); // Dots 8 #1
+				break;
+			default:
+				createTrueChowTestVectorHand(0);
+				break;
+		}
+		return test_vector;
+	}
+
+	ArrayList<Tile> createFalseChowTestVectorHand(int test_num) {
+		ArrayList<Tile> test_vector = new ArrayList<>();
+		switch (test_num) {
+			case 0:	// nothing
+				test_vector.add(0, new Bonus(1,1,1)); // Spring #1
+				test_vector.add(1, new Bonus(1,1,2)); // Spring #2
+				test_vector.add(2, new Bonus(1,1,3)); // Summer #3
+				test_vector.add(3, new Bonus(1,1,0)); // Summer #0
+				test_vector.add(4, new Suits(3,1,1));
+				test_vector.add(5, new Suits(1,7,1));
+				test_vector.add(6, new Suits(1,3,1));
+				test_vector.add(7, new Suits(2,3,1));
+				test_vector.add(8, new Suits(3,3,1));
+				test_vector.add(9, new Suits(1,5,1));
+				test_vector.add(10, new Suits(1,9,1));
+				test_vector.add(11, new Suits(2,9,1));
+				test_vector.add(12, new Suits(3,9,1));
+				test_vector.add(13, new Suits(1,1,1));
+				break;
+			case 1:	// Pong
+				test_vector.add(0, new Bonus(1,1,1));
+				test_vector.add(1, new Bonus(1,2,2));
+				test_vector.add(2, new Suits(1,1,1)); // Bamboo 1 #1
+				test_vector.add(3, new Suits(2,1,1));
+				test_vector.add(4, new Suits(3,1,1));
+				test_vector.add(5, new Suits(1,7,1));
+				test_vector.add(6, new Suits(1,1,2)); // Bamboo 1 #2
+				test_vector.add(7, new Suits(2,3,1));
+				test_vector.add(8, new Suits(3,3,1));
+				test_vector.add(9, new Suits(1,5,1));
+				test_vector.add(10, new Suits(1,9,1));
+				test_vector.add(11, new Suits(2,9,1));
+				test_vector.add(12, new Suits(3,9,1));
+				test_vector.add(13, new Suits(1,1,3)); // Bamboo 1 #3
+				break;
+			default:
+				createTruePongTestVectorHand(0);
+				break;
+		}
+		return test_vector;
+	}
+
 	// a separate test vector class
-	Tile[] createTruePongTestVectorHand(int test_num) {
-		Tile[] test_vector = new Tile[14];
+	ArrayList<Tile> createTruePongTestVectorHand(int test_num) {
+		ArrayList<Tile> test_vector = new ArrayList<>();
 		switch (test_num) {
 			// tests three of a kind hand
 			case 0:
-				test_vector[0] = new Bonus(1,1,1); //Spring
-				test_vector[1] = new Bonus(1,1,2); //Spring
-				test_vector[2] = new Suits(1,1,1);
-				test_vector[3] = new Suits(2,1,1);
-				test_vector[4] = new Suits(3,1,1);
-				test_vector[5] = new Suits(1,7,1);
-				test_vector[6] = new Suits(1,3,1);
-				test_vector[7] = new Suits(2,3,1);
-				test_vector[8] = new Suits(3,3,1);
-				test_vector[9] = new Suits(1,5,1);
-				test_vector[10] = new Suits(1,9,1);
-				test_vector[11] = new Suits(2,9,1);
-				test_vector[12] = new Suits(3,9,1);
-				test_vector[13] = new Bonus(1,1,3); //Spring
+				test_vector.add(0, new Bonus(1,1,1)); //Spring #1
+				test_vector.add(1, new Bonus(1,1,2)); //Spring #2
+				test_vector.add(2, new Suits(1,1,1));
+				test_vector.add(3, new Suits(2,1,1));
+				test_vector.add(4, new Suits(3,1,1));
+				test_vector.add(5, new Suits(1,7,1));
+				test_vector.add(6, new Suits(1,3,1));
+				test_vector.add(7, new Suits(2,3,1));
+				test_vector.add(8, new Suits(3,3,1));
+				test_vector.add(9, new Suits(1,5,1));
+				test_vector.add(10, new Suits(1,9,1));
+				test_vector.add(11, new Suits(2,9,1));
+				test_vector.add(12, new Suits(3,9,1));
+				test_vector.add(13, new Bonus(1,1,3)); //Spring #3
 				break;
 			case 1:
-				test_vector[0] = new Bonus(1,1,1);
-				test_vector[1] = new Bonus(1,2,2);
-				test_vector[2] = new Suits(1,1,1); //1
-				test_vector[3] = new Suits(2,1,1);
-				test_vector[4] = new Suits(3,1,1);
-				test_vector[5] = new Suits(1,7,1);
-				test_vector[6] = new Suits(1,2,1); //2
-				test_vector[7] = new Suits(2,3,1);
-				test_vector[8] = new Suits(3,3,1);
-				test_vector[9] = new Suits(1,5,1);
-				test_vector[10] = new Suits(1,9,1);
-				test_vector[11] = new Suits(2,9,1);
-				test_vector[12] = new Suits(3,9,1);
-				test_vector[13] = new Suits(1,3,1); //3
+				test_vector.add(0, new Bonus(1,1,1)); // Spring #1
+				test_vector.add(1, new Bonus(1,1,2)); // Spring #2
+				test_vector.add(2, new Bonus(1,1,3)); // Spring #3
+				test_vector.add(3, new Suits(2,1,1));
+				test_vector.add(4, new Suits(3,1,1));
+				test_vector.add(5, new Suits(1,7,1));
+				test_vector.add(6, new Suits(1,3,1));
+				test_vector.add(7, new Suits(2,3,1));
+				test_vector.add(8, new Suits(3,3,1));
+				test_vector.add(9, new Suits(1,5,1));
+				test_vector.add(10, new Suits(1,9,1));
+				test_vector.add(11, new Suits(1,1,3)); // Bamboo 1 - #3
+				test_vector.add(12, new Suits(1,1,2)); // Bamboo 1 - #2
+				test_vector.add(13, new Suits(1,1,1)); // Bamboo 1 - #1
 				break;
 			default:
 				createTruePongTestVectorHand(0);
@@ -285,41 +411,41 @@ public class Player {
 		return test_vector;
 	}
 
-	Tile[] createFalsePongTestVectorHand(int test_num) {
-		Tile[] test_vector = new Tile[14];
+	ArrayList<Tile> createFalsePongTestVectorHand(int test_num) {
+		ArrayList<Tile> test_vector = new ArrayList<>();
 		switch (test_num) {
 			// tests three of a kind hand
-			case 0:
-				test_vector[0] = new Bonus(1,1,1); //Spring
-				test_vector[1] = new Bonus(1,1,2); //Spring
-				test_vector[2] = new Bonus(1,1,3); //Spring
-				test_vector[3] = new Suits(2,1,1);
-				test_vector[4] = new Suits(3,1,1);
-				test_vector[5] = new Suits(1,7,1);
-				test_vector[6] = new Suits(1,3,1);
-				test_vector[7] = new Suits(2,3,1);
-				test_vector[8] = new Suits(3,3,1);
-				test_vector[9] = new Suits(1,5,1);
-				test_vector[10] = new Suits(1,9,1);
-				test_vector[11] = new Suits(2,9,1);
-				test_vector[12] = new Suits(3,9,1);
-				test_vector[13] = new Suits(1,1,1);
+			case 0:	// kong
+				test_vector.add(0, new Bonus(1,1,1)); // Spring #1
+				test_vector.add(1, new Bonus(1,1,2)); // Spring #2
+				test_vector.add(2, new Bonus(1,1,3)); // Spring #3
+				test_vector.add(3, new Bonus(1,1,0)); // Spring #4
+				test_vector.add(4, new Suits(3,1,1));
+				test_vector.add(5, new Suits(1,7,1));
+				test_vector.add(6, new Suits(1,3,1));
+				test_vector.add(7, new Suits(2,3,1));
+				test_vector.add(8, new Suits(3,3,1));
+				test_vector.add(9, new Suits(1,5,1));
+				test_vector.add(10, new Suits(1,9,1));
+				test_vector.add(11, new Suits(2,9,1));
+				test_vector.add(12, new Suits(3,9,1));
+				test_vector.add(13, new Suits(1,1,1));
 				break;
-			case 1:
-				test_vector[0] = new Bonus(1,1,1);
-				test_vector[1] = new Bonus(1,2,2);
-				test_vector[2] = new Suits(1,1,1); //1
-				test_vector[3] = new Suits(2,1,1);
-				test_vector[4] = new Suits(3,1,1);
-				test_vector[5] = new Suits(1,7,1);
-				test_vector[6] = new Suits(1,2,1); //2
-				test_vector[7] = new Suits(2,3,1);
-				test_vector[8] = new Suits(3,3,1);
-				test_vector[9] = new Suits(1,5,1);
-				test_vector[10] = new Suits(1,9,1);
-				test_vector[11] = new Suits(2,9,1);
-				test_vector[12] = new Suits(1,3,1); //3
-				test_vector[13] = new Suits(3,9,1);
+			case 1:	// Chow
+				test_vector.add(0, new Bonus(1,1,1));
+				test_vector.add(1, new Bonus(1,2,2));
+				test_vector.add(2, new Suits(1,1,1)); // Bamboo 1 #1
+				test_vector.add(3, new Suits(2,1,1));
+				test_vector.add(4, new Suits(3,1,1));
+				test_vector.add(5, new Suits(1,7,1));
+				test_vector.add(6, new Suits(1,2,1)); // Bamboo 2 #1
+				test_vector.add(7, new Suits(2,3,1));
+				test_vector.add(8, new Suits(3,3,1));
+				test_vector.add(9, new Suits(1,5,1));
+				test_vector.add(10, new Suits(1,9,1));
+				test_vector.add(11, new Suits(2,9,1));
+				test_vector.add(12, new Suits(1,3,1)); // Bamboo 3 #1
+				test_vector.add(13, new Suits(3,9,1));
 				break;
 			default:
 				createTruePongTestVectorHand(0);
@@ -328,41 +454,41 @@ public class Player {
 		return test_vector;
 	}
 
-	Tile[] createTrueKongTestVectorHand(int test_num) {
-		Tile[] test_vector = new Tile[14];
+	ArrayList<Tile> createTrueKongTestVectorHand(int test_num) {
+		ArrayList<Tile> test_vector = new ArrayList<>();
 		switch (test_num) {
 			// tests three of a kind hand
 			case 0:
-				test_vector[0] = new Bonus(1,1,1); //Spring
-				test_vector[1] = new Bonus(1,1,2); //Spring
-				test_vector[2] = new Bonus(1,1,3); //Spring
-				test_vector[3] = new Suits(2,1,1);
-				test_vector[4] = new Suits(3,1,1);
-				test_vector[5] = new Suits(1,7,1);
-				test_vector[6] = new Suits(1,3,1);
-				test_vector[7] = new Suits(2,3,1);
-				test_vector[8] = new Suits(3,3,1);
-				test_vector[9] = new Suits(1,5,1);
-				test_vector[10] = new Suits(1,9,1);
-				test_vector[11] = new Suits(2,9,1);
-				test_vector[12] = new Suits(3,9,1);
-				test_vector[13] = new Bonus(1,1,0); //Spring
+				test_vector.add(0, new Bonus(1,1,1)); //Spring
+				test_vector.add(1, new Bonus(1,1,2)); //Spring
+				test_vector.add(2, new Bonus(1,1,3)); //Spring
+				test_vector.add(3, new Suits(2,1,1));
+				test_vector.add(4, new Suits(3,1,1));
+				test_vector.add(5, new Suits(1,7,1));
+				test_vector.add(6, new Suits(1,3,1));
+				test_vector.add(7, new Suits(2,3,1));
+				test_vector.add(8, new Suits(3,3,1));
+				test_vector.add(9, new Suits(1,5,1));
+				test_vector.add(10, new Suits(1,9,1));
+				test_vector.add(11, new Suits(2,9,1));
+				test_vector.add(12, new Suits(3,9,1));
+				test_vector.add(13, new Bonus(1,1,0)); //Spring
 				break;
 			case 1:
-				test_vector[0] = new Bonus(1,1,1);
-				test_vector[1] = new Bonus(1,2,2);
-				test_vector[2] = new Suits(1,1,1); //1
-				test_vector[3] = new Suits(1,1,2); //2
-				test_vector[4] = new Suits(3,1,1);
-				test_vector[5] = new Suits(1,7,1);
-				test_vector[6] = new Suits(1,2,1);
-				test_vector[7] = new Suits(2,3,1);
-				test_vector[8] = new Suits(3,3,1);
-				test_vector[9] = new Suits(1,5,1);
-				test_vector[10] = new Suits(1,9,1);
-				test_vector[11] = new Suits(2,9,1);
-				test_vector[12] = new Suits(1,1,3); //3
-				test_vector[13] = new Suits(1,1,0); //4
+				test_vector.add(0, new Bonus(1,2,1)); //Summer
+				test_vector.add(1, new Bonus(1,2,2)); //Summer
+				test_vector.add(2, new Bonus(1,2,3)); //Summer
+				test_vector.add(3, new Suits(3,9,2));
+				test_vector.add(4, new Suits(3,1,1));
+				test_vector.add(5, new Suits(1,7,1));
+				test_vector.add(6, new Suits(1,3,1));
+				test_vector.add(7, new Suits(2,3,1));
+				test_vector.add(8, new Suits(3,3,1));
+				test_vector.add(9, new Suits(1,5,1));
+				test_vector.add(10, new Suits(1,9,1));
+				test_vector.add(11, new Suits(2,9,1));
+				test_vector.add(12, new Suits(3,9,1));
+				test_vector.add(13, new Bonus(1,2,0)); //Summer
 				break;
 			default:
 				createTrueKongTestVectorHand(0);
@@ -371,41 +497,41 @@ public class Player {
 		return test_vector;
 	}
 
-	Tile[] createFalseKongTestVectorHand(int test_num) {
-		Tile[] test_vector = new Tile[14];
+	ArrayList<Tile> createFalseKongTestVectorHand(int test_num) {
+		ArrayList<Tile> test_vector = new ArrayList<>();
 		switch (test_num) {
 			// tests three of a kind hand
-			case 0:
-				test_vector[0] = new Bonus(1,1,1); //Spring
-				test_vector[1] = new Bonus(1,1,2); //Spring
-				test_vector[2] = new Bonus(1,1,3); //Spring
-				test_vector[3] = new Bonus(1,1,0); //Spring
-				test_vector[4] = new Suits(3,1,1);
-				test_vector[5] = new Suits(1,7,1);
-				test_vector[6] = new Suits(1,3,1);
-				test_vector[7] = new Suits(2,3,1);
-				test_vector[8] = new Suits(3,3,1);
-				test_vector[9] = new Suits(1,5,1);
-				test_vector[10] = new Suits(1,9,1);
-				test_vector[11] = new Suits(2,9,1);
-				test_vector[12] = new Suits(3,9,1);
-				test_vector[13] = new Suits(3,9,2);
+			case 0:	//TODO: thinks this is a kong
+				test_vector.add(0, new Bonus(1,1,1));
+				test_vector.add(1, new Bonus(1,2,2));
+				test_vector.add(2, new Suits(1,1,1)); // Bamboo 1 #1
+				test_vector.add(3, new Suits(1,1,2)); // Bamboo 1 #2
+				test_vector.add(4, new Suits(1,1,0)); // Bamboo 4 #4
+				test_vector.add(5, new Suits(1,7,1));
+				test_vector.add(6, new Suits(1,2,1));
+				test_vector.add(7, new Suits(2,3,1));
+				test_vector.add(8, new Suits(3,3,1));
+				test_vector.add(9, new Suits(1,5,1));
+				test_vector.add(10, new Suits(1,9,1));
+				test_vector.add(11, new Suits(2,9,1));
+				test_vector.add(12, new Suits(1,1,3)); // Bamboo 1 #3
+				test_vector.add(13, new Suits(3,1,1));
 				break;
 			case 1:
-				test_vector[0] = new Bonus(1,1,1);
-				test_vector[1] = new Bonus(1,2,2);
-				test_vector[2] = new Suits(1,1,1); //1
-				test_vector[3] = new Suits(1,1,2); //2
-				test_vector[4] = new Suits(1,1,0); //4
-				test_vector[5] = new Suits(1,7,1);
-				test_vector[6] = new Suits(1,2,1);
-				test_vector[7] = new Suits(2,3,1);
-				test_vector[8] = new Suits(3,3,1);
-				test_vector[9] = new Suits(1,5,1);
-				test_vector[10] = new Suits(1,9,1);
-				test_vector[11] = new Suits(2,9,1);
-				test_vector[12] = new Suits(1,1,3); //3
-				test_vector[13] = new Suits(3,1,1);
+				test_vector.add(0, new Bonus(1,1,1)); //1
+				test_vector.add(1, new Bonus(1,2,2));
+				test_vector.add(2, new Suits(1,1,1));
+				test_vector.add(3, new Bonus(1,1,2)); //2
+				test_vector.add(4, new Bonus(1,1,0)); //0
+				test_vector.add(5, new Suits(1,7,1));
+				test_vector.add(6, new Suits(1,2,1));
+				test_vector.add(7, new Suits(2,3,1));
+				test_vector.add(8, new Suits(3,3,1));
+				test_vector.add(9, new Suits(1,5,1));
+				test_vector.add(10, new Suits(1,9,1));
+				test_vector.add(11, new Suits(2,9,1));
+				test_vector.add(12, new Bonus(1,1,3)); //3
+				test_vector.add(13, new Suits(3,1,1));
 				break;
 			default:
 				createFalseKongTestVectorHand(0);
@@ -414,41 +540,41 @@ public class Player {
 		return test_vector;
 	}
 
-	Tile[] createTrueMahjongTestVectorHand(int test_num) {
-		Tile[] test_vector = new Tile[14];
+	ArrayList<Tile> createTrueMahjongTestVectorHand(int test_num) {
+		ArrayList<Tile> test_vector = new ArrayList<>();
 		switch (test_num) {
 			// tests three of a kind hand
 			case 0:
-				test_vector[0] = new Bonus(1,1,1); //Spring
-				test_vector[1] = new Bonus(1,1,2); //Spring
-				test_vector[2] = new Bonus(1,2,0); //Summer
-				test_vector[3] = new Bonus(1,2,1); //Summer
-				test_vector[4] = new Bonus(1,2,2); //Summer
-				test_vector[5] = new Bonus(1,3,0); //Autumn
-				test_vector[6] = new Bonus(1,3,1); //Autumn
-				test_vector[7] = new Bonus(1,3,2); //Autumn
-				test_vector[8] = new Suits(3,3,1); //3
-				test_vector[9] = new Suits(3,4,1); //4
-				test_vector[10] = new Suits(3,5,1); //5
-				test_vector[11] = new Suits(2,7,1); //7
-				test_vector[12] = new Bonus(1,1,0); //Spring
-				test_vector[13] = new Suits(2,7,1); //7
+				test_vector.add(0, new Bonus(1,1,1)); //Spring
+				test_vector.add(1, new Bonus(1,1,2)); //Spring
+				test_vector.add(2, new Bonus(1,2,0)); //Summer
+				test_vector.add(3, new Bonus(1,2,1)); //Summer
+				test_vector.add(4, new Bonus(1,2,2)); //Summer
+				test_vector.add(5, new Bonus(1,3,0)); //Autumn
+				test_vector.add(6, new Bonus(1,3,1)); //Autumn
+				test_vector.add(7, new Bonus(1,3,2)); //Autumn
+				test_vector.add(8, new Suits(3,3,1)); //3
+				test_vector.add(9, new Suits(3,4,1)); //4
+				test_vector.add(10, new Suits(3,5,1)); //5
+				test_vector.add(11, new Suits(2,7,1)); //7
+				test_vector.add(12, new Bonus(1,1,0)); //Spring
+				test_vector.add(13, new Suits(2,7,1)); //7
 				break;
 			case 1:
-				test_vector[0] = new Bonus(1,1,1); //Spring
-				test_vector[1] = new Bonus(1,1,2); //Spring
-				test_vector[2] = new Bonus(1,2,0); //Summer
-				test_vector[3] = new Bonus(1,2,1); //Summer
-				test_vector[4] = new Bonus(1,2,2); //Summer
-				test_vector[5] = new Bonus(1,3,0); //Autumn
-				test_vector[6] = new Bonus(1,3,1); //Autumn
-				test_vector[7] = new Bonus(1,3,2); //Autumn
-				test_vector[8] = new Suits(3,1,1); //1
-				test_vector[9] = new Suits(3,2,1); //2
-				test_vector[10] = new Suits(3,3,1); //3
-				test_vector[11] = new Suits(2,7,1); //7
-				test_vector[12] = new Bonus(1,1,0); //Spring
-				test_vector[13] = new Suits(2,7,1); //7
+				test_vector.add(0, new Bonus(1,1,1)); //Spring
+				test_vector.add(1, new Bonus(1,1,2)); //Spring
+				test_vector.add(2, new Bonus(1,2,0)); //Summer
+				test_vector.add(3, new Bonus(1,2,1)); //Summer
+				test_vector.add(4, new Bonus(1,2,2)); //Summer
+				test_vector.add(5, new Bonus(1,3,0)); //Autumn
+				test_vector.add(6, new Bonus(1,3,1)); //Autumn
+				test_vector.add(7, new Bonus(1,3,2)); //Autumn
+				test_vector.add(8, new Suits(3,1,1)); //1
+				test_vector.add(9, new Suits(3,2,1)); //2
+				test_vector.add(10, new Suits(3,3,1)); //3
+				test_vector.add(11, new Suits(2,7,1)); //7
+				test_vector.add(12, new Bonus(1,1,0)); //Spring
+				test_vector.add(13, new Suits(2,7,1)); //7
 				break;
 			default:
 				createTrueMahjongTestVectorHand(0);

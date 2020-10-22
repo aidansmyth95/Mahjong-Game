@@ -124,7 +124,7 @@ public class PausedGameActivity extends AppCompatActivity {
                     Intent intent = new Intent(PausedGameActivity.this, MultiplayerActivity.class);
                     startActivity(intent);
                 }
-                MultiplayerActivity.logGameStatus(currGame);
+                MultiplayerActivity.logcatGameStatus(currGame, playerIdx);
                 handler.postDelayed(runnable, checkPlayersDelay);
             }
         }, checkPlayersDelay);
