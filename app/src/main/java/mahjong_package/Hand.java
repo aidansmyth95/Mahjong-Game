@@ -433,4 +433,11 @@ public class Hand {
     	return idx;
     }
 
+    public String getFlowersCollectedString() {
+		StringBuilder s = new StringBuilder();
+		for (int i=0; i<flowersCollected.size(); i++) {
+			s.append(flowersCollected.get(i).getDescriptor()).append("  ");
+		}
+		return s.toString();
+	}
 }

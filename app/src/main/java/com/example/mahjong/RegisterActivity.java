@@ -1,8 +1,5 @@
 package com.example.mahjong;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -12,17 +9,17 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
-
-import mahjong_package.User;
+import mahjong_package.FirebaseRepository;
 
 
 public class RegisterActivity extends AppCompatActivity {
@@ -75,7 +72,7 @@ public class RegisterActivity extends AppCompatActivity {
                         public void onComplete(@NonNull Task<AuthResult> task) {
                             if (task.isSuccessful()) {
                                 sendVerificationEmail();
-                                createRegisteredFirebaseUser();
+                                FirebaseRepository.createRegisteredFirebaseUser(nameText.getText().toString());
                                 Toast.makeText(getApplicationContext(), "Registration successful!", Toast.LENGTH_LONG).show();
                                 // Do not need to log in again after registration
                                 Intent intent = new Intent(RegisterActivity.this, GameModeActivity.class);
@@ -108,22 +105,7 @@ public class RegisterActivity extends AppCompatActivity {
         }
     }
 
-    private void createRegisteredFirebaseUser() {
-        User user = new User();
-        FirebaseUser userAuth = FirebaseAuth.getInstance().getCurrentUser();
-        if (userAuth != null) {
-            user.setUid(userAuth.getUid());
-            user.setUname(nameText.getText().toString());
-            user.setProviderId(userAuth.getProviderId());
-            user.setEmail(userAuth.getEmail());
-            user.setEmailVerified(false);
-            user.setUserStatus("inactive");
-            user.setLastGameId("NaN");
-            DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference().child("users");
-            // This will NOT work unless you have getters and setters. You can push the Map or the object, all that differs is _ prepended in DB if Object
-            usersRef.child(user.getUid()).setValue(user);
-        }
-    }
+
 
     @Override
     protected void onStart() {

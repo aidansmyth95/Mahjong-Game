@@ -307,7 +307,7 @@ public class Game {
 				break;
 
 			case DISCARD_OPTIONS:
-				System.out.println("Player " + this.playerTurn + ": discard a tile from the following:");
+				System.out.println("Player " + this.playerTurn + ": discard a hidden tile");
 				// stdout to show hand in text box
 				//this.player.get(this.playerTurn).showHiddenHand();
 				// set request response for the player discarding to be true
@@ -331,7 +331,7 @@ public class Game {
 					} else {
 						this.latestDiscard = this.player.get(this.playerTurn).discardTile(resp);
 						this.wall.addUncoveredTile(this.latestDiscard);
-						System.out.println("Player " + this.playerTurn + " discarded " + this.latestDiscard.getDescriptor());
+						//System.out.println("Player " + this.playerTurn + " discarded " + this.latestDiscard.getDescriptor());
 						this.gameState = GameState.CHECKING_HAND;
 						this.resetPlayerInput();
 					}
@@ -428,8 +428,26 @@ public class Game {
 
 	 */
 
+	public ArrayList<Tile> getFlowersCollected(int p){
+		return this.player.get(p).getFlowersCollected();
+	}
+
+	public String getFlowersCollectedString(int p) {
+		StringBuilder s = new StringBuilder();
+		s.append("Flowers collected: ");
+		ArrayList<Tile> flowers = this.getFlowersCollected(p);
+		for (int i=0; i<flowers.size(); i++) {
+			s.append("\t").append(flowers.get(i).getDescriptor()).append("\n");
+		}
+		return s.toString();
+	}
+
 	public String getLatestFlowersCollectedDescriptorResource(int p){
 		return this.player.get(p).getLatestFlowersCollectedDescriptor().toLowerCase().replace(" ", "_");
+	}
+
+	public int getFlowersCount(int playerIdx) {
+		return this.player.get(playerIdx).getFlowersCount();
 	}
 
 	@Exclude

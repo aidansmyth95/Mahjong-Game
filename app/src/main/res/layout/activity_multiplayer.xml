@@ -9,16 +9,19 @@
     android:keepScreenOn="true"
     tools:context=".MultiplayerActivity">
 
-    <ImageButton
-        android:id="@+id/rules_at_multiplayer_game"
-        style="@style/RulebookFeatures"
-        android:contentDescription="@string/rulebook_link"
-        app:layout_constraintBottom_toBottomOf="parent"
+    <com.example.mahjong.CircularTextView
+        android:id="@+id/circularFlowersTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="5dp"
+        android:background="@color/common_google_signin_btn_text_dark_default"
+        android:gravity="center"
+        android:padding="3dp"
+        android:text="0"
+        app:layout_constraintBottom_toTopOf="@+id/flower_pile"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.05"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintVertical_bias="0.97"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintHorizontal_bias="0.849"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <ImageView
         android:id="@+id/flower_pile"
@@ -33,175 +36,251 @@
         app:layout_constraintVertical_bias="0.35"
         app:layout_constraintHorizontal_bias="0.85"
         app:srcCompat="@drawable/play" />
+
+    <TextView
+        android:id="@+id/num_flowers_text_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_google_signin_btn_text_dark_default"
+        android:text="flowers pile"
+        app:layout_constraintTop_toBottomOf="@+id/flower_pile"
+        app:layout_constraintBottom_toTopOf="@+id/p_input"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintHorizontal_bias="0.9"
+        app:layout_constraintVertical_bias="0.02" />
+
+    <ImageButton
+        android:id="@+id/rules_at_multiplayer_game"
+        style="@style/RulebookFeatures"
+        android:contentDescription="@string/rulebook_link"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.05"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintVertical_bias="0.97"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <ImageView
         android:id="@+id/h0"
-        android:layout_width="26dp"
-        android:layout_height="50dp"
+        style="@style/HiddenTileFeatures"
         android:contentDescription="@string/tile_for_player_at_hand_position_0"
-        android:scaleType="fitXY"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.15"
-        app:layout_constraintHorizontal_bias="0.03"
-        app:srcCompat="@drawable/play" />
+        app:layout_constraintHorizontal_bias="0.03" />
     <ImageView
         android:id="@+id/h1"
-        android:layout_width="26dp"
-        android:layout_height="50dp"
+        style="@style/HiddenTileFeatures"
         android:contentDescription="@string/tile_for_player_at_hand_position_1"
-        android:scaleType="fitXY"
         app:layout_constraintStart_toEndOf="@+id/h0"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.15"
-        app:srcCompat="@drawable/play" />
+        app:layout_constraintTop_toTopOf="parent" />
     <ImageView
         android:id="@+id/h2"
-        android:layout_width="26dp"
-        android:layout_height="50dp"
+        style="@style/HiddenTileFeatures"
         android:contentDescription="@string/tile_for_player_at_hand_position_2"
-        android:scaleType="fitXY"
         app:layout_constraintStart_toEndOf="@+id/h1"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.15"
-        app:srcCompat="@drawable/play" />
+        app:layout_constraintTop_toTopOf="parent" />
     <ImageView
         android:id="@+id/h3"
-        android:layout_width="26dp"
-        android:layout_height="50dp"
+        style="@style/HiddenTileFeatures"
         android:contentDescription="@string/tile_for_player_at_hand_position_3"
-        android:scaleType="fitXY"
         app:layout_constraintStart_toEndOf="@+id/h2"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.15"
-        app:srcCompat="@drawable/play" />
+        app:layout_constraintTop_toTopOf="parent" />
     <ImageView
         android:id="@+id/h4"
-        android:layout_width="26dp"
-        android:layout_height="50dp"
+        style="@style/HiddenTileFeatures"
         android:contentDescription="@string/tile_for_player_at_hand_position_4"
-        android:scaleType="fitXY"
         app:layout_constraintStart_toEndOf="@+id/h3"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.15"
-        app:srcCompat="@drawable/play" />
+        app:layout_constraintTop_toTopOf="parent" />
     <ImageView
         android:id="@+id/h5"
-        android:layout_width="26dp"
-        android:layout_height="50dp"
+        style="@style/HiddenTileFeatures"
         android:contentDescription="@string/tile_for_player_at_hand_position_5"
-        android:scaleType="fitXY"
         app:layout_constraintStart_toEndOf="@+id/h4"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.15"
-        app:srcCompat="@drawable/play" />
+        app:layout_constraintTop_toTopOf="parent" />
     <ImageView
         android:id="@+id/h6"
-        android:layout_width="26dp"
-        android:layout_height="50dp"
+        style="@style/HiddenTileFeatures"
         android:contentDescription="@string/tile_for_player_at_hand_position_6"
-        android:scaleType="fitXY"
         app:layout_constraintStart_toEndOf="@+id/h5"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.15"
-        app:srcCompat="@drawable/play" />
+        app:layout_constraintTop_toTopOf="parent" />
     <ImageView
         android:id="@+id/h7"
-        android:layout_width="26dp"
-        android:layout_height="50dp"
+        style="@style/HiddenTileFeatures"
         android:contentDescription="@string/tile_for_player_at_hand_position_7"
-        android:scaleType="fitXY"
         app:layout_constraintStart_toEndOf="@+id/h6"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.15"
-        app:srcCompat="@drawable/play" />
+        app:layout_constraintTop_toTopOf="parent" />
     <ImageView
         android:id="@+id/h8"
-        android:layout_width="26dp"
-        android:layout_height="50dp"
+        style="@style/HiddenTileFeatures"
         android:contentDescription="@string/tile_for_player_at_hand_position_8"
-        android:scaleType="fitXY"
         app:layout_constraintStart_toEndOf="@+id/h7"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.15"
-        app:srcCompat="@drawable/play" />
+        app:layout_constraintTop_toTopOf="parent" />
     <ImageView
         android:id="@+id/h9"
-        android:layout_width="26dp"
-        android:layout_height="50dp"
+        style="@style/HiddenTileFeatures"
         android:contentDescription="@string/tile_for_player_at_hand_position_9"
-        android:scaleType="fitXY"
         app:layout_constraintStart_toEndOf="@+id/h8"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.15"
-        app:srcCompat="@drawable/play" />
+        app:layout_constraintTop_toTopOf="parent" />
     <ImageView
         android:id="@+id/h10"
-        android:layout_width="26dp"
-        android:layout_height="50dp"
+        style="@style/HiddenTileFeatures"
         android:contentDescription="@string/tile_for_player_at_hand_position_10"
-        android:scaleType="fitXY"
         app:layout_constraintStart_toEndOf="@+id/h9"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.15"
-        app:srcCompat="@drawable/play" />
+        app:layout_constraintTop_toTopOf="parent" />
     <ImageView
         android:id="@+id/h11"
-        android:layout_width="26dp"
-        android:layout_height="50dp"
+        style="@style/HiddenTileFeatures"
         android:contentDescription="@string/tile_for_player_at_hand_position_11"
-        android:scaleType="fitXY"
         app:layout_constraintStart_toEndOf="@+id/h10"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.15"
-        app:srcCompat="@drawable/play" />
+        app:layout_constraintTop_toTopOf="parent" />
     <ImageView
         android:id="@+id/h12"
-        android:layout_width="26dp"
-        android:layout_height="50dp"
+        style="@style/HiddenTileFeatures"
         android:contentDescription="@string/tile_for_player_at_hand_position_12"
-        android:scaleType="fitXY"
         app:layout_constraintStart_toEndOf="@+id/h11"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.15"
-        app:srcCompat="@drawable/play" />
+        app:layout_constraintTop_toTopOf="parent" />
     <ImageView
         android:id="@+id/h13"
-        android:layout_width="26dp"
-        android:layout_height="50dp"
+        style="@style/HiddenTileFeatures"
         android:contentDescription="@string/tile_for_player_at_hand_position_13"
-        android:scaleType="fitXY"
         app:layout_constraintStart_toEndOf="@+id/h12"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.15"
-        app:srcCompat="@drawable/play" />
+        app:layout_constraintTop_toTopOf="parent" />
     <ImageView
         android:id="@+id/h14"
-        android:layout_width="26dp"
-        android:layout_height="50dp"
+        style="@style/HiddenTileFeatures"
         android:contentDescription="@string/tile_for_player_at_hand_position_13"
-        android:scaleType="fitXY"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.15"
-        app:layout_constraintHorizontal_bias="0.98"
-        app:srcCompat="@drawable/play" />
+        app:layout_constraintHorizontal_bias="0.98" />
+
+
+    <ImageView
+        android:id="@+id/r0"
+        style="@style/RevealedTileFeatures"
+        android:contentDescription="@string/tile_for_player_at_hand_position_0"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintHorizontal_bias="0.03" />
+    <ImageView
+        android:id="@+id/r1"
+        style="@style/RevealedTileFeatures"
+        android:contentDescription="@string/tile_for_player_at_hand_position_1"
+        app:layout_constraintStart_toEndOf="@+id/r0"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <ImageView
+        android:id="@+id/r2"
+        style="@style/RevealedTileFeatures"
+        android:contentDescription="@string/tile_for_player_at_hand_position_2"
+        app:layout_constraintStart_toEndOf="@+id/r1"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <ImageView
+        android:id="@+id/r3"
+        style="@style/RevealedTileFeatures"
+        android:contentDescription="@string/tile_for_player_at_hand_position_3"
+        app:layout_constraintStart_toEndOf="@+id/r2"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <ImageView
+        android:id="@+id/r4"
+        style="@style/RevealedTileFeatures"
+        android:contentDescription="@string/tile_for_player_at_hand_position_4"
+        app:layout_constraintStart_toEndOf="@+id/r3"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <ImageView
+        android:id="@+id/r5"
+        style="@style/RevealedTileFeatures"
+        android:contentDescription="@string/tile_for_player_at_hand_position_5"
+        app:layout_constraintStart_toEndOf="@+id/r4"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <ImageView
+        android:id="@+id/r6"
+        style="@style/RevealedTileFeatures"
+        android:contentDescription="@string/tile_for_player_at_hand_position_6"
+        app:layout_constraintStart_toEndOf="@+id/r5"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <ImageView
+        android:id="@+id/r7"
+        style="@style/RevealedTileFeatures"
+        android:contentDescription="@string/tile_for_player_at_hand_position_7"
+        app:layout_constraintStart_toEndOf="@+id/r6"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <ImageView
+        android:id="@+id/r8"
+        style="@style/RevealedTileFeatures"
+        android:contentDescription="@string/tile_for_player_at_hand_position_8"
+        app:layout_constraintStart_toEndOf="@+id/r7"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <ImageView
+        android:id="@+id/r9"
+        style="@style/RevealedTileFeatures"
+        android:contentDescription="@string/tile_for_player_at_hand_position_9"
+        app:layout_constraintStart_toEndOf="@+id/r8"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <ImageView
+        android:id="@+id/r10"
+        style="@style/RevealedTileFeatures"
+        android:contentDescription="@string/tile_for_player_at_hand_position_10"
+        app:layout_constraintStart_toEndOf="@+id/r9"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <ImageView
+        android:id="@+id/r11"
+        style="@style/RevealedTileFeatures"
+        android:contentDescription="@string/tile_for_player_at_hand_position_11"
+        app:layout_constraintStart_toEndOf="@+id/r10"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <ImageView
+        android:id="@+id/r12"
+        style="@style/RevealedTileFeatures"
+        android:contentDescription="@string/tile_for_player_at_hand_position_12"
+        app:layout_constraintStart_toEndOf="@+id/r11"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <ImageView
+        android:id="@+id/r13"
+        style="@style/RevealedTileFeatures"
+        android:contentDescription="@string/tile_for_player_at_hand_position_13"
+        app:layout_constraintStart_toEndOf="@+id/r12"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <ImageView
+        android:id="@+id/r14"
+        style="@style/RevealedTileFeatures"
+        android:contentDescription="@string/tile_for_player_at_hand_position_13"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintHorizontal_bias="0.98" />
 
     <ImageView
         android:id="@+id/discarded"
@@ -225,8 +304,21 @@
         app:layout_constraintBottom_toTopOf="@+id/p_input"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintHorizontal_bias="0.1"
-        app:layout_constraintVertical_bias="0.5" />
+        app:layout_constraintHorizontal_bias="0.15"
+        app:layout_constraintVertical_bias="0.55" />
+
+    <TextView
+        android:id="@+id/latest_discard_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_google_signin_btn_text_dark_default"
+        android:text="@string/discarded"
+        app:layout_constraintTop_toBottomOf="@+id/discarded"
+        app:layout_constraintBottom_toTopOf="@+id/p_input"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintVertical_bias="0.025" />
 
     <TextView
         android:id="@+id/textViewOut"

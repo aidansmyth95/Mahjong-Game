@@ -7,17 +7,18 @@ import android.os.Handler;
 import android.text.TextUtils;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -30,6 +31,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 
+import mahjong_package.FirebaseRepository;
 import mahjong_package.Game;
 import mahjong_package.GameStatus;
 import mahjong_package.User;
@@ -38,19 +40,16 @@ import static mahjong_package.FirebaseRepository.getCurrGameDetailsFirebase;
 import static mahjong_package.FirebaseRepository.getCurrUserDetailsFirebase;
 import static mahjong_package.FirebaseRepository.getCurrentUserUid;
 import static mahjong_package.FirebaseRepository.updateMultiplayerGame;
-import static mahjong_package.FirebaseRepository.userInactiveFirebaseUser;
-import static mahjong_package.FirebaseRepository.userJoinedGameFirebase;
-import static mahjong_package.FirebaseRepository.userPlayingGameFirebase;
 
-//TODO: touch listener for tile to get its descriptor as toast form
 
+//TODO: a pull up from bottom to see all the previous discards
+//TODO: an interactive feel, remove text box. No need for player_input or system.out.print methods, will simplify Game code
 
 public class MultiplayerActivity extends AppCompatActivity {
 
     private static final String TAG = "MultiplayerActivity";
     private Game currGame = new Game(-1);
     private User currUser = new User();
-    private final int nTotalTiles = 15;
     private final long gameDelayMs = 500;
     private int playerIdx;
     private boolean passed_tests = false;
@@ -58,9 +57,13 @@ public class MultiplayerActivity extends AppCompatActivity {
     private Button sendButton;
     private EditText userInputText;
     private TextView outputText, outputTurn;
+    private CircularTextView numFlowersText;
     private ImageView discardedImage, flowerPileImage;
+    private  ArrayList<String> hidden_descriptors = new ArrayList<>();
+    private  ArrayList<String> revealed_descriptors = new ArrayList<>();
     private ImageView[] handTiles = new ImageView[15];
-    private Handler gamePlayHandler;
+    private ImageView[] revealedTiles = new ImageView[15];
+    private Handler gamePlayHandler = new Handler();
     private Runnable gamePlayRunnable;
     private DatabaseReference dbRef;
     private ValueEventListener userListener, gameListener;
@@ -70,13 +73,142 @@ public class MultiplayerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         Log.i(TAG, TAG+": onCreate");
         setContentView(R.layout.activity_multiplayer);
+        // initialize the UI components
         initializeUI();
         // redirect Game system out and system error
         redirectGameSystemOut(outputText);
         redirectGameSystemErr(outputText);
         // test the test vectors before Game
         passed_tests = runAllGameTestVectors();
-        gamePlayHandler = new Handler();
+    }
+
+    // initialize the UI components and their touch listeners, visibility etc.
+    private void initializeUI() {
+        outputTurn = findViewById(R.id.p_turn);
+        outputText = findViewById(R.id.textViewOut);
+        outputText.setMovementMethod(new ScrollingMovementMethod());
+        sendButton = findViewById(R.id.send_button);
+        sendButton.setEnabled(false);
+        userInputText = findViewById(R.id.p_input);
+        discardedImage = findViewById(R.id.discarded);
+        outputTurn.setVisibility(View.INVISIBLE);
+        discardedImage.setVisibility(View.INVISIBLE);
+        discardedImage.setOnTouchListener(new View.OnTouchListener()
+        {
+            @Override
+            public boolean onTouch(View v, MotionEvent event)
+            {
+                Log.i(TAG, TAG + ": ");
+                // if visible and enough hidden descriptors to be valid
+                if (discardedImage.getVisibility() == View.VISIBLE) {
+                    String s = currGame.getLatestDiscard().getDescriptor();
+                    Toast.makeText(getApplicationContext(), s, Toast.LENGTH_LONG).show();
+                }
+                return false;
+            }
+        });
+        flowerPileImage = findViewById(R.id.flower_pile);
+        flowerPileImage.setVisibility(View.INVISIBLE);
+        flowerPileImage.setOnTouchListener(new View.OnTouchListener()
+        {
+            @Override
+            public boolean onTouch(View v, MotionEvent event)
+            {
+                Log.i(TAG, TAG + ": ");
+                // if visible and enough hidden descriptors to be valid
+                if (flowerPileImage.getVisibility() == View.VISIBLE) {
+                    String s = currGame.getFlowersCollectedString(playerIdx);
+                    Toast.makeText(getApplicationContext(), s, Toast.LENGTH_LONG).show();
+                }
+                return false;
+            }
+        });
+        handTiles[0] = findViewById(R.id.h0);
+        handTiles[1] = findViewById(R.id.h1);
+        handTiles[2] = findViewById(R.id.h2);
+        handTiles[3] = findViewById(R.id.h3);
+        handTiles[4] = findViewById(R.id.h4);
+        handTiles[5] = findViewById(R.id.h5);
+        handTiles[6] = findViewById(R.id.h6);
+        handTiles[7] = findViewById(R.id.h7);
+        handTiles[8] = findViewById(R.id.h8);
+        handTiles[9] = findViewById(R.id.h9);
+        handTiles[10] = findViewById(R.id.h10);
+        handTiles[11] = findViewById(R.id.h11);
+        handTiles[12] = findViewById(R.id.h12);
+        handTiles[13] = findViewById(R.id.h13);
+        handTiles[14] = findViewById(R.id.h14);
+        revealedTiles[0] = findViewById(R.id.r0);
+        revealedTiles[1] = findViewById(R.id.r1);
+        revealedTiles[2] = findViewById(R.id.r2);
+        revealedTiles[3] = findViewById(R.id.r3);
+        revealedTiles[4] = findViewById(R.id.r4);
+        revealedTiles[5] = findViewById(R.id.r5);
+        revealedTiles[6] = findViewById(R.id.r6);
+        revealedTiles[7] = findViewById(R.id.r7);
+        revealedTiles[8] = findViewById(R.id.r8);
+        revealedTiles[9] = findViewById(R.id.r9);
+        revealedTiles[10] = findViewById(R.id.r10);
+        revealedTiles[11] = findViewById(R.id.r11);
+        revealedTiles[12] = findViewById(R.id.r12);
+        revealedTiles[13] = findViewById(R.id.r13);
+        revealedTiles[14] = findViewById(R.id.r14);
+        int nTotalTileSlots = 15;
+        for (int h = 0; h< nTotalTileSlots; h++) {
+            handTiles[h].setVisibility(View.INVISIBLE);
+            revealedTiles[h].setVisibility(View.INVISIBLE);
+            final int finalH = h;
+            handTiles[h].setOnTouchListener(new View.OnTouchListener()
+            {
+                @Override
+                public boolean onTouch(View v, MotionEvent event)
+                {
+                    Log.i(TAG, TAG + ": ");
+                    // if visible and enough hidden descriptors to be valid
+                    if (handTiles[finalH].getVisibility() == View.VISIBLE && finalH <= hidden_descriptors.size()) {
+                        Toast.makeText(getApplicationContext(), "Tile " + finalH + ": " + hidden_descriptors.get(finalH), Toast.LENGTH_LONG).show();
+                    }
+                    return false;
+                }
+            });
+            revealedTiles[h].setOnTouchListener(new View.OnTouchListener()
+            {
+                @Override
+                public boolean onTouch(View v, MotionEvent event)
+                {
+                    Log.i(TAG, TAG + ": ");
+                    // if visible and enough hidden descriptors to be valid
+                    if (revealedTiles[finalH].getVisibility() == View.VISIBLE && finalH <= revealed_descriptors.size()) {
+                        Toast.makeText(getApplicationContext(), "Tile " + finalH + ": " + revealed_descriptors.get(finalH), Toast.LENGTH_LONG).show();
+                    }
+                    return false;
+                }
+            });
+        }
+        sendButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                // if there is text, use it as player_input
+                if (!TextUtils.isEmpty(userInputText.getText().toString())) {
+                    // copy and clear user input, sending it to game
+                    currGame.setPlayerResponse(playerIdx, userInputText.getText().toString());
+                    userInputText.setText("");
+                    // remove flags expecting user input and disable button
+                    currGame.setRequestResponse(playerIdx, false);
+                    sendButton.setEnabled(false);
+                    updateMultiplayerGame(currGame);
+                } else {
+                    // print an empty input text warning in outputText if we expect user input
+                    if (currGame.getRequestResponse(playerIdx)) {
+                        outputText.setText(R.string.empty_edit_text);
+                    }
+                }
+            }
+        });
+        numFlowersText = findViewById(R.id.circularFlowersTextView);
+        numFlowersText.setStrokeWidth(1);
+        numFlowersText.setStrokeColor("#ffffff");
+        numFlowersText.setSolidColor("#F41B1B");
+        numFlowersText.setVisibility(View.INVISIBLE);
         // set rulebook listener
         ImageButton rulebook = findViewById(R.id.rules_at_multiplayer_game);
         rulebook.setOnClickListener(new View.OnClickListener() {
@@ -94,7 +226,7 @@ public class MultiplayerActivity extends AppCompatActivity {
         // set listener on user - and in turn Game
         setCurrUserListener();
         // user is at least joined when they start this activity
-        userJoinedGameFirebase();
+        FirebaseRepository.userJoinedGameFirebase();
         gamePausedAwaitingPlayers = false;
     }
 
@@ -134,10 +266,10 @@ public class MultiplayerActivity extends AppCompatActivity {
         }
         if (gamePausedAwaitingPlayers) {
             // if the game was paused for not having enough players
-            userJoinedGameFirebase();
+            FirebaseRepository.userJoinedGameFirebase();
         } else {
             // otherwise player leaving Game and not waiting to resume
-            userInactiveFirebaseUser();
+            FirebaseRepository.userInactiveFirebaseUser();
             currGame.setPlayerPlayingStatus(false, playerIdx);
             update_game = true;
         }
@@ -169,7 +301,7 @@ public class MultiplayerActivity extends AppCompatActivity {
                         Log.i(TAG, TAG + ": All " + currGame.countNumPlayersPlaying() + " are playing");
                         // set game to be active and user to be playing
                         currGame.setGameStatus(GameStatus.ACTIVE);
-                        userPlayingGameFirebase();
+                        FirebaseRepository.userPlayingGameFirebase();
                     } else if (!currGame.allPlayersPlaying()) {
                         // otherwise all players are not playing and we need to pause game
                         Log.i(TAG, TAG + ": Only " + currGame.countNumPlayersPlaying() + " are playing");
@@ -181,7 +313,18 @@ public class MultiplayerActivity extends AppCompatActivity {
                     if (currGame.getGameStatus() != GameStatus.ACTIVE) {
                         return;
                     }
-                    currGame.playGame();
+                    if (currGame.playGame()) {
+                        // if the game is over
+                        if (currGame.getWinnerIdx() == playerIdx) {
+                            int userWins = currUser.getWinTallies();
+                            userWins++;
+                            currUser.setWinTallies(userWins);
+                            FirebaseRepository.updateUser(currUser);
+                        }
+                    }
+                    // update record of hidden & revealed descriptors
+                    hidden_descriptors = currGame.getHiddenDescriptors();
+                    revealed_descriptors = currGame.getRevealedDescriptors();
                     // update UI - revealed hand, hidden hand, unused tile space, text
                     if (currGame.getUpdateUI()) {
                         updateUI();
@@ -199,65 +342,16 @@ public class MultiplayerActivity extends AppCompatActivity {
         }
     }
 
-    private void initializeUI() {
-        outputTurn = findViewById(R.id.p_turn);
-        outputText = findViewById(R.id.textViewOut);
-        outputText.setMovementMethod(new ScrollingMovementMethod());
-        sendButton = findViewById(R.id.send_button);
-        sendButton.setEnabled(false);
-        userInputText = findViewById(R.id.p_input);
-        discardedImage = findViewById(R.id.discarded);
-        flowerPileImage = findViewById(R.id.flower_pile);
-        handTiles[0] = findViewById(R.id.h0);
-        handTiles[1] = findViewById(R.id.h1);
-        handTiles[2] = findViewById(R.id.h2);
-        handTiles[3] = findViewById(R.id.h3);
-        handTiles[4] = findViewById(R.id.h4);
-        handTiles[5] = findViewById(R.id.h5);
-        handTiles[6] = findViewById(R.id.h6);
-        handTiles[7] = findViewById(R.id.h7);
-        handTiles[8] = findViewById(R.id.h8);
-        handTiles[9] = findViewById(R.id.h9);
-        handTiles[10] = findViewById(R.id.h10);
-        handTiles[11] = findViewById(R.id.h11);
-        handTiles[12] = findViewById(R.id.h12);
-        handTiles[13] = findViewById(R.id.h13);
-        handTiles[14] = findViewById(R.id.h14);
-        for (int h=0; h<nTotalTiles; h++) {
-            handTiles[h].setVisibility(View.INVISIBLE);
-        }
-        outputTurn.setVisibility(View.INVISIBLE);
-        discardedImage.setVisibility(View.INVISIBLE);
-        flowerPileImage.setVisibility(View.INVISIBLE);
-        sendButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                // if there is text, use it as player_input
-                if (!TextUtils.isEmpty(userInputText.getText().toString())) {
-                    // copy and clear user input, sending it to game
-                    currGame.setPlayerResponse(playerIdx, userInputText.getText().toString());
-                    userInputText.setText("");
-                    // remove flags expecting user input and disable button
-                    currGame.setRequestResponse(playerIdx, false);
-                    sendButton.setEnabled(false);
-                    updateMultiplayerGame(currGame);
-                } else {
-                    // print an empty input text warning in outputText if we expect user input
-                    if (currGame.getRequestResponse(playerIdx)) {
-                        outputText.setText(R.string.empty_edit_text);
-                    }
-                }
-            }
-        });
-    }
-
+    /* Update UI */
     private void updateUI() {
         Log.i(TAG, TAG + " Updating UI...");
         // set all handTiles to be invisible
         for (int i=0; i<14; i++) {
             handTiles[i].setVisibility(View.INVISIBLE);
+            revealedTiles[i].setVisibility(View.INVISIBLE);
         }
         // update visualization of hidden hand, set visible
-        ArrayList<String> hidden_tile_paths = currGame.descriptorToDrawablePath(currGame.getHiddenDescriptors());
+        ArrayList<String> hidden_tile_paths = currGame.descriptorToDrawablePath(hidden_descriptors);
         for (int j=0; j<hidden_tile_paths.size(); j++) {
             String hidden_tile_path = hidden_tile_paths.get(j);
             Log.e(TAG, TAG + " hidden tile " + hidden_tile_path);
@@ -279,22 +373,26 @@ public class MultiplayerActivity extends AppCompatActivity {
         // update revealed hand
         ArrayList<String> revealed_tile_paths = currGame.descriptorToDrawablePath(currGame.getRevealedDescriptors());
         for (int j=0; j<revealed_tile_paths.size(); j++) {
-            int resourceId = getResources().getIdentifier(revealed_tile_paths.get(j), "drawable", "com.example.mahjong");
-            handTiles[hidden_tile_paths.size()+j].setImageResource(resourceId);
-            ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams) handTiles[j].getLayoutParams();
-            //TODO: modify this?
-            params.setMargins(0, 200, 0, 0) ;//left, top, right, bottom
-            handTiles[j].setLayoutParams(params);
-            handTiles[j].setVisibility(View.VISIBLE);
-        }
-        // update unused tiles
-        for (int j=hidden_tile_paths.size()+revealed_tile_paths.size(); j<nTotalTiles; j++) {
-            handTiles[j].setVisibility(View.INVISIBLE);
+            String revealed_tile_path = revealed_tile_paths.get(j);
+            Log.e(TAG, TAG + " revealed tile " + revealed_tile_path);
+
+            int resourceId = getResources().getIdentifier(revealed_tile_path, "drawable", "com.example.mahjong");
+            if (resourceId == 0) {
+                // if resource does not exist
+                Log.e(TAG, TAG + " Resource ID for revealed tile " + j + " is " + resourceId);
+            } else {
+                revealedTiles[j].setImageResource(resourceId);
+                revealedTiles[j].setVisibility(View.VISIBLE);
+            }
+            // set invisible if no tile
+            if (revealed_tile_path.equals("no_tile")) {
+                // we have a no tile, set invisible
+                revealedTiles[j].setVisibility(View.INVISIBLE);
+            }
         }
         // update player's turn textview
         outputTurn.setText(getString(R.string.waiting_room_players_turn, currGame.getPlayerTurn()));
         outputTurn.setVisibility(View.VISIBLE);
-
         // show flower pile if there are any for that player
         String latest_flower = currGame.getLatestFlowersCollectedDescriptorResource(this.playerIdx);
         int resourceId = getResources().getIdentifier(latest_flower, "drawable", "com.example.mahjong");
@@ -302,15 +400,17 @@ public class MultiplayerActivity extends AppCompatActivity {
             // if resource does not exist
             Log.e(TAG, TAG + ": Resource ID for latest flower is " + resourceId);
         } else {
-            //TODO: update with latest flower and a count int beside it
             flowerPileImage.setImageResource(resourceId);
+            numFlowersText.setText(Integer.toString(currGame.getFlowersCount(playerIdx)));
             flowerPileImage.setVisibility(View.VISIBLE);
+            numFlowersText.setVisibility(View.VISIBLE);
         }
         // if no tile or no valid resource, set invisible
         if (latest_flower.equals("no_tile") || resourceId == 0) {
+            numFlowersText.setText(Integer.toString(0));
+            numFlowersText.setVisibility(View.INVISIBLE);
             flowerPileImage.setVisibility(View.INVISIBLE);
         }
-
         // update most recently discarded tile
         String latest_discard = currGame.getLatestDiscardedDescriptorResource();
         resourceId = getResources().getIdentifier(currGame.getLatestDiscardedDescriptorResource(), "drawable", "com.example.mahjong");

@@ -6,31 +6,24 @@ This class should be pushed t database for any list of users
  */
 public class User {
 
-    private String uname;
-    private String uid;
-    private String email;
-    private String providerId;
-    private boolean emailVerified;
-    private String lastGameId;
-    private String userStatus;     // inactive, joined, playing
+    private String uname = "";
+    private String uid = "";
+    private String email = "";
+    private String providerId = "";
+    private boolean emailVerified = false;
+    private String lastGameId = "NaN";
+    private String userStatus = "inactive";     // inactive, joined, playing
+    private int winTallies = 0;
 
-    public User() {
-        this.setUname("");
-        this.setUid("");
-        this.setEmail("");
-        this.setProviderId("");
-        this.setUserStatus("inactive");
-        this.setEmailVerified(false);
-        this.setLastGameId("NaN");
-    }
+    public User() { }
 
     public User(String uname, String uid, String email, boolean emailVerified, String userStatus, String providerId) {
+        this();
         setUname(uname);
         setUid(uid);
         setEmail(email);
         setEmailVerified(emailVerified);
         setUserStatus(userStatus);
-        setLastGameId("NaN");
         setProviderId(providerId);
     }
 
@@ -76,5 +69,9 @@ public class User {
     public String getProviderId() { return this.providerId; }
 
     public String getLastGameId() { return this.lastGameId; }
+
+    public int getWinTallies() { return this.winTallies; }
+
+    public void setWinTallies(int tallies) { this.winTallies = tallies; }
 
 }

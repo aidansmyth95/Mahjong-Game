@@ -89,6 +89,10 @@ public class Player {
 
 	public int getFlowersCount() { return this.hand.getFlowersCollectedSize(); }
 
+	public ArrayList<Tile> getFlowersCollected() {
+		return this.hand.getFlowersCollected();
+	}
+
 	// clear the hand
 	void clearHand() { this.hand.clearHand(); }
 
