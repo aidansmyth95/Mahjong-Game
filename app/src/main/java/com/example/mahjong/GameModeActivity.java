@@ -10,6 +10,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 
 import static mahjong_package.FirebaseRepository.userInactiveFirebaseUser;
+import static mahjong_package.FirebaseRepository.writeDummyGame;
 
 
 public class GameModeActivity extends AppCompatActivity {
@@ -21,6 +22,9 @@ public class GameModeActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game_mode);
+
+        // A temporary fix if we need to create a dummy game
+        //writeDummyGame();
 
         initializeUI();
         userInactiveFirebaseUser();

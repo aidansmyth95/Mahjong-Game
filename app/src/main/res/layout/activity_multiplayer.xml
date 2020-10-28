@@ -17,7 +17,7 @@
         android:background="@color/common_google_signin_btn_text_dark_default"
         android:gravity="center"
         android:padding="3dp"
-        android:text="0"
+        android:text=""
         app:layout_constraintBottom_toTopOf="@+id/flower_pile"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.849"
@@ -25,24 +25,21 @@
 
     <ImageView
         android:id="@+id/flower_pile"
-        android:layout_width="26dp"
-        android:layout_height="50dp"
+        style="@style/HiddenTileFeatures"
         android:contentDescription="@string/tile_for_player_at_hand_position_0"
-        android:scaleType="fitXY"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.35"
-        app:layout_constraintHorizontal_bias="0.85"
-        app:srcCompat="@drawable/play" />
+        app:layout_constraintHorizontal_bias="0.85" />
 
     <TextView
         android:id="@+id/num_flowers_text_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@color/common_google_signin_btn_text_dark_default"
-        android:text="flowers pile"
+        android:text="@string/flowers_pile"
         app:layout_constraintTop_toBottomOf="@+id/flower_pile"
         app:layout_constraintBottom_toTopOf="@+id/p_input"
         app:layout_constraintEnd_toEndOf="parent"
@@ -56,7 +53,7 @@
         android:contentDescription="@string/rulebook_link"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.05"
+        app:layout_constraintHorizontal_bias="0.95"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintVertical_bias="0.97"
         app:layout_constraintTop_toTopOf="parent" />
@@ -188,6 +185,7 @@
         app:layout_constraintStart_toEndOf="@+id/r0"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
     <ImageView
         android:id="@+id/r2"
         style="@style/RevealedTileFeatures"
@@ -301,11 +299,11 @@
         android:background="@color/common_google_signin_btn_text_dark_default"
         android:text="@string/player_1_turn"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/p_input"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintHorizontal_bias="0.15"
-        app:layout_constraintVertical_bias="0.55" />
+        app:layout_constraintVertical_bias="0.35" />
 
     <TextView
         android:id="@+id/latest_discard_label"
@@ -313,17 +311,17 @@
         android:layout_height="wrap_content"
         android:background="@color/common_google_signin_btn_text_dark_default"
         android:text="@string/discarded"
-        app:layout_constraintTop_toBottomOf="@+id/discarded"
-        app:layout_constraintBottom_toTopOf="@+id/p_input"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/discarded"
         app:layout_constraintVertical_bias="0.025" />
 
     <TextView
         android:id="@+id/textViewOut"
         android:layout_width="314dp"
-        android:layout_height="239dp"
+        android:layout_height="70dp"
         android:background="#6DFFFFFF"
         android:duplicateParentState="false"
         android:gravity="bottom"
@@ -335,37 +333,126 @@
         android:textColor="#FFFFFF"
         android:textSize="16sp"
         app:layout_constraintTop_toBottomOf="@id/discarded"
-        app:layout_constraintBottom_toTopOf="@+id/p_input"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintVertical_bias="0.85" />
-
-
-    <EditText
-        android:id="@+id/p_input"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@color/common_google_signin_btn_text_dark_default"
-        android:gravity="center"
-        android:hint="@string/player_input"
-        android:importantForAutofill="no"
-        android:inputType="textNoSuggestions|number|text"
-        app:layout_constraintBottom_toTopOf="@id/send_button"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintVertical_bias="0.97" />
+        app:layout_constraintVertical_bias="0.15" />
 
     <Button
-        android:id="@+id/send_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="#009688"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:id="@+id/tse_button"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:background = "@drawable/round_button_red"
+        android:text="@string/tse"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintVertical_bias="0.95"
-        android:text="@string/button_send" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.7"
+        app:layout_constraintHorizontal_bias="0.1" />
+
+    <Button
+        android:id="@+id/draw_tile_button"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:background = "@drawable/round_button_red"
+        android:text="@string/draw"
+        app:layout_constraintStart_toEndOf="@id/tse_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.7"
+        app:layout_constraintHorizontal_bias="0.05" />
+
+    <Button
+        android:id="@+id/chow_button_1"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:background = "@drawable/round_button_blue"
+        android:text="@string/chow"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tse_button"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.05"
+        app:layout_constraintHorizontal_bias="0.1" />
+
+    <Button
+        android:id="@+id/chow_button_2"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:background = "@drawable/round_button_blue"
+        android:text="@string/chow"
+        app:layout_constraintStart_toEndOf="@id/chow_button_1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tse_button"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.05"
+        app:layout_constraintHorizontal_bias="0.05" />
+
+    <Button
+        android:id="@+id/chow_button_3"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:background = "@drawable/round_button_blue"
+        android:text="@string/chow"
+        app:layout_constraintStart_toEndOf="@id/chow_button_2"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tse_button"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.05"
+        app:layout_constraintHorizontal_bias="0.05" />
+
+    <Button
+        android:id="@+id/pong_button"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:background = "@drawable/round_button_green"
+        android:text="@string/pong"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/chow_button_1"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.05"
+        app:layout_constraintHorizontal_bias="0.1" />
+
+    <Button
+        android:id="@+id/kong_button"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:background = "@drawable/round_button_green"
+        android:text="@string/kong"
+        app:layout_constraintStart_toEndOf="@id/pong_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/chow_button_1"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.05"
+        app:layout_constraintHorizontal_bias="0.05" />
+
+    <Button
+        android:id="@+id/mahjong_button"
+        android:layout_width="100dp"
+        android:layout_height="50dp"
+        android:background = "@drawable/round_button_yellow"
+        android:text="@string/mahjong"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/discard_button"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.6"
+        app:layout_constraintHorizontal_bias="0.5" />
+
+    <Button
+        android:id="@+id/discard_button"
+        android:layout_width="100dp"
+        android:layout_height="50dp"
+        android:background = "@drawable/round_button_yellow"
+        android:text="@string/discard"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/discarded"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.4"
+        app:layout_constraintHorizontal_bias="0.5" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

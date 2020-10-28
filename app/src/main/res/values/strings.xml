@@ -163,5 +163,13 @@
     <string name="action_settings">Settings</string>
     <string name="rulebook_link">Rulebook link</string>
     <string name="discarded">Discarded</string>
+    <string name="mahjong">Mahjong!</string>
+    <string name="pong">Pong?</string>
+    <string name="chow">Chow?</string>
+    <string name="tse">Tse?</string>
+    <string name="flowers_pile">flowers pile</string>
+    <string name="kong">Kong</string>
+    <string name="discard">Discard</string>
+    <string name="draw">Draw</string>
 
 </resources>

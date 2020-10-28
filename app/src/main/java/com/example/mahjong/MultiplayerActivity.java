@@ -4,13 +4,11 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.text.TextUtils;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -30,10 +28,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Locale;
 
 import mahjong_package.FirebaseRepository;
 import mahjong_package.Game;
 import mahjong_package.GameStatus;
+import mahjong_package.ResponseReceivedType;
+import mahjong_package.ResponseRequestType;
 import mahjong_package.User;
 
 import static mahjong_package.FirebaseRepository.getCurrGameDetailsFirebase;
@@ -43,7 +44,7 @@ import static mahjong_package.FirebaseRepository.updateMultiplayerGame;
 
 
 //TODO: a pull up from bottom to see all the previous discards
-//TODO: an interactive feel, remove text box. No need for player_input or system.out.print methods, will simplify Game code
+
 
 public class MultiplayerActivity extends AppCompatActivity {
 
@@ -54,19 +55,20 @@ public class MultiplayerActivity extends AppCompatActivity {
     private int playerIdx;
     private boolean passed_tests = false;
     private boolean gamePausedAwaitingPlayers;
-    private Button sendButton;
-    private EditText userInputText;
-    private TextView outputText, outputTurn;
+    private TextView gameOutTv, playerTurnTv;
     private CircularTextView numFlowersText;
     private ImageView discardedImage, flowerPileImage;
-    private  ArrayList<String> hidden_descriptors = new ArrayList<>();
-    private  ArrayList<String> revealed_descriptors = new ArrayList<>();
+    private ArrayList<String> hidden_descriptors = new ArrayList<>();
+    private ArrayList<String> revealed_descriptors = new ArrayList<>();
     private ImageView[] handTiles = new ImageView[15];
     private ImageView[] revealedTiles = new ImageView[15];
     private Handler gamePlayHandler = new Handler();
     private Runnable gamePlayRunnable;
     private DatabaseReference dbRef;
     private ValueEventListener userListener, gameListener;
+    private Button drawButton, tseButton, pongButton, kongButton, mahjongButton, discardButton;
+    private Button[] chowButton = new Button[3];
+    private int latest_discard_idx = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,22 +78,21 @@ public class MultiplayerActivity extends AppCompatActivity {
         // initialize the UI components
         initializeUI();
         // redirect Game system out and system error
-        redirectGameSystemOut(outputText);
-        redirectGameSystemErr(outputText);
+        redirectGameSystemOut(gameOutTv);
+        redirectGameSystemErr(gameOutTv);
         // test the test vectors before Game
         passed_tests = runAllGameTestVectors();
     }
 
     // initialize the UI components and their touch listeners, visibility etc.
     private void initializeUI() {
-        outputTurn = findViewById(R.id.p_turn);
-        outputText = findViewById(R.id.textViewOut);
-        outputText.setMovementMethod(new ScrollingMovementMethod());
-        sendButton = findViewById(R.id.send_button);
-        sendButton.setEnabled(false);
-        userInputText = findViewById(R.id.p_input);
+        // initialize the user response buttons and their listeners
+        buttonInitListenersForUserResponses();
+        playerTurnTv = findViewById(R.id.p_turn);
+        playerTurnTv.setVisibility(View.INVISIBLE);
+        gameOutTv = findViewById(R.id.textViewOut);
+        gameOutTv.setMovementMethod(new ScrollingMovementMethod());
         discardedImage = findViewById(R.id.discarded);
-        outputTurn.setVisibility(View.INVISIBLE);
         discardedImage.setVisibility(View.INVISIBLE);
         discardedImage.setOnTouchListener(new View.OnTouchListener()
         {
@@ -102,7 +103,7 @@ public class MultiplayerActivity extends AppCompatActivity {
                 // if visible and enough hidden descriptors to be valid
                 if (discardedImage.getVisibility() == View.VISIBLE) {
                     String s = currGame.getLatestDiscard().getDescriptor();
-                    Toast.makeText(getApplicationContext(), s, Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), s, Toast.LENGTH_SHORT).show();
                 }
                 return false;
             }
@@ -154,6 +155,7 @@ public class MultiplayerActivity extends AppCompatActivity {
         revealedTiles[13] = findViewById(R.id.r13);
         revealedTiles[14] = findViewById(R.id.r14);
         int nTotalTileSlots = 15;
+        //TODO: overlay a magneta recatange and keep its ID as discard ID
         for (int h = 0; h< nTotalTileSlots; h++) {
             handTiles[h].setVisibility(View.INVISIBLE);
             revealedTiles[h].setVisibility(View.INVISIBLE);
@@ -165,8 +167,9 @@ public class MultiplayerActivity extends AppCompatActivity {
                 {
                     Log.i(TAG, TAG + ": ");
                     // if visible and enough hidden descriptors to be valid
-                    if (handTiles[finalH].getVisibility() == View.VISIBLE && finalH <= hidden_descriptors.size()) {
-                        Toast.makeText(getApplicationContext(), "Tile " + finalH + ": " + hidden_descriptors.get(finalH), Toast.LENGTH_LONG).show();
+                    if (handTiles[finalH].getVisibility() == View.VISIBLE && finalH < hidden_descriptors.size()) {
+                        Toast.makeText(getApplicationContext(), "Tile " + finalH + ": " + hidden_descriptors.get(finalH), Toast.LENGTH_SHORT).show();
+                        latest_discard_idx = finalH;
                     }
                     return false;
                 }
@@ -178,32 +181,13 @@ public class MultiplayerActivity extends AppCompatActivity {
                 {
                     Log.i(TAG, TAG + ": ");
                     // if visible and enough hidden descriptors to be valid
-                    if (revealedTiles[finalH].getVisibility() == View.VISIBLE && finalH <= revealed_descriptors.size()) {
-                        Toast.makeText(getApplicationContext(), "Tile " + finalH + ": " + revealed_descriptors.get(finalH), Toast.LENGTH_LONG).show();
+                    if (revealedTiles[finalH].getVisibility() == View.VISIBLE && finalH < revealed_descriptors.size()) {
+                        Toast.makeText(getApplicationContext(), "Tile " + finalH + ": " + revealed_descriptors.get(finalH), Toast.LENGTH_SHORT).show();
                     }
                     return false;
                 }
             });
         }
-        sendButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                // if there is text, use it as player_input
-                if (!TextUtils.isEmpty(userInputText.getText().toString())) {
-                    // copy and clear user input, sending it to game
-                    currGame.setPlayerResponse(playerIdx, userInputText.getText().toString());
-                    userInputText.setText("");
-                    // remove flags expecting user input and disable button
-                    currGame.setRequestResponse(playerIdx, false);
-                    sendButton.setEnabled(false);
-                    updateMultiplayerGame(currGame);
-                } else {
-                    // print an empty input text warning in outputText if we expect user input
-                    if (currGame.getRequestResponse(playerIdx)) {
-                        outputText.setText(R.string.empty_edit_text);
-                    }
-                }
-            }
-        });
         numFlowersText = findViewById(R.id.circularFlowersTextView);
         numFlowersText.setStrokeWidth(1);
         numFlowersText.setStrokeColor("#ffffff");
@@ -236,16 +220,15 @@ public class MultiplayerActivity extends AppCompatActivity {
         Log.i(TAG, TAG+": onPause");
     }
 
+    /*
+    Remove listeners.
+    Set game status to paused (it previously was playing)
+    Update user's status based on what they are doing.
+    Save Game text if any.
+    Update game if needed.
+ */
     @Override
     protected void onStop() {
-        /*
-            Remove listeners.
-            Set game status to paused (it previously was playing)
-            Update user's status based on what they are doing.
-            Save Game text if any.
-            Update game if needed.
-         */
-
         Log.i(TAG, TAG+": onStop");
         // remove handler runnable
         boolean update_game = false;
@@ -274,8 +257,8 @@ public class MultiplayerActivity extends AppCompatActivity {
             update_game = true;
         }
         // save Game text output for reload on resume
-        if (!outputText.getText().toString().isEmpty()) {
-            currGame.setGameMessage(playerIdx, outputText.getText().toString());
+        if (!gameOutTv.getText().toString().isEmpty()) {
+            currGame.setGameMessage(playerIdx, gameOutTv.getText().toString());
             update_game = true;
         }
         // if we need to update game, update it in Firebase DB
@@ -313,8 +296,8 @@ public class MultiplayerActivity extends AppCompatActivity {
                     if (currGame.getGameStatus() != GameStatus.ACTIVE) {
                         return;
                     }
+                    // if the game is over
                     if (currGame.playGame()) {
-                        // if the game is over
                         if (currGame.getWinnerIdx() == playerIdx) {
                             int userWins = currUser.getWinTallies();
                             userWins++;
@@ -330,101 +313,24 @@ public class MultiplayerActivity extends AppCompatActivity {
                         updateUI();
                         currGame.setUpdateUI(false);
                     }
-                    // enable send button and its functionality if player's input is requested
-                    sendButton.setEnabled(currGame.getRequestResponse(playerIdx) && currGame.getAcceptingResponses());
                     // debug info on Game status and values of concern
-                    logcatGameStatus(currGame, playerIdx);
+                    logcatGameStatus(currGame, playerIdx, latest_discard_idx);
                     // delay runnable by gameDelayMs milliseconds - reduces annoying refresh
                     gamePlayHandler.postDelayed(gamePlayRunnable, gameDelayMs);
                 }
             }, gameDelayMs);
-
         }
     }
 
     /* Update UI */
     private void updateUI() {
         Log.i(TAG, TAG + " Updating UI...");
-        // set all handTiles to be invisible
-        for (int i=0; i<14; i++) {
-            handTiles[i].setVisibility(View.INVISIBLE);
-            revealedTiles[i].setVisibility(View.INVISIBLE);
-        }
-        // update visualization of hidden hand, set visible
-        ArrayList<String> hidden_tile_paths = currGame.descriptorToDrawablePath(hidden_descriptors);
-        for (int j=0; j<hidden_tile_paths.size(); j++) {
-            String hidden_tile_path = hidden_tile_paths.get(j);
-            Log.e(TAG, TAG + " hidden tile " + hidden_tile_path);
-
-            int resourceId = getResources().getIdentifier(hidden_tile_path, "drawable", "com.example.mahjong");
-            if (resourceId == 0) {
-                // if resource does not exist
-                Log.e(TAG, TAG + " Resource ID for hidden tile " + j + " is " + resourceId);
-            } else {
-                handTiles[j].setImageResource(resourceId);
-                handTiles[j].setVisibility(View.VISIBLE);
-            }
-            // set invisible if no tile
-            if (hidden_tile_path.equals("no_tile")) {
-                // we have a no tile, set invisible
-                handTiles[j].setVisibility(View.INVISIBLE);
-            }
-        }
-        // update revealed hand
-        ArrayList<String> revealed_tile_paths = currGame.descriptorToDrawablePath(currGame.getRevealedDescriptors());
-        for (int j=0; j<revealed_tile_paths.size(); j++) {
-            String revealed_tile_path = revealed_tile_paths.get(j);
-            Log.e(TAG, TAG + " revealed tile " + revealed_tile_path);
-
-            int resourceId = getResources().getIdentifier(revealed_tile_path, "drawable", "com.example.mahjong");
-            if (resourceId == 0) {
-                // if resource does not exist
-                Log.e(TAG, TAG + " Resource ID for revealed tile " + j + " is " + resourceId);
-            } else {
-                revealedTiles[j].setImageResource(resourceId);
-                revealedTiles[j].setVisibility(View.VISIBLE);
-            }
-            // set invisible if no tile
-            if (revealed_tile_path.equals("no_tile")) {
-                // we have a no tile, set invisible
-                revealedTiles[j].setVisibility(View.INVISIBLE);
-            }
-        }
+        updateTiles();
         // update player's turn textview
-        outputTurn.setText(getString(R.string.waiting_room_players_turn, currGame.getPlayerTurn()));
-        outputTurn.setVisibility(View.VISIBLE);
-        // show flower pile if there are any for that player
-        String latest_flower = currGame.getLatestFlowersCollectedDescriptorResource(this.playerIdx);
-        int resourceId = getResources().getIdentifier(latest_flower, "drawable", "com.example.mahjong");
-        if (resourceId == 0) {
-            // if resource does not exist
-            Log.e(TAG, TAG + ": Resource ID for latest flower is " + resourceId);
-        } else {
-            flowerPileImage.setImageResource(resourceId);
-            numFlowersText.setText(Integer.toString(currGame.getFlowersCount(playerIdx)));
-            flowerPileImage.setVisibility(View.VISIBLE);
-            numFlowersText.setVisibility(View.VISIBLE);
-        }
-        // if no tile or no valid resource, set invisible
-        if (latest_flower.equals("no_tile") || resourceId == 0) {
-            numFlowersText.setText(Integer.toString(0));
-            numFlowersText.setVisibility(View.INVISIBLE);
-            flowerPileImage.setVisibility(View.INVISIBLE);
-        }
-        // update most recently discarded tile
-        String latest_discard = currGame.getLatestDiscardedDescriptorResource();
-        resourceId = getResources().getIdentifier(currGame.getLatestDiscardedDescriptorResource(), "drawable", "com.example.mahjong");
-        if (resourceId == 0) {
-            // if resource does not exist
-            Log.e(TAG, TAG + ": Resource ID for latest discard is " + resourceId);
-        } else {
-            discardedImage.setImageResource(resourceId);
-            discardedImage.setVisibility(View.VISIBLE);
-        }
-        // if no tile or no valid resource, set invisible
-        if (latest_discard.equals("no_tile") || resourceId == 0) {
-            discardedImage.setVisibility(View.INVISIBLE);
-        }
+        playerTurnTv.setText(getString(R.string.waiting_room_players_turn, currGame.getPlayerTurn()));
+        playerTurnTv.setVisibility(View.VISIBLE);
+        // enable send button and its functionality if player's input is requested
+        updateButtonVisibility();
     }
 
     // add a listener for users database that updates dynamic table with users
@@ -453,8 +359,8 @@ public class MultiplayerActivity extends AppCompatActivity {
                 if (currGame.gameExists()) {
                     playerIdx = currGame.getPlayerIdx(currUser.getUid());
                     // save Game text output for reload on resume
-                    if (outputText.getText().toString().isEmpty()) {
-                        outputText.setText(currGame.getGameMessage(playerIdx));
+                    if (gameOutTv.getText().toString().isEmpty()) {
+                        gameOutTv.setText(currGame.getGameMessage(playerIdx));
                         currGame.setGameMessage(playerIdx,"");
                     }
                 }
@@ -510,10 +416,10 @@ public class MultiplayerActivity extends AppCompatActivity {
             clear_output = testGame.test_true_mahjong();
         }
         if (clear_output) {
-            outputText.setText("");
+            gameOutTv.setText("");
             // reset output stream link to text box
             System.out.flush();
-            redirectGameSystemOut(outputText);
+            redirectGameSystemOut(gameOutTv);
             Log.i(TAG, TAG+": Passed Game tests.");
             return true;
         } else {
@@ -574,10 +480,283 @@ public class MultiplayerActivity extends AppCompatActivity {
         Log.i(TAG, TAG + ": Players not playing are " + game.namePlayersNotPlaying());
         Log.i(TAG, TAG + ": Game status is " + game.getGameStatus());
         Log.i(TAG, TAG + ": Game accepting responses? " + game.getAcceptingResponses());
-        Log.i(TAG, TAG + ": Players asked to respond? " + game.listRequestResponse());
         Log.i(TAG, TAG + ": This Player's ID? " + playerIdx);
         Log.i(TAG, TAG + ": Latest flower descriptor? " + game.getLatestFlowersCollectedDescriptorResource(playerIdx));
         Log.i(TAG, TAG + ": \n-------------------------------\n");
     }
-}
 
+    public static void logcatGameStatus(Game game, int playerIdx, int latest_discard_idx ) {
+        Log.i(TAG, TAG + ": \n---------- Status update  ----------");
+        Log.i(TAG, TAG + ": Game name is " + game.getGameName());
+        Log.i(TAG, TAG + ": Number of players playing is " + game.countNumPlayersPlaying() + " are playing");
+        Log.i(TAG, TAG + ": All players are playing? = " + game.allPlayersPlaying());
+        Log.i(TAG, TAG + ": Players playing are " + game.namePlayersPlaying());
+        Log.i(TAG, TAG + ": Players not playing are " + game.namePlayersNotPlaying());
+        Log.i(TAG, TAG + ": Game status is " + game.getGameStatus());
+        Log.i(TAG, TAG + ": Game accepting responses? " + game.getAcceptingResponses());
+        Log.i(TAG, TAG + ": This Player's ID? " + playerIdx);
+        Log.i(TAG, TAG + ": Latest flower descriptor? " + game.getLatestFlowersCollectedDescriptorResource(playerIdx));
+        Log.i(TAG, TAG + ": Latest discard ID? " + latest_discard_idx);
+        Log.i(TAG, TAG + ": \n-------------------------------\n");
+    }
+
+    /*
+        Initialize buttons and add their listeners to enable player responses to Game
+     */
+    public void buttonInitListenersForUserResponses() {
+        drawButton = findViewById(R.id.draw_tile_button);
+        drawButton.setVisibility(View.INVISIBLE);
+        drawButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(getApplicationContext(), "Drawing tile", Toast.LENGTH_SHORT).show();
+                currGame.setPlayerResponse(playerIdx, ResponseReceivedType.DRAW);
+                updateMultiplayerGame(currGame);
+            }
+        });
+        tseButton = findViewById(R.id.tse_button);
+        tseButton.setVisibility(View.INVISIBLE);
+        tseButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(getApplicationContext(), "Tse!", Toast.LENGTH_SHORT).show();
+                currGame.setPlayerResponse(playerIdx, ResponseReceivedType.TSE);
+                updateMultiplayerGame(currGame);
+            }
+        });
+        pongButton = findViewById(R.id.pong_button);
+        pongButton.setVisibility(View.INVISIBLE);
+        pongButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(getApplicationContext(), "Pong!", Toast.LENGTH_SHORT).show();
+                currGame.setPlayerResponse(playerIdx, ResponseReceivedType.PONG);
+                updateMultiplayerGame(currGame);
+            }
+        });
+        kongButton = findViewById(R.id.kong_button);
+        kongButton.setVisibility(View.INVISIBLE);
+        kongButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(getApplicationContext(), "Kong!", Toast.LENGTH_SHORT).show();
+                currGame.setPlayerResponse(playerIdx, ResponseReceivedType.KONG);
+                updateMultiplayerGame(currGame);
+            }
+        });
+        mahjongButton = findViewById(R.id.mahjong_button);
+        mahjongButton.setVisibility(View.INVISIBLE);
+        mahjongButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(getApplicationContext(), "Mahjong!", Toast.LENGTH_SHORT).show();
+                currGame.setPlayerResponse(playerIdx, ResponseReceivedType.MAHJONG);
+                updateMultiplayerGame(currGame);
+            }
+        });
+        chowButton[0] = findViewById(R.id.chow_button_1);
+        chowButton[1] = findViewById(R.id.chow_button_2);
+        chowButton[2] = findViewById(R.id.chow_button_3);
+        final ResponseReceivedType[] chows = {ResponseReceivedType.CHOW_1, ResponseReceivedType.CHOW_2, ResponseReceivedType.CHOW_3};
+        for (int i=0; i<3; i++) {
+            chowButton[i].setVisibility(View.INVISIBLE);
+            final int finalI = i;
+            chowButton[i].setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast.makeText(getApplicationContext(), "Chow!", Toast.LENGTH_SHORT).show();
+                    currGame.setPlayerResponse(playerIdx, chows[finalI]);
+                    updateMultiplayerGame(currGame);
+                }
+            });
+        }
+        discardButton = findViewById(R.id.discard_button);
+        discardButton.setVisibility(View.INVISIBLE);
+        discardButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (latest_discard_idx > 0 && latest_discard_idx < hidden_descriptors.size()) {
+                    Toast.makeText(getApplicationContext(), "Discarding tile " + latest_discard_idx, Toast.LENGTH_SHORT).show();
+                    currGame.setPlayerResponse(playerIdx, getDiscardEnum(latest_discard_idx));
+                    updateMultiplayerGame(currGame);
+                } else {
+                    Toast.makeText(getApplicationContext(), "Please tap a hidden tile to discard first", Toast.LENGTH_SHORT).show();
+                    latest_discard_idx = -1;
+                }
+            }
+        });
+    }
+
+    /*
+        Match corresponding int idx to enum
+     */
+    public ResponseReceivedType getDiscardEnum(int idx) {
+        switch (idx) {
+            case 0:
+                return ResponseReceivedType.DISCARD_0;
+            case 1:
+                return ResponseReceivedType.DISCARD_1;
+            case 2:
+                return ResponseReceivedType.DISCARD_2;
+            case 3:
+                return ResponseReceivedType.DISCARD_3;
+            case 4:
+                return ResponseReceivedType.DISCARD_4;
+            case 5:
+                return ResponseReceivedType.DISCARD_5;
+            case 6:
+                return ResponseReceivedType.DISCARD_6;
+            case 7:
+                return ResponseReceivedType.DISCARD_7;
+            case 8:
+                return ResponseReceivedType.DISCARD_8;
+            case 9:
+                return ResponseReceivedType.DISCARD_9;
+            case 10:
+                return ResponseReceivedType.DISCARD_10;
+            case 11:
+                return ResponseReceivedType.DISCARD_11;
+            case 12:
+                return ResponseReceivedType.DISCARD_12;
+            case 13:
+                return ResponseReceivedType.DISCARD_13;
+            case 14:
+                return ResponseReceivedType.DISCARD_14;
+            default:
+                Toast.makeText(getApplicationContext(), "Received unexpected latest_discard_idx of " + latest_discard_idx, Toast.LENGTH_LONG).show();
+                Log.e(TAG, TAG+": Received unexpected latest_discard_idx of " + latest_discard_idx);
+                return ResponseReceivedType.NONE;
+        }
+    }
+
+    /*
+        Enable visibility of buttons that are available for response from user
+     */
+    public void updateButtonVisibility() {
+        int vis = View.INVISIBLE;
+        // make all invisible by default
+        drawButton.setVisibility(vis);
+        tseButton.setVisibility(vis);
+        drawButton.setVisibility(vis);
+        pongButton.setVisibility(vis);
+        kongButton.setVisibility(vis);
+        mahjongButton.setVisibility(vis);
+        chowButton[0].setVisibility(vis);
+        chowButton[1].setVisibility(vis);
+        chowButton[2].setVisibility(vis);
+        discardButton.setVisibility(vis);
+        // if the Game is not accepting responses, return
+        if (!currGame.getAcceptingResponses()) {
+            return;
+        }
+        // for loop to make some buttons visible if response requested for that button
+        ArrayList<ResponseRequestType> resps = currGame.getPlayersResponsesOpportunities(playerIdx);
+        vis = View.VISIBLE;
+        // for each response requested, enable that button
+        for (int i=0; i<resps.size(); i++) {
+            ResponseRequestType resp = resps.get(i);
+            if (resp == ResponseRequestType.DRAW) {
+                drawButton.setVisibility(vis);
+            } else if (resp == ResponseRequestType.TSE) {
+                tseButton.setVisibility(vis);
+            } else if (resp == ResponseRequestType.PONG) {
+                pongButton.setVisibility(vis);
+            } else if (resp == ResponseRequestType.KONG) {
+                kongButton.setVisibility(vis);
+            } else if (resp == ResponseRequestType.MAHJONG) {
+                mahjongButton.setVisibility(vis);
+            } else if (resp == ResponseRequestType.CHOW_1) {
+                chowButton[0].setVisibility(vis);
+            } else if (resp == ResponseRequestType.CHOW_2) {
+                chowButton[1].setVisibility(vis);
+            } else if (resp == ResponseRequestType.CHOW_3) {
+                chowButton[2].setVisibility(vis);
+            } else if (resp == ResponseRequestType.DISCARD) {
+                discardButton.setVisibility(vis);
+            }
+        }
+    }
+
+    /*
+        Update the tiles and their visisbility
+     */
+    public void updateTiles() {
+        // set all handTiles to be invisible
+        for (int i=0; i<14; i++) {
+            handTiles[i].setVisibility(View.INVISIBLE);
+            revealedTiles[i].setVisibility(View.INVISIBLE);
+        }
+        // update visualization of hidden hand, set visible
+        ArrayList<String> hidden_tile_paths = currGame.descriptorToDrawablePath(hidden_descriptors);
+        for (int j=0; j<hidden_tile_paths.size(); j++) {
+            String hidden_tile_path = hidden_tile_paths.get(j);
+            Log.e(TAG, TAG + " hidden tile " + hidden_tile_path);
+
+            int resourceId = getResources().getIdentifier(hidden_tile_path, "drawable", "com.example.mahjong");
+            if (resourceId == 0) {
+                // if resource does not exist
+                Log.e(TAG, TAG + " Resource ID for hidden tile " + j + " is " + resourceId);
+            } else {
+                handTiles[j].setImageResource(resourceId);
+                handTiles[j].setVisibility(View.VISIBLE);
+            }
+            // set invisible if no tile
+            if (hidden_tile_path.equals("no_tile")) {
+                // we have a no tile, set invisible
+                handTiles[j].setVisibility(View.INVISIBLE);
+            }
+        }
+        // update revealed hand
+        ArrayList<String> revealed_tile_paths = currGame.descriptorToDrawablePath(currGame.getRevealedDescriptors());
+        for (int j=0; j<revealed_tile_paths.size(); j++) {
+            String revealed_tile_path = revealed_tile_paths.get(j);
+            Log.e(TAG, TAG + " revealed tile " + revealed_tile_path);
+
+            int resourceId = getResources().getIdentifier(revealed_tile_path, "drawable", "com.example.mahjong");
+            if (resourceId == 0) {
+                // if resource does not exist
+                Log.e(TAG, TAG + " Resource ID for revealed tile " + j + " is " + resourceId);
+            } else {
+                revealedTiles[j].setImageResource(resourceId);
+                revealedTiles[j].setVisibility(View.VISIBLE);
+            }
+            // set invisible if no tile
+            if (revealed_tile_path.equals("no_tile")) {
+                // we have a no tile, set invisible
+                revealedTiles[j].setVisibility(View.INVISIBLE);
+            }
+        }
+        // show flower pile if there are any for that player
+        String latest_flower = currGame.getLatestFlowersCollectedDescriptorResource(this.playerIdx);
+        int resourceId = getResources().getIdentifier(latest_flower, "drawable", "com.example.mahjong");
+        if (resourceId == 0) {
+            // if resource does not exist
+            Log.e(TAG, TAG + ": Resource ID for latest flower is " + resourceId);
+        } else {
+            flowerPileImage.setImageResource(resourceId);
+            numFlowersText.setText(String.format(Locale.getDefault(), "%d", currGame.getFlowersCount(playerIdx)));
+            flowerPileImage.setVisibility(View.VISIBLE);
+            numFlowersText.setVisibility(View.VISIBLE);
+        }
+        // if no tile or no valid resource, set invisible
+        if (latest_flower.equals("no_tile") || resourceId == 0) {
+            numFlowersText.setVisibility(View.INVISIBLE);
+            flowerPileImage.setVisibility(View.INVISIBLE);
+        }
+        // update most recently discarded tile
+        String latest_discard = currGame.getLatestDiscardedDescriptorResource();
+        resourceId = getResources().getIdentifier(currGame.getLatestDiscardedDescriptorResource(), "drawable", "com.example.mahjong");
+        if (resourceId == 0) {
+            // if resource does not exist
+            Log.e(TAG, TAG + ": Resource ID for latest discard is " + resourceId);
+        } else {
+            discardedImage.setImageResource(resourceId);
+            discardedImage.setVisibility(View.VISIBLE);
+        }
+        // if no tile or no valid resource, set invisible
+        if (latest_discard.equals("no_tile") || resourceId == 0) {
+            discardedImage.setVisibility(View.INVISIBLE);
+        }
+    }
+
+}

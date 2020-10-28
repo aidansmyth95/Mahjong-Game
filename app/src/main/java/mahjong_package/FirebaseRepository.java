@@ -228,4 +228,16 @@ public final class FirebaseRepository {
         return g;
     }
 
+    public static void writeDummyGame() {
+        FirebaseUser userRef = FirebaseAuth.getInstance().getCurrentUser();
+        if (userRef != null) {
+            String path = createNewMultiplayerGameRef();
+            Game g = new Game(1);
+            g.addPlayer("dummy", "dummy");
+            g.setGameName("dummy");
+            g.setGameID("dummy");
+            updateMultiplayerGame(g);
+        }
+    }
+
 }

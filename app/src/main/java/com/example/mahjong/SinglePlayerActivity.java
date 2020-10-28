@@ -176,7 +176,7 @@ public class SinglePlayerActivity extends AppCompatActivity {
 
                 for (int i=0; i<n_players; i++) {
 
-                    if (game.getRequestResponse(i)) {
+                    //if (game.getRequestResponse(i)) {
 
                         // hidden hand
                         ArrayList<String> hidden_tile_paths = game.descriptorToDrawablePath(game.getHiddenDescriptors());
@@ -209,7 +209,7 @@ public class SinglePlayerActivity extends AppCompatActivity {
                         outputHand.setText(new String("Player " + i + " hand contents."));
                         outputHand.setVisibility(View.VISIBLE);
                         sendButton.setEnabled(true);
-                    }
+                    //}
                 }
                 /*
                 if (game.updateDiscardedTileImage) {

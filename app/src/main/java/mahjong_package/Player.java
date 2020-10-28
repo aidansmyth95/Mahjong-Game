@@ -4,21 +4,16 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.InputMismatchException;
 
 public class Player {
 
 	private String playerUname = "";
 	private String playerUid = "";
-	private Boolean chowAvailable = false; 		// Users ability to chow
-	private Boolean pongAvailable = false; 		// Users ability to pong
-	private Boolean kongAvailable = false; 		// Users ability to kong
-	private Boolean mahjongAvailable = false; 	// Users ability to mahjong
-	private Boolean requestResponse = false; 	// Users chance to respond
-	private String playerResponse = "";	// Users responses
+	private ArrayList<ResponseRequestType> responseOpportunities = new ArrayList<>(); 	// Users chance to respond
+	private ResponseReceivedType playerResponse = ResponseReceivedType.NONE;	// Users responses
 	private Hand hand = new Hand();		// player's hand
 	private PossibleChowsPongsKongs ppk = new PossibleChowsPongsKongs();
-	private int chosenIdx = -1;
+	private int chosenChowIdx = -1;
 	private int playerIdx = -1;
 	private Boolean playerPlaying = false;
 	private String gameMessage = "";
@@ -27,24 +22,53 @@ public class Player {
 	public void setPlayerUid(String uid) { this.playerUid = uid; }
 	public String getPlayerUname() { return this.playerUname; }
 	public void setPlayerUname(String uname) { this.playerUname = uname; }
-	public Boolean getChowAvailable() { return this.chowAvailable; }
-	public void setChowAvailable(boolean b) { this.chowAvailable = b; }
-	public Boolean getPongAvailable() { return this.pongAvailable; }
-	public void setPongAvailable(boolean b) { this.pongAvailable = b; }
-	public void setKongAvailable(boolean b) { this.kongAvailable = b; }
-	public Boolean getKongAvailable() { return this.kongAvailable; }
-	public void setMahjongAvailable(boolean b) { this.mahjongAvailable = b; }
-	public Boolean getMahjongAvailable() { return this.mahjongAvailable; }
-	public Boolean getRequestResponse() { return this.requestResponse; }
-	public void setRequestResponse(boolean b) { this.requestResponse = b; }
-	public void setPlayerResponse(String s) { this.playerResponse = s; }
-	public String getPlayerResponse() { return this.playerResponse; }
+	public ArrayList<ResponseRequestType> getResponseOpportunities() { return this.responseOpportunities; }
+	public void setResponseOpportunities(ArrayList<ResponseRequestType> opp) { this.responseOpportunities = opp; }
+	public void clearResponseOpportunites() { this.responseOpportunities.clear(); }
+	public Boolean checkTseResponseOpportunity() { return this.responseOpportunities.contains(ResponseRequestType.TSE); }
+	public Boolean checkDrawResponseOpportunity() { return this.responseOpportunities.contains(ResponseRequestType.DRAW); }
+	public Boolean checkChowResponseOpportunity() { return this.responseOpportunities.contains(ResponseRequestType.CHOW_1); }
+	public Boolean checkPongResponseOpportunity() { return this.responseOpportunities.contains(ResponseRequestType.PONG); }
+	public Boolean checkKongResponseOpportunity() { return this.responseOpportunities.contains(ResponseRequestType.KONG); }
+	public Boolean checkMahjongResponseOpportunity() { return this.responseOpportunities.contains(ResponseRequestType.MAHJONG); }
+
+	public void setPlayerResponse(ResponseReceivedType s) { this.playerResponse = s; }
+	public ResponseReceivedType getPlayerResponse() { return this.playerResponse; }
+	public int checkValidDiscardResponse(ResponseReceivedType resp) {
+		ResponseReceivedType[] valid_discards = {
+				ResponseReceivedType.DISCARD_0,
+				ResponseReceivedType.DISCARD_1,
+				ResponseReceivedType.DISCARD_2,
+				ResponseReceivedType.DISCARD_3,
+				ResponseReceivedType.DISCARD_4,
+				ResponseReceivedType.DISCARD_5,
+				ResponseReceivedType.DISCARD_6,
+				ResponseReceivedType.DISCARD_7,
+				ResponseReceivedType.DISCARD_8,
+				ResponseReceivedType.DISCARD_9,
+				ResponseReceivedType.DISCARD_10,
+				ResponseReceivedType.DISCARD_11,
+				ResponseReceivedType.DISCARD_12,
+				ResponseReceivedType.DISCARD_13,
+				ResponseReceivedType.DISCARD_14,
+		};
+		for (int i=0; i<15; i++) {
+			if (resp == valid_discards[i]) {
+				// check if int is valid in hand
+				if (i < this.hand.getHiddenHandSize()) {
+					return i;
+				}
+			}
+		}
+		return -1;
+	}
+
 	public Hand getHand() { return this.hand; }
 	public void setHand(Hand hand) { this.hand = hand; }
 	public PossibleChowsPongsKongs getPpk() { return this.ppk; }
 	public void setPpk(PossibleChowsPongsKongs ppk) { this.ppk = ppk; }
-	public Integer getChosenIdx() { return this.chosenIdx; }
-	public void setChosenIdx(int c) { this.chosenIdx = c; }
+	public Integer getChosenChowIdx() { return this.chosenChowIdx; }
+	public void setChosenChowIdx(int c) { this.chosenChowIdx = c; }
 	public Integer getPlayerIdx() { return this.playerIdx; }
 	public void setPlayerIdx(int p) { this.playerIdx = p; }
 	public Boolean getPlayerPlaying() { return this.playerPlaying; }
@@ -116,29 +140,8 @@ public class Player {
 	HandStatus addToHand(Tile tile) { return this.hand.addToHand(tile); }
 
 	// discard tile from hand
-	Tile discardTile(String player_input) {
-		int discard_idx = getUserDiscardIdx(player_input);
+	Tile discardTile(int discard_idx) {
 		return this.hand.discardTile(discard_idx);
-	}
-
-	// Parse User input for discard idx
-	int getUserDiscardIdx(String player_input) {
-		int discard_idx = -1;
-		// try parse for a valid int
-		try {
-			discard_idx = Integer.parseInt(player_input);
-		} catch (InputMismatchException ex){
-			// in case not a valid integer idx
-			ex.printStackTrace();
-		} catch (NumberFormatException e) {
-			e.printStackTrace();
-		}
-		// check if int is valid in hand
-		if (discard_idx >= this.hand.getHiddenHandSize() || discard_idx < 0) {
-			System.out.println("Please choose a valid discard_idx, " + player_input + " is invalid\n");
-			discard_idx = -1;
-		}
-		return discard_idx;
 	}
 
 	// check hand for Pong
@@ -197,38 +200,47 @@ public class Player {
 		return this.hand.checkMahjong(t);
 	}
 
+	/*
+		Check user responses
+	 */
 	// check user response for Pong
-	boolean checkUserChow(String player_input) {
-		int resp = -1;
-		try {
-			resp = Integer.parseInt(player_input);
-		} catch (InputMismatchException e) {
-			// in case not a valid integer idx
-			e.printStackTrace();
-		} catch (NumberFormatException e) {
-			e.printStackTrace();
-		}
-		// if last idx, no chow...
-		if (resp < this.ppk.getNumChows() && resp >= 0) {
-			this.chosenIdx = resp;
-			return true;
+	boolean checkUserChow(ResponseReceivedType player_input) {
+		int num_chows = this.ppk.getNumChows();
+		if (num_chows == 0) { return false; }
+		ResponseReceivedType[] valid_chows = {ResponseReceivedType.CHOW_1, ResponseReceivedType.CHOW_2, ResponseReceivedType.CHOW_3};
+		for (int i=0; i<num_chows; i++) {
+			// find a match
+			if (player_input == valid_chows[i]) {
+				this.chosenChowIdx = i;
+				return true;
+			}
 		}
 		return false;
 	}
 
 	// check user response for Kong
-	boolean checkUserPong(String player_input) {
-		return player_input.equals("1");
+	boolean checkUserPong(ResponseReceivedType player_input) {
+		return player_input == ResponseReceivedType.PONG;
 	}
 
 	// check user response for Kong
-	boolean checkUserKong(String player_input) {
-		return player_input.equals("1");
+	boolean checkUserKong(ResponseReceivedType player_input) {
+		return player_input == ResponseReceivedType.KONG;
 	}
 
 	// check user response for MJ
-	boolean checkUserMahjong(String player_input) {
-		return player_input.equals("1");
+	boolean checkUserMahjong(ResponseReceivedType player_input) {
+		return player_input == ResponseReceivedType.MAHJONG;
+	}
+
+	// check user response for MJ
+	boolean checkUserDraw(ResponseReceivedType player_input) {
+		return player_input == ResponseReceivedType.DRAW;
+	}
+
+	// check user response for MJ
+	boolean checkUserTse(ResponseReceivedType player_input) {
+		return player_input == ResponseReceivedType.TSE;
 	}
 
 	// check for win
@@ -238,7 +250,7 @@ public class Player {
 		this.hand.revealAllHiddenHandTiles();
 	}
 
-	void kong(Tile t) {
+	public void kong(Tile t) {
 		this.hand.addToHand(t);
 		int[] hand_idx = new int[4];
 		// parse from string to get array elements
@@ -250,7 +262,7 @@ public class Player {
 	}
 
 	// We will transform string array to int array
-	void pong(Tile t) {
+	public void pong(Tile t) {
 		this.hand.addToHand(t);
 		int[] hand_idx = new int[3];
 		// parse from string to get array elements
@@ -260,11 +272,11 @@ public class Player {
 		this.hand.revealIndexedHiddenTiles(hand_idx, 3);
 	}
 
-	void chow(Tile t) {
+	public void chow(Tile t) {
 		this.hand.addToHand(t);
 		int[] hand_idx = new int[3];
 		int[] chows;
-		chows = fromString(this.ppk.getPossibleChow(this.chosenIdx));
+		chows = fromString(this.ppk.getPossibleChow(this.chosenChowIdx));
 		hand_idx[0] = chows[0];
 		hand_idx[1] = chows[1];
 		hand_idx[2] = this.hand.getHiddenHandSize()-1; // the last idx where the new tile to pong will be
