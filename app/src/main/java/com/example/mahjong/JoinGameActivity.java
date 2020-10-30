@@ -2,6 +2,7 @@ package com.example.mahjong;
 
 import android.content.Intent;
 import android.graphics.Color;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -44,15 +45,14 @@ import static mahjong_package.FirebaseRepository.getDeletedMultiplayerGameFromFi
 import static mahjong_package.FirebaseRepository.updateMultiplayerGame;
 
 
-public class GameSelectActivity extends AppCompatActivity implements LifecycleObserver {
+public class JoinGameActivity extends AppCompatActivity implements LifecycleObserver {
 
     private TableLayout tableLayout;
-    private EditText new_game, new_game_num_players;
     private ArrayList<Game> games;
     private String selected_game;
     private FirebaseUser userRef;
     private User curr_user;
-    private static final String TAG = "GameSelectActivity";
+    private static final String TAG = "JoinGameActivity";
 
     private DatabaseReference dbRef;
     private ValueEventListener usersListener;
@@ -61,39 +61,24 @@ public class GameSelectActivity extends AppCompatActivity implements LifecycleOb
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_join_game);
         Log.i(TAG,TAG+": onCreate \n");
 
-        setContentView(R.layout.activity_game_select);
-
         userRef = FirebaseAuth.getInstance().getCurrentUser();
-
         games = new ArrayList<>();
         curr_user = new User();
-
         tableLayout = findViewById(R.id.game_table_layout);
         Button join_button = findViewById(R.id.join_game);
-        Button create_button = findViewById(R.id.create_game);
-        new_game = findViewById(R.id.new_game_text);
-        new_game_num_players = findViewById(R.id.new_game_num_players);
-
         // UI creation
         initializeUI();
-        create_button.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                if (curr_user.userExists()) {
-                    if (create_new_game()) {
-                        Intent intent = new Intent(GameSelectActivity.this, WaitingRoomActivity.class);
-                        startActivity(intent);
-                    }
-                }
-            }
-        });
+        final MediaPlayer mp = MediaPlayer.create(this, R.raw.button_sound);
         join_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (curr_user.userExists()) {
                     if (join_new_game()) {
-                        Intent intent = new Intent(GameSelectActivity.this, WaitingRoomActivity.class);
+                        mp.start();
+                        Intent intent = new Intent(JoinGameActivity.this, WaitingRoomActivity.class);
                         startActivity(intent);
                     }
                 }
@@ -103,7 +88,8 @@ public class GameSelectActivity extends AppCompatActivity implements LifecycleOb
         ImageButton rulebook = findViewById(R.id.rules_at_game_select);
         rulebook.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                Intent intent = new Intent(GameSelectActivity.this, RulebookActivity.class);
+                mp.start();
+                Intent intent = new Intent(JoinGameActivity.this, RulebookActivity.class);
                 startActivity(intent);
             }
         });
@@ -187,48 +173,6 @@ public class GameSelectActivity extends AppCompatActivity implements LifecycleOb
             row_i.addView(members_text_i);
             row_i.setBackgroundResource(R.drawable.border);
             tableLayout.addView(row_i);
-        }
-    }
-
-    // create a new game and join as current user
-    private boolean create_new_game() {
-        String new_game_name, str_num_players;
-        int max_players;
-        new_game_name = new_game.getText().toString();
-        str_num_players = new_game_num_players.getText().toString();
-        // take text if any from EditText
-        if (TextUtils.isEmpty(new_game_name)) {
-            Toast.makeText(getApplicationContext(), "Please enter a game name.", Toast.LENGTH_LONG).show();
-            return false;
-        } else if (TextUtils.isEmpty(str_num_players)) {
-            Toast.makeText(getApplicationContext(), "Please enter a number of players for game.", Toast.LENGTH_LONG).show();
-            return false;
-        }
-        //TODO: limit options with drop down box instead of edittext - Spinner in Android studio?
-        max_players = Integer.parseInt(str_num_players);
-        if (max_players < 1 || max_players > 4) {
-            Toast.makeText(getApplicationContext(), "Please enter a number of players for game between 1 and 4.", Toast.LENGTH_LONG).show();
-            return false;
-        }
-        new_game.setText("");
-        new_game_num_players.setText("");
-        Game new_game = new Game(max_players);
-        FirebaseUser userRef = FirebaseAuth.getInstance().getCurrentUser();
-        if (userRef != null) {
-            // create game ID unique to others created, add it and name
-            String game_ID = createNewMultiplayerGameRef();
-            new_game.addPlayer(curr_user.getUname(), curr_user.getUid());
-            new_game.setGameName(new_game_name);
-            new_game.setGameID(game_ID);
-            // update games.
-            updateMultiplayerGame(new_game);
-            // This is now last game user played
-            addUserLastGameIDFirebase(new_game.getGameID());
-            Toast.makeText(getApplicationContext(), "Joined " + new_game.getGameName()+"...", Toast.LENGTH_LONG).show();
-            return true;
-        } else {
-            Toast.makeText(getApplicationContext(), "Failed to make new game. Please be non null user.", Toast.LENGTH_LONG).show();
-            return false;
         }
     }
 
@@ -358,7 +302,7 @@ public class GameSelectActivity extends AppCompatActivity implements LifecycleOb
     @Override
     public void onBackPressed() {
         Log.i(TAG, TAG+": onBackPressed");
-        Intent intent = new Intent(GameSelectActivity.this, GameModeActivity.class);
+        Intent intent = new Intent(JoinGameActivity.this, CreateJoinGameActivity.class);
         startActivity(intent);
     }
 }

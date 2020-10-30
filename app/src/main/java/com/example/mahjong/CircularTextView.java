@@ -5,7 +5,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
-import android.widget.TextView;
 
 public class CircularTextView extends androidx.appcompat.widget.AppCompatTextView
 {

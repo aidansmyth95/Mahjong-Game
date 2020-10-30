@@ -61,8 +61,6 @@ public class Hand {
 		return this.hiddenHand.size();
 	}
 
-	int getRevealedHandSize() { return this.revealedHand.size(); }
-
 	int getFlowersCollectedSize() { return this.flowersCollected.size(); }
 
 	void clearHand() {
@@ -126,12 +124,11 @@ public class Hand {
 	}
 
 	// reveal tiles of hand given a hidden_hand idx
-	Boolean revealIndexedHiddenTiles(int[] hand_idx, int n) {
+	void revealIndexedHiddenTiles(int[] hand_idx, int n) {
 		Tile tmp_tile;
 		// should be at least two tiles per time
 		if (n < 2) {
 			Log.e("Hand","Error: Should not reveal less that 2 tiles at at time!");
-			return false;
 		} else {
 			// put tiles in revealed from revealed index
 			for (int i=0; i<n; i++) {
@@ -140,7 +137,6 @@ public class Hand {
 				Log.i("Hand","Hand: Added to revealed hand " + tmp_tile.getDescriptor());
 			}
 		}
-		return true;
 	}
 	
 	/*

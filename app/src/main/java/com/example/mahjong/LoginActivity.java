@@ -1,6 +1,7 @@
 package com.example.mahjong;
 
 import android.content.Intent;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -31,8 +32,10 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
         mAuth = FirebaseAuth.getInstance();
         initializeUI();
+        final MediaPlayer mp = MediaPlayer.create(this, R.raw.button_sound);
         loginButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                mp.start();
                 loginUser();
             }
         });
@@ -66,7 +69,7 @@ public class LoginActivity extends AppCompatActivity {
                 public void onComplete(@NonNull Task<AuthResult> task) {
                     if (task.isSuccessful()) {
                         Toast.makeText(getApplicationContext(), "Login successful!", Toast.LENGTH_LONG).show();
-                        Intent intent = new Intent(LoginActivity.this, GameModeActivity.class);
+                        Intent intent = new Intent(LoginActivity.this, CreateJoinGameActivity.class);
                         startActivity(intent);
                     }
                     else {

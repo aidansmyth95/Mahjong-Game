@@ -1,59 +1,56 @@
 package com.example.mahjong;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 
-import static mahjong_package.FirebaseRepository.userInactiveFirebaseUser;
-import static mahjong_package.FirebaseRepository.writeDummyGame;
+import androidx.appcompat.app.AppCompatActivity;
 
+public class CreateJoinGameActivity extends AppCompatActivity {
 
-public class GameModeActivity extends AppCompatActivity {
-
-    private Button spButton, mpButton;
-    private static final String TAG = "GameModeActivity";
+    private Button create_button, join_button;
+    private static final String TAG = "CreateJoinGame";
+    private ImageButton rulebook;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_game_mode);
-
-        // A temporary fix if we need to create a dummy game
-        //writeDummyGame();
+        setContentView(R.layout.activity_create_join_game);
+        Log.i(TAG, TAG+": onCreate");
 
         initializeUI();
-        userInactiveFirebaseUser();
-        spButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                spButton.setEnabled(false);
-                Intent intent = new Intent(GameModeActivity.this, SinglePlayerActivity.class);
-                startActivity(intent);
-            }
-        });
-        mpButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                Intent intent = new Intent(GameModeActivity.this, GameSelectActivity.class);
-                startActivity(intent);
-            }
-        });
-        // set rulebook listener
-        ImageButton rulebook = findViewById(R.id.rules_at_game_mode);
-        rulebook.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                Intent intent = new Intent(GameModeActivity.this, RulebookActivity.class);
-                startActivity(intent);
-            }
-        });
     }
 
     private void initializeUI() {
-        spButton = findViewById(R.id.single_player_button);
-        mpButton = findViewById(R.id.multiplayer_button);
+        create_button = findViewById(R.id.create_game_button);
+        join_button = findViewById(R.id.join_game_button);
+        rulebook = findViewById(R.id.rules_at_create_join_game_activity);
+        final MediaPlayer mp = MediaPlayer.create(this, R.raw.button_sound);
+        create_button.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                mp.start();
+                Intent intent = new Intent(CreateJoinGameActivity.this, CreateGameActivity.class);
+                startActivity(intent);
+            }
+        });
+        join_button.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                mp.start();
+                Intent intent = new Intent(CreateJoinGameActivity.this, JoinGameActivity.class);
+                startActivity(intent);
+            }
+        });
+        rulebook.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                mp.start();
+                Intent intent = new Intent(CreateJoinGameActivity.this, RulebookActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
     @Override
@@ -95,7 +92,8 @@ public class GameModeActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         Log.i(TAG, TAG+": onBackPressed");
-        Intent intent = new Intent(GameModeActivity.this, LoginActivity.class);
+        Intent intent = new Intent(CreateJoinGameActivity.this, WelcomeActivity.class);
         startActivity(intent);
+        finish();
     }
 }

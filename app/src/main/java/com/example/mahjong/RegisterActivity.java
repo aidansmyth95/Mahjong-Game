@@ -1,6 +1,7 @@
 package com.example.mahjong;
 
 import android.content.Intent;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -37,15 +38,17 @@ public class RegisterActivity extends AppCompatActivity {
         setContentView(R.layout.activity_register);
         mAuth = FirebaseAuth.getInstance();
         initializeUI();
-        registerButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                registerNewUser();
-            }
-        });
     }
 
     private void initializeUI() {
+        final MediaPlayer mp = MediaPlayer.create(this, R.raw.button_sound);
         registerButton = findViewById(R.id.register_button);
+        registerButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                mp.start();
+                registerNewUser();
+            }
+        });
         emailText = findViewById(R.id.emailText1);
         nameText = findViewById(R.id.nameText1);
         pwdText = findViewById(R.id.pwdText1);
@@ -75,7 +78,7 @@ public class RegisterActivity extends AppCompatActivity {
                                 FirebaseRepository.createRegisteredFirebaseUser(nameText.getText().toString());
                                 Toast.makeText(getApplicationContext(), "Registration successful!", Toast.LENGTH_LONG).show();
                                 // Do not need to log in again after registration
-                                Intent intent = new Intent(RegisterActivity.this, GameModeActivity.class);
+                                Intent intent = new Intent(RegisterActivity.this, CreateJoinGameActivity.class);
                                 startActivity(intent);
                             }
                             else {

@@ -3,6 +3,7 @@ package com.example.mahjong;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -23,14 +24,18 @@ public class WelcomeActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_welcome);
         initializeUI();
+        final MediaPlayer mp = MediaPlayer.create(this, R.raw.button_sound);
+
         loginRedirectButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                mp.start();
                 Intent intent = new Intent(WelcomeActivity.this, LoginActivity.class);
                 startActivity(intent);
             }
         });
         registerRedirectButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                mp.start();
                 Intent intent = new Intent(WelcomeActivity.this, RegisterActivity.class);
                 startActivity(intent);
             }

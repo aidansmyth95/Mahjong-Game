@@ -2,6 +2,7 @@ package com.example.mahjong;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.method.ScrollingMovementMethod;
@@ -35,6 +36,7 @@ import mahjong_package.Game;
 import mahjong_package.GameStatus;
 import mahjong_package.ResponseReceivedType;
 import mahjong_package.ResponseRequestType;
+import mahjong_package.TestVectors;
 import mahjong_package.User;
 
 import static mahjong_package.FirebaseRepository.getCurrGameDetailsFirebase;
@@ -81,126 +83,13 @@ public class MultiplayerActivity extends AppCompatActivity {
         redirectGameSystemOut(gameOutTv);
         redirectGameSystemErr(gameOutTv);
         // test the test vectors before Game
-        passed_tests = runAllGameTestVectors();
-    }
-
-    // initialize the UI components and their touch listeners, visibility etc.
-    private void initializeUI() {
-        // initialize the user response buttons and their listeners
-        buttonInitListenersForUserResponses();
-        playerTurnTv = findViewById(R.id.p_turn);
-        playerTurnTv.setVisibility(View.INVISIBLE);
-        gameOutTv = findViewById(R.id.textViewOut);
-        gameOutTv.setMovementMethod(new ScrollingMovementMethod());
-        discardedImage = findViewById(R.id.discarded);
-        discardedImage.setVisibility(View.INVISIBLE);
-        discardedImage.setOnTouchListener(new View.OnTouchListener()
-        {
-            @Override
-            public boolean onTouch(View v, MotionEvent event)
-            {
-                Log.i(TAG, TAG + ": ");
-                // if visible and enough hidden descriptors to be valid
-                if (discardedImage.getVisibility() == View.VISIBLE) {
-                    String s = currGame.getLatestDiscard().getDescriptor();
-                    Toast.makeText(getApplicationContext(), s, Toast.LENGTH_SHORT).show();
-                }
-                return false;
-            }
-        });
-        flowerPileImage = findViewById(R.id.flower_pile);
-        flowerPileImage.setVisibility(View.INVISIBLE);
-        flowerPileImage.setOnTouchListener(new View.OnTouchListener()
-        {
-            @Override
-            public boolean onTouch(View v, MotionEvent event)
-            {
-                Log.i(TAG, TAG + ": ");
-                // if visible and enough hidden descriptors to be valid
-                if (flowerPileImage.getVisibility() == View.VISIBLE) {
-                    String s = currGame.getFlowersCollectedString(playerIdx);
-                    Toast.makeText(getApplicationContext(), s, Toast.LENGTH_LONG).show();
-                }
-                return false;
-            }
-        });
-        handTiles[0] = findViewById(R.id.h0);
-        handTiles[1] = findViewById(R.id.h1);
-        handTiles[2] = findViewById(R.id.h2);
-        handTiles[3] = findViewById(R.id.h3);
-        handTiles[4] = findViewById(R.id.h4);
-        handTiles[5] = findViewById(R.id.h5);
-        handTiles[6] = findViewById(R.id.h6);
-        handTiles[7] = findViewById(R.id.h7);
-        handTiles[8] = findViewById(R.id.h8);
-        handTiles[9] = findViewById(R.id.h9);
-        handTiles[10] = findViewById(R.id.h10);
-        handTiles[11] = findViewById(R.id.h11);
-        handTiles[12] = findViewById(R.id.h12);
-        handTiles[13] = findViewById(R.id.h13);
-        handTiles[14] = findViewById(R.id.h14);
-        revealedTiles[0] = findViewById(R.id.r0);
-        revealedTiles[1] = findViewById(R.id.r1);
-        revealedTiles[2] = findViewById(R.id.r2);
-        revealedTiles[3] = findViewById(R.id.r3);
-        revealedTiles[4] = findViewById(R.id.r4);
-        revealedTiles[5] = findViewById(R.id.r5);
-        revealedTiles[6] = findViewById(R.id.r6);
-        revealedTiles[7] = findViewById(R.id.r7);
-        revealedTiles[8] = findViewById(R.id.r8);
-        revealedTiles[9] = findViewById(R.id.r9);
-        revealedTiles[10] = findViewById(R.id.r10);
-        revealedTiles[11] = findViewById(R.id.r11);
-        revealedTiles[12] = findViewById(R.id.r12);
-        revealedTiles[13] = findViewById(R.id.r13);
-        revealedTiles[14] = findViewById(R.id.r14);
-        int nTotalTileSlots = 15;
-        //TODO: overlay a magneta recatange and keep its ID as discard ID
-        for (int h = 0; h< nTotalTileSlots; h++) {
-            handTiles[h].setVisibility(View.INVISIBLE);
-            revealedTiles[h].setVisibility(View.INVISIBLE);
-            final int finalH = h;
-            handTiles[h].setOnTouchListener(new View.OnTouchListener()
-            {
-                @Override
-                public boolean onTouch(View v, MotionEvent event)
-                {
-                    Log.i(TAG, TAG + ": ");
-                    // if visible and enough hidden descriptors to be valid
-                    if (handTiles[finalH].getVisibility() == View.VISIBLE && finalH < hidden_descriptors.size()) {
-                        Toast.makeText(getApplicationContext(), "Tile " + finalH + ": " + hidden_descriptors.get(finalH), Toast.LENGTH_SHORT).show();
-                        latest_discard_idx = finalH;
-                    }
-                    return false;
-                }
-            });
-            revealedTiles[h].setOnTouchListener(new View.OnTouchListener()
-            {
-                @Override
-                public boolean onTouch(View v, MotionEvent event)
-                {
-                    Log.i(TAG, TAG + ": ");
-                    // if visible and enough hidden descriptors to be valid
-                    if (revealedTiles[finalH].getVisibility() == View.VISIBLE && finalH < revealed_descriptors.size()) {
-                        Toast.makeText(getApplicationContext(), "Tile " + finalH + ": " + revealed_descriptors.get(finalH), Toast.LENGTH_SHORT).show();
-                    }
-                    return false;
-                }
-            });
+        TestVectors testVectors = new TestVectors();
+        passed_tests = testVectors.testVectorPass();
+        if (passed_tests) {
+            gameOutTv.setText(R.string.test_vector_failed);
+        } else {
+            gameOutTv.setText("");
         }
-        numFlowersText = findViewById(R.id.circularFlowersTextView);
-        numFlowersText.setStrokeWidth(1);
-        numFlowersText.setStrokeColor("#ffffff");
-        numFlowersText.setSolidColor("#F41B1B");
-        numFlowersText.setVisibility(View.INVISIBLE);
-        // set rulebook listener
-        ImageButton rulebook = findViewById(R.id.rules_at_multiplayer_game);
-        rulebook.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                Intent intent = new Intent(MultiplayerActivity.this, RulebookActivity.class);
-                startActivity(intent);
-            }
-        });
     }
 
     @Override
@@ -322,6 +211,24 @@ public class MultiplayerActivity extends AppCompatActivity {
         }
     }
 
+    // initialize the UI components and their touch listeners, visibility etc.
+    private void initializeUI() {
+        // initialize ImageViews and their listeners if any
+        imageViewInitListeners();
+        // initialize the user response buttons and their listeners
+        buttonInitListenersForUserResponses();
+        // initialize TextViews
+        textViewInit();
+        // set rulebook listener
+        ImageButton rulebook = findViewById(R.id.rules_at_multiplayer_game);
+        rulebook.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent intent = new Intent(MultiplayerActivity.this, RulebookActivity.class);
+                startActivity(intent);
+            }
+        });
+    }
+
     /* Update UI */
     private void updateUI() {
         Log.i(TAG, TAG + " Updating UI...");
@@ -392,42 +299,6 @@ public class MultiplayerActivity extends AppCompatActivity {
         }));
     }
 
-    private boolean runAllGameTestVectors() {
-        Log.i(TAG, TAG+": Testing Game");
-        Game testGame = new Game(1);
-        testGame.addPlayer("dummy_name", "dummy_uid");
-        boolean clear_output = testGame.test_true_pong();
-        if (clear_output) {
-            clear_output = testGame.test_false_pong();
-        }
-        if (clear_output) {
-            clear_output = testGame.test_true_chow();
-        }
-        if (clear_output) {
-            clear_output = testGame.test_false_chow();
-        }
-        if (clear_output) {
-            clear_output = testGame.test_true_kong();
-        }
-        if (clear_output) {
-            clear_output = testGame.test_false_kong();
-        }
-        if (clear_output) {
-            clear_output = testGame.test_true_mahjong();
-        }
-        if (clear_output) {
-            gameOutTv.setText("");
-            // reset output stream link to text box
-            System.out.flush();
-            redirectGameSystemOut(gameOutTv);
-            Log.i(TAG, TAG+": Passed Game tests.");
-            return true;
-        } else {
-            Log.i(TAG, TAG+": Failed Game tests.");
-            return false;
-        }
-    }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -438,23 +309,6 @@ public class MultiplayerActivity extends AppCompatActivity {
     public void onRestart() {
         super.onRestart();
         Log.i(TAG, TAG+": onRestart");
-    }
-
-    @Override
-    public void onBackPressed() {
-        Log.i(TAG, TAG+": onBackPressed");
-        new AlertDialog.Builder(this)
-                .setTitle("Really Exit Game?")
-                .setMessage("Are you sure you want to exit the game?")
-                .setNegativeButton(android.R.string.no, null)
-                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-
-                    public void onClick(DialogInterface arg0, int arg1) {
-                        Intent intent = new Intent(MultiplayerActivity.this, GameModeActivity.class);
-                        startActivity(intent);
-                        finish();
-                    }
-                }).create().show();
     }
 
     public void pauseGame() {
@@ -471,44 +325,133 @@ public class MultiplayerActivity extends AppCompatActivity {
         }
     }
 
-    public static void logcatGameStatus(Game game, int playerIdx) {
-        Log.i(TAG, TAG + ": \n---------- Status update  ----------");
-        Log.i(TAG, TAG + ": Game name is " + game.getGameName());
-        Log.i(TAG, TAG + ": Number of players playing is " + game.countNumPlayersPlaying() + " are playing");
-        Log.i(TAG, TAG + ": All players are playing? = " + game.allPlayersPlaying());
-        Log.i(TAG, TAG + ": Players playing are " + game.namePlayersPlaying());
-        Log.i(TAG, TAG + ": Players not playing are " + game.namePlayersNotPlaying());
-        Log.i(TAG, TAG + ": Game status is " + game.getGameStatus());
-        Log.i(TAG, TAG + ": Game accepting responses? " + game.getAcceptingResponses());
-        Log.i(TAG, TAG + ": This Player's ID? " + playerIdx);
-        Log.i(TAG, TAG + ": Latest flower descriptor? " + game.getLatestFlowersCollectedDescriptorResource(playerIdx));
-        Log.i(TAG, TAG + ": \n-------------------------------\n");
+    public void imageViewInitListeners() {
+        discardedImage = findViewById(R.id.discarded);
+        discardedImage.setVisibility(View.INVISIBLE);
+        discardedImage.setOnTouchListener(new View.OnTouchListener()
+        {
+            @Override
+            public boolean onTouch(View v, MotionEvent event)
+            {
+                Log.i(TAG, TAG + ": ");
+                // if visible and enough hidden descriptors to be valid
+                if (discardedImage.getVisibility() == View.VISIBLE) {
+                    String s = currGame.getLatestDiscard().getDescriptor();
+                    Toast.makeText(getApplicationContext(), s, Toast.LENGTH_SHORT).show();
+                }
+                return false;
+            }
+        });
+        flowerPileImage = findViewById(R.id.flower_pile);
+        flowerPileImage.setVisibility(View.INVISIBLE);
+        flowerPileImage.setOnTouchListener(new View.OnTouchListener()
+        {
+            @Override
+            public boolean onTouch(View v, MotionEvent event)
+            {
+                Log.i(TAG, TAG + ": ");
+                // if visible and enough hidden descriptors to be valid
+                if (flowerPileImage.getVisibility() == View.VISIBLE) {
+                    String s = currGame.getFlowersCollectedString(playerIdx);
+                    Toast.makeText(getApplicationContext(), s, Toast.LENGTH_LONG).show();
+                }
+                return false;
+            }
+        });
+        handTiles[0] = findViewById(R.id.h0);
+        handTiles[1] = findViewById(R.id.h1);
+        handTiles[2] = findViewById(R.id.h2);
+        handTiles[3] = findViewById(R.id.h3);
+        handTiles[4] = findViewById(R.id.h4);
+        handTiles[5] = findViewById(R.id.h5);
+        handTiles[6] = findViewById(R.id.h6);
+        handTiles[7] = findViewById(R.id.h7);
+        handTiles[8] = findViewById(R.id.h8);
+        handTiles[9] = findViewById(R.id.h9);
+        handTiles[10] = findViewById(R.id.h10);
+        handTiles[11] = findViewById(R.id.h11);
+        handTiles[12] = findViewById(R.id.h12);
+        handTiles[13] = findViewById(R.id.h13);
+        handTiles[14] = findViewById(R.id.h14);
+        revealedTiles[0] = findViewById(R.id.r0);
+        revealedTiles[1] = findViewById(R.id.r1);
+        revealedTiles[2] = findViewById(R.id.r2);
+        revealedTiles[3] = findViewById(R.id.r3);
+        revealedTiles[4] = findViewById(R.id.r4);
+        revealedTiles[5] = findViewById(R.id.r5);
+        revealedTiles[6] = findViewById(R.id.r6);
+        revealedTiles[7] = findViewById(R.id.r7);
+        revealedTiles[8] = findViewById(R.id.r8);
+        revealedTiles[9] = findViewById(R.id.r9);
+        revealedTiles[10] = findViewById(R.id.r10);
+        revealedTiles[11] = findViewById(R.id.r11);
+        revealedTiles[12] = findViewById(R.id.r12);
+        revealedTiles[13] = findViewById(R.id.r13);
+        revealedTiles[14] = findViewById(R.id.r14);
+        int nTotalTileSlots = 15;
+        for (int h = 0; h< nTotalTileSlots; h++) {
+            handTiles[h].setVisibility(View.INVISIBLE);
+            revealedTiles[h].setVisibility(View.INVISIBLE);
+            final int finalH = h;
+            handTiles[h].setOnTouchListener(new View.OnTouchListener()
+            {
+                @Override
+                public boolean onTouch(View v, MotionEvent event)
+                {
+                    Log.i(TAG, TAG + ": ");
+                    // if visible and enough hidden descriptors to be valid
+                    if (handTiles[finalH].getVisibility() == View.VISIBLE && finalH < hidden_descriptors.size()) {
+                        Toast.makeText(getApplicationContext(), "Tile " + finalH + ": " + hidden_descriptors.get(finalH), Toast.LENGTH_SHORT).show();
+                        latest_discard_idx = finalH;
+                        // add border
+                        handTiles[finalH].setBackgroundResource(R.drawable.border_tiles);
+                        clearAllOtherBorders(finalH);
+                    }
+                    return false;
+                }
+            });
+            revealedTiles[h].setOnTouchListener(new View.OnTouchListener()
+            {
+                @Override
+                public boolean onTouch(View v, MotionEvent event)
+                {
+                    Log.i(TAG, TAG + ": ");
+                    // if visible and enough hidden descriptors to be valid
+                    if (revealedTiles[finalH].getVisibility() == View.VISIBLE && finalH < revealed_descriptors.size()) {
+                        Toast.makeText(getApplicationContext(), "Tile " + finalH + ": " + revealed_descriptors.get(finalH), Toast.LENGTH_SHORT).show();
+                    }
+                    return false;
+                }
+            });
+        }
     }
 
-    public static void logcatGameStatus(Game game, int playerIdx, int latest_discard_idx ) {
-        Log.i(TAG, TAG + ": \n---------- Status update  ----------");
-        Log.i(TAG, TAG + ": Game name is " + game.getGameName());
-        Log.i(TAG, TAG + ": Number of players playing is " + game.countNumPlayersPlaying() + " are playing");
-        Log.i(TAG, TAG + ": All players are playing? = " + game.allPlayersPlaying());
-        Log.i(TAG, TAG + ": Players playing are " + game.namePlayersPlaying());
-        Log.i(TAG, TAG + ": Players not playing are " + game.namePlayersNotPlaying());
-        Log.i(TAG, TAG + ": Game status is " + game.getGameStatus());
-        Log.i(TAG, TAG + ": Game accepting responses? " + game.getAcceptingResponses());
-        Log.i(TAG, TAG + ": This Player's ID? " + playerIdx);
-        Log.i(TAG, TAG + ": Latest flower descriptor? " + game.getLatestFlowersCollectedDescriptorResource(playerIdx));
-        Log.i(TAG, TAG + ": Latest discard ID? " + latest_discard_idx);
-        Log.i(TAG, TAG + ": \n-------------------------------\n");
+    /*
+        Initialize TextViews
+     */
+    private void textViewInit() {
+        playerTurnTv = findViewById(R.id.p_turn);
+        playerTurnTv.setVisibility(View.INVISIBLE);
+        gameOutTv = findViewById(R.id.textViewOut);
+        gameOutTv.setMovementMethod(new ScrollingMovementMethod());
+        numFlowersText = findViewById(R.id.circularFlowersTextView);
+        numFlowersText.setStrokeWidth(1);
+        numFlowersText.setStrokeColor("#ffffff");
+        numFlowersText.setSolidColor("#F41B1B");
+        numFlowersText.setVisibility(View.INVISIBLE);
     }
 
     /*
         Initialize buttons and add their listeners to enable player responses to Game
      */
     public void buttonInitListenersForUserResponses() {
+        final MediaPlayer mp = MediaPlayer.create(this, R.raw.button_sound);
         drawButton = findViewById(R.id.draw_tile_button);
         drawButton.setVisibility(View.INVISIBLE);
         drawButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                mp.start();
                 Toast.makeText(getApplicationContext(), "Drawing tile", Toast.LENGTH_SHORT).show();
                 currGame.setPlayerResponse(playerIdx, ResponseReceivedType.DRAW);
                 updateMultiplayerGame(currGame);
@@ -519,6 +462,7 @@ public class MultiplayerActivity extends AppCompatActivity {
         tseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                mp.start();
                 Toast.makeText(getApplicationContext(), "Tse!", Toast.LENGTH_SHORT).show();
                 currGame.setPlayerResponse(playerIdx, ResponseReceivedType.TSE);
                 updateMultiplayerGame(currGame);
@@ -529,6 +473,7 @@ public class MultiplayerActivity extends AppCompatActivity {
         pongButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                mp.start();
                 Toast.makeText(getApplicationContext(), "Pong!", Toast.LENGTH_SHORT).show();
                 currGame.setPlayerResponse(playerIdx, ResponseReceivedType.PONG);
                 updateMultiplayerGame(currGame);
@@ -539,6 +484,7 @@ public class MultiplayerActivity extends AppCompatActivity {
         kongButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                mp.start();
                 Toast.makeText(getApplicationContext(), "Kong!", Toast.LENGTH_SHORT).show();
                 currGame.setPlayerResponse(playerIdx, ResponseReceivedType.KONG);
                 updateMultiplayerGame(currGame);
@@ -549,6 +495,7 @@ public class MultiplayerActivity extends AppCompatActivity {
         mahjongButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                mp.start();
                 Toast.makeText(getApplicationContext(), "Mahjong!", Toast.LENGTH_SHORT).show();
                 currGame.setPlayerResponse(playerIdx, ResponseReceivedType.MAHJONG);
                 updateMultiplayerGame(currGame);
@@ -564,6 +511,7 @@ public class MultiplayerActivity extends AppCompatActivity {
             chowButton[i].setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    mp.start();
                     Toast.makeText(getApplicationContext(), "Chow!", Toast.LENGTH_SHORT).show();
                     currGame.setPlayerResponse(playerIdx, chows[finalI]);
                     updateMultiplayerGame(currGame);
@@ -575,7 +523,8 @@ public class MultiplayerActivity extends AppCompatActivity {
         discardButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (latest_discard_idx > 0 && latest_discard_idx < hidden_descriptors.size()) {
+                mp.start();
+                if (latest_discard_idx >= 0 && latest_discard_idx < hidden_descriptors.size()) {
                     Toast.makeText(getApplicationContext(), "Discarding tile " + latest_discard_idx, Toast.LENGTH_SHORT).show();
                     currGame.setPlayerResponse(playerIdx, getDiscardEnum(latest_discard_idx));
                     updateMultiplayerGame(currGame);
@@ -759,4 +708,58 @@ public class MultiplayerActivity extends AppCompatActivity {
         }
     }
 
+    public static void logcatGameStatus(Game game, int playerIdx) {
+        Log.i(TAG, TAG + ": \n---------- Status update  ----------");
+        Log.i(TAG, TAG + ": Game name is " + game.getGameName());
+        Log.i(TAG, TAG + ": Number of players playing is " + game.countNumPlayersPlaying() + " are playing");
+        Log.i(TAG, TAG + ": All players are playing? = " + game.allPlayersPlaying());
+        Log.i(TAG, TAG + ": Players playing are " + game.namePlayersPlaying());
+        Log.i(TAG, TAG + ": Players not playing are " + game.namePlayersNotPlaying());
+        Log.i(TAG, TAG + ": Game status is " + game.getGameStatus());
+        Log.i(TAG, TAG + ": Game accepting responses? " + game.getAcceptingResponses());
+        Log.i(TAG, TAG + ": This Player's ID? " + playerIdx);
+        Log.i(TAG, TAG + ": Latest flower descriptor? " + game.getLatestFlowersCollectedDescriptorResource(playerIdx));
+        Log.i(TAG, TAG + ": \n-------------------------------\n");
+    }
+
+    public static void logcatGameStatus(Game game, int playerIdx, int latest_discard_idx ) {
+        Log.i(TAG, TAG + ": \n---------- Status update  ----------");
+        Log.i(TAG, TAG + ": Game name is " + game.getGameName());
+        Log.i(TAG, TAG + ": Number of players playing is " + game.countNumPlayersPlaying() + " are playing");
+        Log.i(TAG, TAG + ": All players are playing? = " + game.allPlayersPlaying());
+        Log.i(TAG, TAG + ": Players playing are " + game.namePlayersPlaying());
+        Log.i(TAG, TAG + ": Players not playing are " + game.namePlayersNotPlaying());
+        Log.i(TAG, TAG + ": Game status is " + game.getGameStatus());
+        Log.i(TAG, TAG + ": Game accepting responses? " + game.getAcceptingResponses());
+        Log.i(TAG, TAG + ": This Player's ID? " + playerIdx);
+        Log.i(TAG, TAG + ": Latest flower descriptor? " + game.getLatestFlowersCollectedDescriptorResource(playerIdx));
+        Log.i(TAG, TAG + ": Latest discard ID? " + latest_discard_idx);
+        Log.i(TAG, TAG + ": \n-------------------------------\n");
+    }
+
+    public void clearAllOtherBorders(int hidden_hand_idx) {
+        // clear all hidden hands highlighted expect that idx which is input
+        for (int h=0; h<15; h++) {
+            if (h != hidden_hand_idx) {
+                handTiles[h].setBackgroundResource(0);
+            }
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        Log.i(TAG, TAG+": onBackPressed");
+        new AlertDialog.Builder(this)
+                .setTitle("Really Exit Game?")
+                .setMessage("Are you sure you want to exit the game?")
+                .setNegativeButton(android.R.string.no, null)
+                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+
+                    public void onClick(DialogInterface arg0, int arg1) {
+                        Intent intent = new Intent(MultiplayerActivity.this, CreateJoinGameActivity.class);
+                        startActivity(intent);
+                        finish();
+                    }
+                }).create().show();
+    }
 }

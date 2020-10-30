@@ -7,6 +7,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
@@ -34,9 +35,11 @@ public class RulebookActivity extends AppCompatActivity {
         displayHtmlFile("file:///android_asset/mj_rules.html");
 
         // init the button to leave rulebook
+        final MediaPlayer mp = MediaPlayer.create(this, R.raw.button_sound);
         leaveButton = findViewById(R.id.leave_rules_button);
         leaveButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                mp.start();
                 // go back to previous activity
                 RulebookActivity.super.onBackPressed();
             }

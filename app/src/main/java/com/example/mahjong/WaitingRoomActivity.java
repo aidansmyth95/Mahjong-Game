@@ -1,6 +1,7 @@
 package com.example.mahjong;
 
 import android.content.Intent;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -49,9 +50,11 @@ public class WaitingRoomActivity extends AppCompatActivity {
         setContentView(R.layout.activity_waiting_room);
         game_table_view = findViewById(R.id.single_game_table_layout);
         start_game = findViewById(R.id.start_game);
+        final MediaPlayer mp = MediaPlayer.create(this, R.raw.button_sound);
         start_game.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 if (curr_user.userExists()) {
+                    mp.start();
                     // move to playing game
                     startGame();
                 }
@@ -62,6 +65,7 @@ public class WaitingRoomActivity extends AppCompatActivity {
         ImageButton rulebook = findViewById(R.id.rules_at_waiting_room);
         rulebook.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                mp.start();
                 Intent intent = new Intent(WaitingRoomActivity.this, RulebookActivity.class);
                 startActivity(intent);
             }
@@ -214,7 +218,7 @@ public class WaitingRoomActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         Log.i(TAG, TAG+": onBackPressed");
-        Intent intent = new Intent(WaitingRoomActivity.this, GameSelectActivity.class);
+        Intent intent = new Intent(WaitingRoomActivity.this, CreateJoinGameActivity.class);
         startActivity(intent);
         finish();
     }

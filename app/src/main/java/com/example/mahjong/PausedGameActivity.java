@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -50,11 +51,13 @@ public class PausedGameActivity extends AppCompatActivity {
         Log.i(TAG, TAG + ": onCreate");
         setContentView(R.layout.activity_paused_game_activity);
         handler = new Handler();
+        final MediaPlayer mp = MediaPlayer.create(this, R.raw.button_sound);
         leave_game = findViewById(R.id.leave_game_button);
         leave_game.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                mp.start();
                 // go back to the GameModeActivity
-                Intent intent = new Intent(PausedGameActivity.this, GameModeActivity.class);
+                Intent intent = new Intent(PausedGameActivity.this, JoinGameActivity.class);
                 startActivity(intent);
             }
         });
@@ -185,7 +188,7 @@ public class PausedGameActivity extends AppCompatActivity {
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
 
                     public void onClick(DialogInterface arg0, int arg1) {
-                        Intent intent = new Intent(PausedGameActivity.this, GameModeActivity.class);
+                        Intent intent = new Intent(PausedGameActivity.this, CreateJoinGameActivity.class);
                         startActivity(intent);
                         finish();
                     }
