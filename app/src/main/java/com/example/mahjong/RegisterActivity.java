@@ -82,9 +82,7 @@ public class RegisterActivity extends AppCompatActivity {
                                 startActivity(intent);
                             }
                             else {
-                                FirebaseAuthException e = (FirebaseAuthException)task.getException();
-                                assert e != null;
-                                Toast.makeText(getApplicationContext(), "Registration failed! " +e.getMessage() + ". Please try again later", Toast.LENGTH_LONG).show();
+                                Toast.makeText(getApplicationContext(), "Registration failed! Please try again later", Toast.LENGTH_LONG).show();
                                 // remove flags expecting user input and disable button
                                 registerButton.setEnabled(true);
                             }

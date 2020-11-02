@@ -26,29 +26,20 @@ public class Game {
 	private ArrayList<Player> player = new ArrayList<>(); 			// Players playing game
 	private Boolean acceptingResponses = false;						// Game is still allowing responses
 	private long tseCalledTime = 0;									// time at which tse was called
-	private Boolean tseOrDrawCalled = false;								// true if a tse has been called
-	private Boolean updateUI = false;								// true if UI needs to be updated in MultiplayerActivity
+	private Boolean tseOrDrawCalled = false;						// true if a tse has been called
+	private String gameOutput = "Welcome to the game";				// String output for the Game
 
 	// constructor
 	public Game() {
-		// reset and shuffle deck
-		this.wall.shuffleTiles();
-		// check that all players have starting number of tiles. They might have removed flowers...
-		for (int p=0; p<this.numPlayers; p++) {
-			// player starting draws an extra tile
-			int starting_tile_count = (this.playerTurn == p) ? 14 : 13;
-			// while tiles in hand less than correct starting amount
-			while (this.player.get(p).getHiddenHandCount() < starting_tile_count) {
-				// add tile from deck to hand
-				this.player.get(p).addToHand(this.wall.revealWallTile());
-			}
-		}
+		this(1);
 	}
 
 	// constructor
 	public Game(int maxPlayers) {
-		this();
+		// set maximum number of players
 		this.setMaxPlayers(maxPlayers);
+		// reset and shuffle deck
+		this.wall.shuffleTiles();
 	}
 
 	/*
@@ -84,9 +75,8 @@ public class Game {
 	public void setTseOrDrawCalled(boolean tse) { this.tseOrDrawCalled = tse; }
 	public int getMaxPlayers() { return this.maxPlayers; }
 	public void setMaxPlayers(int maxPlayers) { this.maxPlayers = maxPlayers; }
-	public void setUpdateUI(boolean b) { this.updateUI = b; }
-	public Boolean getUpdateUI() { return this.updateUI; }
-
+	public void setGameOutput(String out) { this.gameOutput = out; }
+	public String getGameOutput() { return this.gameOutput; }
 
 	/*
 	 * Return true if winner, false otherwise
@@ -109,7 +99,19 @@ public class Game {
 
 		switch (this.gameState) {
 			case START:
-				System.out.println("Welcome to the game\n");
+				// check that all players have starting number of tiles. They might have removed flowers...
+				for (int p=0; p<this.numPlayers; p++) {
+					// player starting draws an extra tile
+					final int starting_tile_count = 13;
+					Log.d("Game", "Game: Adding " + starting_tile_count + " tiles to hand");
+					// while tiles in hand less than correct starting amount
+					while (this.player.get(p).getHiddenHandCount() < starting_tile_count) {
+						// add tile from deck to hand
+						Log.d("Game", "Game: Adding tile...");
+						this.player.get(p).addToHand(this.wall.revealWallTile());
+					}
+				}
+				// get random ID for player's turn
 				this.playerTurn = this.getRandomPlayerID();
 				this.gameState = GameState.DRAWING_TILE;
 				break;
@@ -123,13 +125,13 @@ public class Game {
 						// check for Mahjong
 						if (this.player.get(i).checkHandMahjong(this.latestDiscard)) {
 							respTypes.add(ResponseRequestType.MAHJONG);
-							System.out.println("Player " + i + ": Mahjong? \t1=Mahjong\tother=No");
+							this.gameOutput = "Player " + i + ": Mahjong?\t1=Mahjong\tother=No";
 						} else if (this.player.get(i).checkHandKong(this.latestDiscard)) {
 							respTypes.add(ResponseRequestType.KONG);
-							System.out.println("Player " + i + ": Kong? \t1=Kong\tother=No");
+							this.gameOutput = "Player " + i + ": Kong?\t1=Kong\tother=No";
 						} else if (this.player.get(i).checkHandPong(this.latestDiscard)) {
 							respTypes.add(ResponseRequestType.PONG);
-							System.out.println("Player " + i + ": Pong? \t1=Pong\tother=No");
+							this.gameOutput = "Player " + i + ": Pong?\t1=Pong\tother=No";
 						} else if (i == next_player) {
 							// if we next player can chow
 							if (this.player.get(i).checkHandChow(this.latestDiscard)) {
@@ -147,7 +149,6 @@ public class Game {
 				}
 				// notify activity that it is time to check for responses from affected users
 				this.setAcceptingResponses(true);
-				this.setUpdateUI(true);
 				this.setGameState(GameState.CHECKING_RESPONSES);
 				break;
 
@@ -236,52 +237,57 @@ public class Game {
 			case MAHJONG:
 				this.gameState = GameState.GAME_OVER;
 				this.winnerIdx = this.playerTurn;
-				System.out.println("Player " + this.playerTurn + ": Mahjong!");
+				this.gameOutput = "Player " + this.playerTurn + ": Mahjong!";
 				break;
 
 			case KONG:
 				this.player.get(this.playerTurn).kong(this.latestDiscard);
-				System.out.println("Player " + this.playerTurn + ": Kong!");
+				this.gameOutput = "Player " + this.playerTurn + ": Kong!";
 				this.gameState = GameState.DRAWING_TILE;
 				break;
 
 			case PONG:
 				this.player.get(this.playerTurn).pong(this.latestDiscard);
-				System.out.println("Player " + this.playerTurn + ": Pong!");
+				this.gameOutput = "Player " + this.playerTurn + ": Pong!";
 				this.gameState = GameState.DISCARD_OPTIONS;
 				break;
 
 			case CHOW:
 				// by this stage the chosenChowIdx has been set in player class by user input
 				this.player.get(this.playerTurn).chow(this.latestDiscard);
-				System.out.println("Player " + this.playerTurn + ": Chow!");
+				this.gameOutput = "Player " + this.playerTurn + ": Chow!";
 				this.gameState = GameState.DISCARD_OPTIONS;
 				break;
 
 			case TSE:
-				System.out.println("Tse!");
+				this.gameOutput = "Tse!";
 				this.player.get(this.playerTurn).tse(this.latestDiscard);
 				this.gameState = GameState.DISCARD_OPTIONS;
 				break;
 
 			case DRAWING_TILE:
-				System.out.println("Player " + this.playerTurn + ": drawing tile");
+				this.gameOutput = "Player " + this.playerTurn + ": drawing tile";
 				// last tile drawn
 				Tile tile_drawn = this.wall.revealWallTile();
-				// check hand for a Mahjong
-				if (this.player.get(this.playerTurn).checkHandMahjong(tile_drawn)) {
-					System.out.println("Player " + this.playerTurn + ": Mahjong By Your Own Hand!");
-					this.player.get(this.playerTurn).Mahjong(tile_drawn);
-					this.gameState = GameState.MAHJONG;
+				// check if any more tiles to draw
+				if (!tile_drawn.checkRealTile()) {
+					this.gameOutput = "No hidden tiles in deck left to uncover. Please restart the game";
+					this.gameState = GameState.GAME_OVER;
 				} else {
-					// add tile to hand MJ or not
-					HandStatus hs = this.player.get(this.playerTurn).addToHand(tile_drawn);
-					if (hs == HandStatus.ADD_SUCCESS) {
-						this.gameState = GameState.DISCARD_OPTIONS;
+					// check hand for a Mahjong
+					if (this.player.get(this.playerTurn).checkHandMahjong(tile_drawn)) {
+						this.gameOutput = "Player " + this.playerTurn + ": Mahjong By Your Own Hand!";
+						this.player.get(this.playerTurn).Mahjong(tile_drawn);
+						this.gameState = GameState.MAHJONG;
+					} else {
+						// add tile to hand MJ or not
+						//TODO: DEBUG
+						Log.d("Game", "Game: DEBUG " + tile_drawn.getDescriptor());
+						if (this.player.get(this.playerTurn).addToHand(tile_drawn) == HandStatus.ADD_SUCCESS) {
+							this.gameState = GameState.DISCARD_OPTIONS;
+						}
 					}
 				}
-				// update UI
-				this.setUpdateUI(true);	//TODO: what is the need for this?
 				break;
 
 			case DISCARD_OPTIONS:
@@ -293,7 +299,6 @@ public class Game {
 				this.gameState = GameState.DISCARDING_TILE;
 				// allow players to send responses to Game from MultiplayerActivity
 				this.setAcceptingResponses(true);
-				this.setUpdateUI(true);
 				break;
 
 			// Discard a tile
@@ -374,30 +379,42 @@ public class Game {
 	// remove empty values added in above function
 	void cleanEmptyArrayLists() {
 		Tile emptyTile = new Tile();
+		// empty arraylist to set items to be
 		ArrayList<Tile> emptyTileArrayList = new ArrayList<>();
-		ArrayList<Tile> emptyTileArrayListPattern = new ArrayList<>();
-		emptyTileArrayListPattern.add(emptyTile);
+		// empty arraylist pattern to find
 		for (int i=0; i<this.numPlayers; i++) {
 			// hand items hiddenHand and revealedHand
 			Hand playerHand = this.player.get(i).getHand();
 			// if empty match
-			if (playerHand.getHiddenHand().equals(emptyTileArrayListPattern)) {
+			if (checkEmptyArrayList(playerHand.getHiddenHand())) {
+				Log.d("Game", "Game: Removing empty ArrayList placeholder for hidden tiles");
 				playerHand.setHiddenHand(emptyTileArrayList);
 			}
 			// if empty match
-			if (playerHand.getRevealedHand().equals(emptyTileArrayListPattern)) {
+			if (checkEmptyArrayList(playerHand.getRevealedHand())) {
+				Log.d("Game", "Game: Removing empty ArrayList placeholder for revealed tiles");
 				playerHand.setRevealedHand(emptyTileArrayList);
 			}
 		}
 		// hidden and uncovered Tiles?
-		if (this.wall.getHiddenTiles().equals(emptyTileArrayListPattern)) {
+		if (checkEmptyArrayList(this.wall.getHiddenTiles())) {
+			Log.d("Game", "Game: Removing empty wall placeholder for hidden tiles");
 			this.wall.getHiddenTiles().clear();
 		}
-		if (this.wall.getUncoveredTiles().equals(emptyTileArrayListPattern)) {
+		if (checkEmptyArrayList(this.wall.getUncoveredTiles())) {
+			Log.d("Game", "Game: Removing empty wall placeholder for revealed tiles");
 			this.wall.getUncoveredTiles().clear();
 		}
 	}
 
+	private Boolean checkEmptyArrayList(ArrayList<Tile> arr) {
+		if (arr.size() == 1) {
+			Tile tmp = arr.get(0);
+			// if not a real tile, then ArrayList was empty
+			return !tmp.checkRealTile();
+		}
+		return false;
+	}
 
 	/*
 

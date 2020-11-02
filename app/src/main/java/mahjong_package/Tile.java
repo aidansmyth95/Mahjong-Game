@@ -35,6 +35,11 @@ public class Tile {
         this.childClass = "None";
     }
 
+    public Boolean checkRealTile() {
+        // return true if not  & if not
+        return (!this.getDescriptor().equals("No tile")) && (!this.getChildClass().equals("None"));
+    }
+
     public void setID(int ID) { this.ID = ID; }
     public void setRank(int rank) { this.rank = rank; }
     public void setType(int type) { this.type = type; }

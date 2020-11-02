@@ -79,16 +79,13 @@ public class MultiplayerActivity extends AppCompatActivity {
         setContentView(R.layout.activity_multiplayer);
         // initialize the UI components
         initializeUI();
-        // redirect Game system out and system error
-        redirectGameSystemOut(gameOutTv);
-        redirectGameSystemErr(gameOutTv);
+
         // test the test vectors before Game
         TestVectors testVectors = new TestVectors();
+        gameOutTv.setText("");
         passed_tests = testVectors.testVectorPass();
-        if (passed_tests) {
+        if (!passed_tests) {
             gameOutTv.setText(R.string.test_vector_failed);
-        } else {
-            gameOutTv.setText("");
         }
     }
 
@@ -198,10 +195,7 @@ public class MultiplayerActivity extends AppCompatActivity {
                     hidden_descriptors = currGame.getHiddenDescriptors();
                     revealed_descriptors = currGame.getRevealedDescriptors();
                     // update UI - revealed hand, hidden hand, unused tile space, text
-                    if (currGame.getUpdateUI()) {
-                        updateUI();
-                        currGame.setUpdateUI(false);
-                    }
+                     updateUI();
                     // debug info on Game status and values of concern
                     logcatGameStatus(currGame, playerIdx, latest_discard_idx);
                     // delay runnable by gameDelayMs milliseconds - reduces annoying refresh
@@ -232,6 +226,7 @@ public class MultiplayerActivity extends AppCompatActivity {
     /* Update UI */
     private void updateUI() {
         Log.i(TAG, TAG + " Updating UI...");
+        gameOutTv.setText(currGame.getGameOutput());
         updateTiles();
         // update player's turn textview
         playerTurnTv.setText(getString(R.string.waiting_room_players_turn, currGame.getPlayerTurn()));
@@ -261,42 +256,22 @@ public class MultiplayerActivity extends AppCompatActivity {
         gameListener = dbRef.child("multiplayer_games").child(currUser.getLastGameId()).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                Log.d(TAG,TAG+": child nodes changed for game = "+dataSnapshot.getChildrenCount());
+                Log.d(TAG, TAG + ": child nodes changed for game = " + dataSnapshot.getChildrenCount());
                 currGame = getCurrGameDetailsFirebase(dataSnapshot);
                 if (currGame.gameExists()) {
                     playerIdx = currGame.getPlayerIdx(currUser.getUid());
                     // save Game text output for reload on resume
                     if (gameOutTv.getText().toString().isEmpty()) {
                         gameOutTv.setText(currGame.getGameMessage(playerIdx));
-                        currGame.setGameMessage(playerIdx,"");
+                        currGame.setGameMessage(playerIdx, "");
                     }
                 }
             }
+
             @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {}
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+            }
         });
-    }
-
-    private void redirectGameSystemOut(final TextView tv) {
-        // set System.out in all classes to be TextView
-        System.setOut(new PrintStream(new OutputStream() {
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            @Override public void write(int oneByte) {
-                outputStream.write(oneByte);
-                tv.setText(new String(outputStream.toByteArray()));
-            }
-        }));
-    }
-
-    private void redirectGameSystemErr(final TextView tv) {
-        // set System.Err to write to TextView
-        System.setErr(new PrintStream(new OutputStream() {
-            ByteArrayOutputStream errorStream = new ByteArrayOutputStream();
-            @Override public void write(int oneByte) {
-                errorStream.write(oneByte);
-                tv.setText(new String(errorStream.toByteArray()));
-            }
-        }));
     }
 
     @Override
@@ -639,7 +614,7 @@ public class MultiplayerActivity extends AppCompatActivity {
         ArrayList<String> hidden_tile_paths = currGame.descriptorToDrawablePath(hidden_descriptors);
         for (int j=0; j<hidden_tile_paths.size(); j++) {
             String hidden_tile_path = hidden_tile_paths.get(j);
-            Log.e(TAG, TAG + " hidden tile " + hidden_tile_path);
+            Log.d(TAG, TAG + " hidden tile " + hidden_tile_path);
 
             int resourceId = getResources().getIdentifier(hidden_tile_path, "drawable", "com.example.mahjong");
             if (resourceId == 0) {
@@ -659,7 +634,7 @@ public class MultiplayerActivity extends AppCompatActivity {
         ArrayList<String> revealed_tile_paths = currGame.descriptorToDrawablePath(currGame.getRevealedDescriptors());
         for (int j=0; j<revealed_tile_paths.size(); j++) {
             String revealed_tile_path = revealed_tile_paths.get(j);
-            Log.e(TAG, TAG + " revealed tile " + revealed_tile_path);
+            Log.d(TAG, TAG + " revealed tile " + revealed_tile_path);
 
             int resourceId = getResources().getIdentifier(revealed_tile_path, "drawable", "com.example.mahjong");
             if (resourceId == 0) {
@@ -709,32 +684,36 @@ public class MultiplayerActivity extends AppCompatActivity {
     }
 
     public static void logcatGameStatus(Game game, int playerIdx) {
-        Log.i(TAG, TAG + ": \n---------- Status update  ----------");
-        Log.i(TAG, TAG + ": Game name is " + game.getGameName());
-        Log.i(TAG, TAG + ": Number of players playing is " + game.countNumPlayersPlaying() + " are playing");
-        Log.i(TAG, TAG + ": All players are playing? = " + game.allPlayersPlaying());
-        Log.i(TAG, TAG + ": Players playing are " + game.namePlayersPlaying());
-        Log.i(TAG, TAG + ": Players not playing are " + game.namePlayersNotPlaying());
-        Log.i(TAG, TAG + ": Game status is " + game.getGameStatus());
-        Log.i(TAG, TAG + ": Game accepting responses? " + game.getAcceptingResponses());
-        Log.i(TAG, TAG + ": This Player's ID? " + playerIdx);
-        Log.i(TAG, TAG + ": Latest flower descriptor? " + game.getLatestFlowersCollectedDescriptorResource(playerIdx));
-        Log.i(TAG, TAG + ": \n-------------------------------\n");
+        Log.d(TAG, TAG + ": \n---------- Status update  ----------");
+        Log.d(TAG, TAG + ": Game name is " + game.getGameName());
+        Log.d(TAG, TAG + ": Number of players playing is " + game.countNumPlayersPlaying() + " are playing");
+        Log.d(TAG, TAG + ": All players are playing? = " + game.allPlayersPlaying());
+        Log.d(TAG, TAG + ": Players playing are " + game.namePlayersPlaying());
+        Log.d(TAG, TAG + ": Players not playing are " + game.namePlayersNotPlaying());
+        Log.d(TAG, TAG + ": Game status is " + game.getGameStatus());
+        Log.d(TAG, TAG + ": Game accepting responses? " + game.getAcceptingResponses());
+        Log.d(TAG, TAG + ": This Player's ID? " + playerIdx);
+        Log.d(TAG, TAG + ": Latest flower descriptor? " + game.getLatestFlowersCollectedDescriptorResource(playerIdx));
+        Log.d(TAG, TAG + ": Number of hidden tiles: " + game.getHiddenDescriptors().size());
+        Log.d(TAG, TAG + ": Number of revealed tiles: " + game.getRevealedDescriptors().size());
+        Log.d(TAG, TAG + ": \n-------------------------------\n");
     }
 
     public static void logcatGameStatus(Game game, int playerIdx, int latest_discard_idx ) {
-        Log.i(TAG, TAG + ": \n---------- Status update  ----------");
-        Log.i(TAG, TAG + ": Game name is " + game.getGameName());
-        Log.i(TAG, TAG + ": Number of players playing is " + game.countNumPlayersPlaying() + " are playing");
-        Log.i(TAG, TAG + ": All players are playing? = " + game.allPlayersPlaying());
-        Log.i(TAG, TAG + ": Players playing are " + game.namePlayersPlaying());
-        Log.i(TAG, TAG + ": Players not playing are " + game.namePlayersNotPlaying());
-        Log.i(TAG, TAG + ": Game status is " + game.getGameStatus());
-        Log.i(TAG, TAG + ": Game accepting responses? " + game.getAcceptingResponses());
-        Log.i(TAG, TAG + ": This Player's ID? " + playerIdx);
-        Log.i(TAG, TAG + ": Latest flower descriptor? " + game.getLatestFlowersCollectedDescriptorResource(playerIdx));
-        Log.i(TAG, TAG + ": Latest discard ID? " + latest_discard_idx);
-        Log.i(TAG, TAG + ": \n-------------------------------\n");
+        Log.d(TAG, TAG + ": \n---------- Status update  ----------");
+        Log.d(TAG, TAG + ": Game name is " + game.getGameName());
+        Log.d(TAG, TAG + ": Number of players playing is " + game.countNumPlayersPlaying() + " are playing");
+        Log.d(TAG, TAG + ": All players are playing? = " + game.allPlayersPlaying());
+        Log.d(TAG, TAG + ": Players playing are " + game.namePlayersPlaying());
+        Log.d(TAG, TAG + ": Players not playing are " + game.namePlayersNotPlaying());
+        Log.d(TAG, TAG + ": Game status is " + game.getGameStatus());
+        Log.d(TAG, TAG + ": Game accepting responses? " + game.getAcceptingResponses());
+        Log.d(TAG, TAG + ": This Player's ID? " + playerIdx);
+        Log.d(TAG, TAG + ": Latest flower descriptor? " + game.getLatestFlowersCollectedDescriptorResource(playerIdx));
+        Log.d(TAG, TAG + ": Latest discard ID? " + latest_discard_idx);
+        Log.d(TAG, TAG + ": Number of hidden tiles: " + game.getHiddenDescriptors().size());
+        Log.d(TAG, TAG + ": Number of revealed tiles: " + game.getRevealedDescriptors().size());
+        Log.d(TAG, TAG + ": \n-------------------------------\n");
     }
 
     public void clearAllOtherBorders(int hidden_hand_idx) {

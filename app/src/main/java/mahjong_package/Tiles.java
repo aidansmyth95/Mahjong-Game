@@ -23,10 +23,9 @@ public class Tiles {
         shuffleTiles();
     }
 
-    public void setTotalTiles(int n) {}
     public void setHiddenTiles(ArrayList<Tile> hand) { this.hiddenTiles = hand; }
     public void setUncoveredTiles(ArrayList<Tile> hand) { this.uncoveredTiles = hand; }
-    public int getTotalTiles() { return this.totalTiles; }
+
     public ArrayList<Tile> getHiddenTiles() { return this.hiddenTiles; }
     public ArrayList<Tile> getUncoveredTiles() { return this.uncoveredTiles; }
 
@@ -56,7 +55,6 @@ public class Tiles {
         for (int type=0; type<3; type++) {      // 3 types
             for (int rank=0; rank<9; rank++) {  // 9 ranks
                 for (int ID=0; ID<4; ID++) {    // 4 duplicates
-                    Log.e("DEBUG", "Game debug type " + type);
                     hiddenTiles.add(new Suits(type+1, rank+1, ID));
                     i++;
                 }
@@ -98,9 +96,9 @@ public class Tiles {
         }
 
         if (hiddenTiles.size() != totalTiles || uncoveredTiles.size() != 0) {
-            System.err.println("ERROR: Hidden tiles or uncovered tiles size not correct");
-            System.err.println("Hidden = " + hiddenTiles.size());
-            System.err.println("Uncovered = " + uncoveredTiles.size());
+            Log.e(
+                    "Tiles",
+                    "Tiles: Hidden tiles or uncovered tiles size not correct = " + hiddenTiles.size() + " " + uncoveredTiles.size());
         }
 
     }
@@ -109,16 +107,10 @@ public class Tiles {
 	Tile revealWallTile() {
         Tile t = new Tile();
         if (this.hiddenTiles.isEmpty()) {
-            System.out.println("\nNo hidden tiles in deck left to uncover. Please restart the game :)");
+            Log.i("Tiles","Tiles: No hidden tiles in deck left to uncover. Please restart the game");
             return t;
         }
         t = this.hiddenTiles.remove(0);
-        // check this is actually a legitimate tile
-        if (!t.getChildClass().equals("Suits") && !t.getChildClass().equals("Honors") && t.getChildClass().equals("Bonus")) {
-            // problem
-            Log.e("Tile","Tiles: This tile does not exist: " + t.getDescriptor());
-            return t;
-        }
         // put revealed tile in ArrayList
         uncoveredTiles.add(t);
         return t;

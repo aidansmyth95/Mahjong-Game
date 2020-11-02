@@ -69,9 +69,6 @@ public class TestVectors {
                         break;
                 }
                 Log.d(TAG, TAG+": Test vector " + i + " pass? - " + bool_val);
-                if (!bool_val) {
-                    System.out.println("Failed test " + i);
-                }
                 results.set(i, bool_val);
             }
         }

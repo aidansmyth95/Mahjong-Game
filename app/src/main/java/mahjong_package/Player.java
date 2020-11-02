@@ -131,11 +131,6 @@ public class Player {
 	// a Tse has been called. Add tile and discard a chosen tile.
 	void tse(Tile t) { this.addToHand(t); }
 
-	// show Hand
-	void showHiddenHand() {
-		this.hand.showHiddenHand();
-	}
-
 	// add a tile to hand
 	HandStatus addToHand(Tile tile) { return this.hand.addToHand(tile); }
 
@@ -154,14 +149,11 @@ public class Player {
 		// if no Pong arrays in this ArrayList (size 0), return false
 		if (chows.size() > 0) {
 			// if Pong option(s), list options & ask user to choose Pong, or decline
-			System.out.println("Player " + this.playerIdx + ": Chow?");
 			for (int i=0; i<chows.size(); i++) {
-				System.out.printf("\t%d. idx {%d %d}\n", i, chows.get(i)[0], chows.get(i)[1]);
 				//this.possiblePongs.add(pongs.get(i));
 				String stringVal = Arrays.toString(chows.get(i));
 				this.ppk.setPossibleChow(i, stringVal);
 			}
-			System.out.printf("\t%d. Skip pong\n", chows.size());
 			return true;
 		}
 		return false;

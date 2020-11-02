@@ -55,7 +55,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintHorizontal_bias="0.03" />
+        app:layout_constraintHorizontal_bias="0.02" />
     <ImageView
         android:id="@+id/h1"
         style="@style/HiddenTileFeatures"
@@ -151,11 +151,9 @@
         android:id="@+id/h14"
         style="@style/HiddenTileFeatures"
         android:contentDescription="@string/tile_for_player_at_hand_position_13"
+        app:layout_constraintStart_toEndOf="@id/h13"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintHorizontal_bias="0.98" />
+        app:layout_constraintTop_toTopOf="parent" />
 
 
     <ImageView
@@ -166,7 +164,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintHorizontal_bias="0.03" />
+        app:layout_constraintHorizontal_bias="0.02" />
     <ImageView
         android:id="@+id/r1"
         style="@style/RevealedTileFeatures"
@@ -265,9 +263,7 @@
         style="@style/RevealedTileFeatures"
         android:contentDescription="@string/tile_for_player_at_hand_position_13"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.98"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toEndOf="@id/h13"
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
@@ -311,7 +307,7 @@
     <TextView
         android:id="@+id/textViewOut"
         android:layout_width="314dp"
-        android:layout_height="70dp"
+        android:layout_height="100dp"
         android:background="#6DFFFFFF"
         android:duplicateParentState="false"
         android:gravity="bottom"
@@ -336,9 +332,9 @@
         android:text="@string/tse"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintVertical_bias="0.7"
+        app:layout_constraintTop_toBottomOf="@id/discard_button"
+        app:layout_constraintVertical_bias="0.01"
         app:layout_constraintHorizontal_bias="0.1" />
 
     <Button
@@ -349,9 +345,9 @@
         android:text="@string/draw"
         app:layout_constraintStart_toEndOf="@id/tse_button"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintVertical_bias="0.7"
+        app:layout_constraintTop_toBottomOf="@id/discard_button"
+        app:layout_constraintVertical_bias="0.01"
         app:layout_constraintHorizontal_bias="0.05" />
 
     <Button
@@ -429,7 +425,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/discard_button"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintVertical_bias="0.6"
+        app:layout_constraintVertical_bias="0.8"
         app:layout_constraintHorizontal_bias="0.5" />
 
     <Button
@@ -442,7 +438,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/discarded"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintVertical_bias="0.4"
+        app:layout_constraintVertical_bias="0.5"
         app:layout_constraintHorizontal_bias="0.5" />
 
     <ImageButton

@@ -97,14 +97,8 @@ public class Hand {
 	 *  Discard a tile of a specified hand index
 	 */
 	Tile discardTile(int idx) {
-		Tile tmp = new Tile();
-		// verify index is valid
-		if (idx < 0 || idx >= this.hiddenHand.size()) {
-			System.out.printf("Hand index %d is not valid, please choose again\n", idx);
-			return tmp;
-		}
 		// copy tile and remove from hand
-		tmp = this.hiddenHand.remove(idx);
+		Tile tmp = this.hiddenHand.remove(idx);
 		// order hand
 		Collections.sort(this.hiddenHand, new TileOrderComparator());
 		Log.i("Hand","Hand: Discarded from hidden hand " + tmp.getDescriptor());
@@ -196,7 +190,7 @@ public class Hand {
 	ArrayList<int[]> checkChow(Tile t) {
 		// ArrayList of integers for hidden hand index combos of pongs
 		ArrayList<int[]> chows = new ArrayList<>();
-		// arrays of pong matches or sequences in the hidden hand
+		// arrays of chow matches or sequences in the hidden hand
 		int[] seq_idx = new int[2];
 		ArrayList<Tile> tmp_hand_list = new ArrayList<>(this.hiddenHand);
 		int loop_size = tmp_hand_list.size();
@@ -226,10 +220,12 @@ public class Hand {
 		Tile[] tn = new Tile[3];
 		// check if 3 with 1 difference in rank in hand
 		for (int i=0; i<tmp_hand_list.size()-2; i++) {
+			// get next three suits collected
 			tn[0] = tmp_hand_list.get(i);
 			tn[1] = tmp_hand_list.get(i+1);
 			tn[2] = tmp_hand_list.get(i+2);
-			// three same types in a row
+			Log.d("Hand", "Hand: Checking trio for chow: " + tn[0].getDescriptor() + " " + tn[1].getDescriptor() + " " + tn[2].getDescriptor());
+			// check that t is a member
 			boolean t_is_member = false;
 			for (int n=0; n<3; n++) {
 				if (tn[n].getDescriptor().equals(t.getDescriptor())) {
@@ -238,28 +234,24 @@ public class Hand {
 				}
 			}
 			if (t_is_member) {
-				if (tn[0].getType() == tn[1].getType() && tn[1].getType() == tn[2].getType()) {
-					// difference of 2 between first and last sorted tiles
-					if (tn[2].getRank() - tn[0].getRank() == 2) {
-						// one of these tiles is the potential Pong tile
-						if (t.getDescriptor().equals(tn[0].getDescriptor()) ||
-								t.getDescriptor().equals(tn[1].getDescriptor()) ||
-								t.getDescriptor().equals(tn[2].getDescriptor()) )
-						{
-							// record those that are not t
-							if (t.getDescriptor().equals(tn[0].getDescriptor())) {
-								seq_idx[0] = this.findHiddenIndex(tn[1])[0];
-								seq_idx[1] = this.findHiddenIndex(tn[2])[0];
-							} else if (t.getDescriptor().equals(tn[1].getDescriptor())) {
-								seq_idx[0] = this.findHiddenIndex(tn[0])[0];
-								seq_idx[1] = this.findHiddenIndex(tn[2])[0];
-							} else {
-								seq_idx[0] = this.findHiddenIndex(tn[0])[0];
-								seq_idx[1] = this.findHiddenIndex(tn[1])[0];
-							}
-							chows.add(seq_idx);
-						}
+				// difference of 2 between first and last sorted tiles
+				if (tn[2].getRank() - tn[0].getRank() == 2) {
+					// record those that are not t
+					if (t.getDescriptor().equals(tn[0].getDescriptor())) {
+						seq_idx[0] = this.findHiddenIndex(tn[1])[0];
+						seq_idx[1] = this.findHiddenIndex(tn[2])[0];
+					} else if (t.getDescriptor().equals(tn[1].getDescriptor())) {
+						seq_idx[0] = this.findHiddenIndex(tn[0])[0];
+						seq_idx[1] = this.findHiddenIndex(tn[2])[0];
+					} else {
+						seq_idx[0] = this.findHiddenIndex(tn[0])[0];
+						seq_idx[1] = this.findHiddenIndex(tn[1])[0];
 					}
+					Log.d("Hand", "Hand: Chows identified for :");
+					for (int c=0; c<3; c++) {
+						Log.d("Hand", "\t"+tn[c].getDescriptor());
+					}
+					chows.add(seq_idx);
 				}
 			}
 		}
@@ -306,7 +298,6 @@ public class Hand {
 				}
 			}
 		}
-
 		// count number of triples for Bonus and Honors
 		for (int n=0; n<2; n++) {
 			bonus_count = this.countBonus(tmp_list, n+1);
@@ -328,22 +319,8 @@ public class Hand {
 				}
 			}
 		}
-		Log.d("Hand", "Hand: Already revealed " + num_revealed);
-		Log.d("Hand", "Hand: Four of a kind = " + num_quadruple);
-		Log.d("Hand", "Hand: Three of a kind = " + num_triple);
-		Log.d("Hand", "Hand: Sequence of three = " + num_seq);
-		Log.d("Hand", "Hand: Two of a kind = " + num_pair);
 		// if meets Mahjong criteria return true
 		return (num_quadruple + num_revealed + num_triple + num_seq) == 4 && num_pair == 1;
-	}
-	
-	// display a hand's contents
-	void showHiddenHand() {
-		// for all tiles in hand, print a tile descriptor
-		System.out.println("\nHand: ");
-		for (int i=0; i<this.getHiddenHandSize(); i++) {
-			System.out.println(i + ": " + this.hiddenHand.get(i).getDescriptor());
-		}
 	}
 
 	// get all descriptors for tiles in revealed hand
