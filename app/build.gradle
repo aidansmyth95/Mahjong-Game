@@ -1,23 +1,44 @@
 apply plugin: 'com.android.application'
 
 android {
+    signingConfigs {
+        debug {
+            storeFile file('/home/aidan/AndroidStudioProjects/Mahjong/Keystore/mahjong_keystore.jks')
+            storePassword 'mj2020'
+            keyAlias 'mj2020'
+            keyPassword 'mj2020'
+        }
+        release {
+            storeFile file('/home/aidan/AndroidStudioProjects/Mahjong/Keystore/mahjong_keystore.jks')
+            storePassword 'mj2020'
+            keyAlias 'mj2020'
+            keyPassword 'mj2020'
+        }
+    }
     compileSdkVersion 29
     buildToolsVersion "29.0.3"
 
     defaultConfig {
-        applicationId "com.example.mahjong"
+        applicationId "com.aidansmyth95.mahjong"
         minSdkVersion 16
         targetSdkVersion 29
         versionCode 1
         versionName "1.0"
-
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
-        release {
+        debug {
+            testCoverageEnabled = true
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.debug
+        }
+        release {
+            testCoverageEnabled = false
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.debug
         }
     }
 

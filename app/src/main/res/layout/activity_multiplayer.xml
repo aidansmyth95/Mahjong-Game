@@ -9,7 +9,7 @@
     android:keepScreenOn="true"
     tools:context=".MultiplayerActivity">
 
-    <com.example.mahjong.CircularTextView
+    <com.aidansmyth95.mahjong.CircularTextView
         android:id="@+id/circularFlowersTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -292,6 +292,19 @@
         app:layout_constraintVertical_bias="0.35" />
 
     <TextView
+        android:id="@+id/p_actual"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/common_google_signin_btn_text_dark_default"
+        android:text="@string/player_n"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintHorizontal_bias="0.9"
+        app:layout_constraintVertical_bias="0.7" />
+
+    <TextView
         android:id="@+id/latest_discard_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -310,18 +323,18 @@
         android:layout_height="100dp"
         android:background="#6DFFFFFF"
         android:duplicateParentState="false"
-        android:gravity="bottom"
+        android:gravity="bottom|center"
         android:scrollbarAlwaysDrawVerticalTrack="true"
         android:scrollbarStyle="insideInset"
         android:scrollbars="vertical"
         android:text="@string/hello_mahjong"
-        android:textAllCaps="true"
+        android:textAllCaps="false"
         android:textColor="#FFFFFF"
         android:textSize="16sp"
-        app:layout_constraintTop_toBottomOf="@id/discarded"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/discarded"
         app:layout_constraintVertical_bias="0.15" />
 
     <Button

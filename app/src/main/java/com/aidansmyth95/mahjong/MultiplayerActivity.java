@@ -1,4 +1,4 @@
-package com.example.mahjong;
+package com.aidansmyth95.mahjong;
 
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -25,9 +25,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Locale;
 
@@ -53,11 +50,11 @@ public class MultiplayerActivity extends AppCompatActivity {
     private static final String TAG = "MultiplayerActivity";
     private Game currGame = new Game(-1);
     private User currUser = new User();
-    private final long gameDelayMs = 500;
+    private final long gameDelayMs = 2000; // every 2 seconds
     private int playerIdx;
     private boolean passed_tests = false;
     private boolean gamePausedAwaitingPlayers;
-    private TextView gameOutTv, playerTurnTv;
+    private TextView gameOutTv, playerTurnTv, playerIdTv;
     private CircularTextView numFlowersText;
     private ImageView discardedImage, flowerPileImage;
     private ArrayList<String> hidden_descriptors = new ArrayList<>();
@@ -226,11 +223,9 @@ public class MultiplayerActivity extends AppCompatActivity {
     /* Update UI */
     private void updateUI() {
         Log.i(TAG, TAG + " Updating UI...");
-        gameOutTv.setText(currGame.getGameOutput());
+        updateTextViews();
+        // Update tile ImageViews
         updateTiles();
-        // update player's turn textview
-        playerTurnTv.setText(getString(R.string.waiting_room_players_turn, currGame.getPlayerTurn()));
-        playerTurnTv.setVisibility(View.VISIBLE);
         // enable send button and its functionality if player's input is requested
         updateButtonVisibility();
     }
@@ -300,7 +295,7 @@ public class MultiplayerActivity extends AppCompatActivity {
         }
     }
 
-    public void imageViewInitListeners() {
+    private void imageViewInitListeners() {
         discardedImage = findViewById(R.id.discarded);
         discardedImage.setVisibility(View.INVISIBLE);
         discardedImage.setOnTouchListener(new View.OnTouchListener()
@@ -414,12 +409,15 @@ public class MultiplayerActivity extends AppCompatActivity {
         numFlowersText.setStrokeColor("#ffffff");
         numFlowersText.setSolidColor("#F41B1B");
         numFlowersText.setVisibility(View.INVISIBLE);
+        playerIdTv = findViewById(R.id.p_actual);
+        playerIdTv.setText("-1");
+        playerIdTv.setVisibility(View.INVISIBLE);
     }
 
     /*
         Initialize buttons and add their listeners to enable player responses to Game
      */
-    public void buttonInitListenersForUserResponses() {
+    private void buttonInitListenersForUserResponses() {
         final MediaPlayer mp = MediaPlayer.create(this, R.raw.button_sound);
         drawButton = findViewById(R.id.draw_tile_button);
         drawButton.setVisibility(View.INVISIBLE);
@@ -514,7 +512,7 @@ public class MultiplayerActivity extends AppCompatActivity {
     /*
         Match corresponding int idx to enum
      */
-    public ResponseReceivedType getDiscardEnum(int idx) {
+    private ResponseReceivedType getDiscardEnum(int idx) {
         switch (idx) {
             case 0:
                 return ResponseReceivedType.DISCARD_0;
@@ -553,10 +551,18 @@ public class MultiplayerActivity extends AppCompatActivity {
         }
     }
 
+    private void updateTextViews() {
+        gameOutTv.setText(currGame.getGameOutput());
+        playerTurnTv.setText(getString(R.string.waiting_room_players_turn, currGame.getPlayerTurn()));
+        playerTurnTv.setVisibility(View.VISIBLE);
+        playerIdTv.setText(getString(R.string.actual_player_id, playerIdx));
+        playerIdTv.setVisibility(View.VISIBLE);
+    }
+
     /*
         Enable visibility of buttons that are available for response from user
      */
-    public void updateButtonVisibility() {
+    private void updateButtonVisibility() {
         int vis = View.INVISIBLE;
         // make all invisible by default
         drawButton.setVisibility(vis);
@@ -604,7 +610,7 @@ public class MultiplayerActivity extends AppCompatActivity {
     /*
         Update the tiles and their visisbility
      */
-    public void updateTiles() {
+    private void updateTiles() {
         // set all handTiles to be invisible
         for (int i=0; i<14; i++) {
             handTiles[i].setVisibility(View.INVISIBLE);
@@ -616,10 +622,11 @@ public class MultiplayerActivity extends AppCompatActivity {
             String hidden_tile_path = hidden_tile_paths.get(j);
             Log.d(TAG, TAG + " hidden tile " + hidden_tile_path);
 
-            int resourceId = getResources().getIdentifier(hidden_tile_path, "drawable", "com.example.mahjong");
+            int resourceId = getResources().getIdentifier(hidden_tile_path, "drawable", "com.aidansmyth95.mahjong");
             if (resourceId == 0) {
                 // if resource does not exist
                 Log.e(TAG, TAG + " Resource ID for hidden tile " + j + " is " + resourceId);
+                Log.e(TAG, TAG + " Drawable path for hidden tile is '" + hidden_tile_path + "'");
             } else {
                 handTiles[j].setImageResource(resourceId);
                 handTiles[j].setVisibility(View.VISIBLE);
@@ -716,7 +723,7 @@ public class MultiplayerActivity extends AppCompatActivity {
         Log.d(TAG, TAG + ": \n-------------------------------\n");
     }
 
-    public void clearAllOtherBorders(int hidden_hand_idx) {
+    private void clearAllOtherBorders(int hidden_hand_idx) {
         // clear all hidden hands highlighted expect that idx which is input
         for (int h=0; h<15; h++) {
             if (h != hidden_hand_idx) {

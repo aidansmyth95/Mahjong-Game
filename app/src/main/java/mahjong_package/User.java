@@ -6,25 +6,35 @@ This class should be pushed t database for any list of users
  */
 public class User {
 
-    private String uname = "";
-    private String uid = "";
-    private String email = "";
-    private String providerId = "";
-    private boolean emailVerified = false;
-    private String lastGameId = "NaN";
-    private String userStatus = "inactive";     // inactive, joined, playing
-    private int winTallies = 0;
+    private String uname;
+    private String uid;
+    private String email;
+    private String providerId;
+    private boolean emailVerified;
+    private String lastGameId;
+    private String userStatus;     // inactive, joined, playing
+    private int winTallies;
 
-    public User() { }
+    public User() {
+        setUname("NaN");
+        setUid("NaN");
+        setEmail("NaN");
+        setProviderId("NaN");
+        setEmailVerified(false);
+        setLastGameId("NaN");
+        setUserStatus("inactive");
+        setWinTallies(0);
+    }
 
-    public User(String uname, String uid, String email, boolean emailVerified, String userStatus, String providerId) {
-        this();
+    public User(String uname, String uid, String email, boolean emailVerified, String userStatus, String providerId, int winTallies) {
+        //this();
         setUname(uname);
         setUid(uid);
         setEmail(email);
         setEmailVerified(emailVerified);
         setUserStatus(userStatus);
         setProviderId(providerId);
+        setWinTallies(winTallies);
     }
 
 

@@ -1,4 +1,4 @@
-package com.example.mahjong;
+package com.aidansmyth95.mahjong;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;

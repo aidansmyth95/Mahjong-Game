@@ -57,6 +57,7 @@ public class Game {
 	public Tile getLatestDiscard() { return this.latestDiscard; }
 	public Integer getNumPlayers() { return this.numPlayers; }
 	public ArrayList<Player> getPlayer() { return this.player; }
+	public Player getPlayer(int p) { return this.player.get(p); }
 	public Tiles getWall() { return this.wall; }
 	public Integer getPlayerTurn() { return this.playerTurn; }
 	public Integer getWinnerIdx() { return this.winnerIdx; }
@@ -83,69 +84,67 @@ public class Game {
 	 */
 	public Boolean playGame() {
 		// check all players are registered
-		if (this.numPlayers != this.maxPlayers) {
-			Log.i("Game","Game: Only " + this.numPlayers + " have joined out of " + this.maxPlayers);
+		if (this.getNumPlayers() != this.getMaxPlayers()) {
+			Log.i("Game","Game: Only " + this.getNumPlayers() + " have joined out of " + this.getMaxPlayers());
 			return false;
 		}
 		// return if no more tiles
 		if (!this.wall.tilesLeft()) {
-			System.out.println("No more tiles left.\n");
-			this.gameState = GameState.GAME_OVER;
+			this.setGameOutput("No more tiles left.\n");
+			this.setGameState(GameState.GAME_OVER);
 		}
 
-		int next_player = (this.playerTurn + 1) % this.numPlayers;
-		Log.i("Game","Game: "+this.gameState);
-		Log.i("Game","Game:\tplayer turn " + this.playerTurn + "\tnext player " + next_player);
+		int next_player = (this.getPlayerTurn() + 1) % this.getNumPlayers();
 
-		switch (this.gameState) {
+		switch (this.getGameState()) {
 			case START:
 				// check that all players have starting number of tiles. They might have removed flowers...
-				for (int p=0; p<this.numPlayers; p++) {
+				for (int p=0; p<this.getNumPlayers(); p++) {
 					// player starting draws an extra tile
 					final int starting_tile_count = 13;
 					Log.d("Game", "Game: Adding " + starting_tile_count + " tiles to hand");
 					// while tiles in hand less than correct starting amount
-					while (this.player.get(p).getHiddenHandCount() < starting_tile_count) {
+					while (this.getPlayer(p).getHiddenHandCount() < starting_tile_count) {
 						// add tile from deck to hand
 						Log.d("Game", "Game: Adding tile...");
-						this.player.get(p).addToHand(this.wall.revealWallTile());
+						this.getPlayer(p).addToHand(this.getWall().revealWallTile());
 					}
 				}
 				// get random ID for player's turn
-				this.playerTurn = this.getRandomPlayerID();
-				this.gameState = GameState.DRAWING_TILE;
+				this.setPlayerTurn(this.getRandomPlayerID());
+				this.setGameState(GameState.DRAWING_TILE);
 				break;
 
 			case CHECKING_HAND:
 				// check if players can Mahjong, Kong, Pong or Chow.
-				for (int i = 0; i<this.numPlayers; i++) {
+				for (int i = 0; i<this.getNumPlayers(); i++) {
 					ArrayList<ResponseRequestType> respTypes = new ArrayList<>();
 					// player cannot interrupt their own turn - unless they are the only player playing!
-					if (i != this.playerTurn || this.numPlayers == 1) {
+					if (i != this.getPlayerTurn() || this.getNumPlayers() == 1) {
 						// check for Mahjong
-						if (this.player.get(i).checkHandMahjong(this.latestDiscard)) {
+						if (this.getPlayer(i).checkHandMahjong(this.getLatestDiscard())) {
 							respTypes.add(ResponseRequestType.MAHJONG);
-							this.gameOutput = "Player " + i + ": Mahjong?\t1=Mahjong\tother=No";
-						} else if (this.player.get(i).checkHandKong(this.latestDiscard)) {
+							this.setGameOutput("Player " + i + ": Mahjong?");
+						} else if (this.getPlayer(i).checkHandKong(this.latestDiscard)) {
 							respTypes.add(ResponseRequestType.KONG);
-							this.gameOutput = "Player " + i + ": Kong?\t1=Kong\tother=No";
-						} else if (this.player.get(i).checkHandPong(this.latestDiscard)) {
+							this.setGameOutput("Player " + i + ": Kong?");
+						} else if (this.getPlayer(i).checkHandPong(this.latestDiscard)) {
 							respTypes.add(ResponseRequestType.PONG);
-							this.gameOutput = "Player " + i + ": Pong?\t1=Pong\tother=No";
+							this.setGameOutput("Player " + i + ": Pong?");
 						} else if (i == next_player) {
 							// if we next player can chow
-							if (this.player.get(i).checkHandChow(this.latestDiscard)) {
+							if (this.getPlayer(i).checkHandChow(this.getLatestDiscard())) {
 								ResponseRequestType[] chows = {ResponseRequestType.CHOW_1, ResponseRequestType.CHOW_2, ResponseRequestType.CHOW_3};
-								respTypes.addAll(Arrays.asList(chows).subList(0, this.player.get(i).getPpk().getNumChows()));
+								respTypes.addAll(Arrays.asList(chows).subList(0, this.getPlayer(i).getPpk().getNumChows()));
 							}
 							// next player can tse or draw
 							respTypes.add(ResponseRequestType.TSE);
 							respTypes.add(ResponseRequestType.DRAW);
-							System.out.println("Player " + i + ": Tse? \t1=Tse\t0=No");
+							this.setGameOutput("Player " + i + ": Tse? \t1=Tse\t0=No");
 						}
 					}
 					// update player with its expected responses
-					this.player.get(i).setResponseOpportunities(respTypes);
+					this.getPlayer(i).setResponseOpportunities(respTypes);
 				}
 				// notify activity that it is time to check for responses from affected users
 				this.setAcceptingResponses(true);
@@ -155,54 +154,54 @@ public class Game {
 			// Here we handle responses. The game will go immediately to next state if MJ, Pong, Kong response.
 			case CHECKING_RESPONSES:
 				// check for MJ
-				for (int i=0; i<this.numPlayers; i++) {
+				for (int i=0; i<this.getNumPlayers(); i++) {
 					// any other player can respond with Mahjong - Highest priority
-					if ((i != this.playerTurn || this.numPlayers == 1) && this.player.get(i).checkMahjongResponseOpportunity()) {
+					if ((i != this.getPlayerTurn() || this.getNumPlayers() == 1) && this.player.get(i).checkMahjongResponseOpportunity()) {
 						ResponseReceivedType resp = this.player.get(i).getPlayerResponse();
 						// if player responded to MJ correctly
-						if (this.player.get(i).checkUserMahjong(resp)) {
-							this.acceptingResponses = false;
+						if (this.getPlayer(i).checkUserMahjong(resp)) {
+							this.setAcceptingResponses(false);
 							this.resetPlayerInput();
 							// loser is player who discarded the tile that was then used for MJ
-							this.loserIdx = this.playerTurn;
-							this.playerTurn = i;
-							this.player.get(this.playerTurn).Mahjong(this.latestDiscard);
+							this.setLoserIdx(this.getPlayerTurn());
+							this.setPlayerTurn(i);
+							this.getPlayer(this.playerTurn).Mahjong(this.getLatestDiscard());
 							this.setGameState(GameState.MAHJONG);
 							return false;
 						}
 					}
 				}
 				// check for Kong first - Second highest priority
-				for (int i=0; i<this.numPlayers; i++) {
-					if ((i != this.playerTurn || this.numPlayers == 1) && this.player.get(i).checkKongResponseOpportunity()) {
-						ResponseReceivedType resp = this.player.get(i).getPlayerResponse();
-						if (this.player.get(i).checkUserKong(resp)) {
+				for (int i=0; i<this.getNumPlayers(); i++) {
+					if ((i != this.getPlayerTurn() || this.getNumPlayers() == 1) && this.getPlayer(i).checkKongResponseOpportunity()) {
+						ResponseReceivedType resp = this.getPlayer(i).getPlayerResponse();
+						if (this.getPlayer(i).checkUserKong(resp)) {
 							this.setGameState(GameState.KONG);
-							this.playerTurn = i;
+							this.setPlayerTurn(i);
 							this.resetPlayerInput();
 							return false;
 						}
 					}
 				}
 				// check for Pong - 3rd highest priority
-				for (int i=0; i<this.numPlayers; i++) {
-					if ((i != this.playerTurn || this.numPlayers == 1) && this.player.get(i).checkPongResponseOpportunity()) {
-						ResponseReceivedType resp = this.player.get(i).getPlayerResponse();
-						if (this.player.get(i).checkUserPong(resp)) {
+				for (int i=0; i<this.getNumPlayers(); i++) {
+					if ((i != this.getPlayerTurn() || this.getNumPlayers() == 1) && this.getPlayer(i).checkPongResponseOpportunity()) {
+						ResponseReceivedType resp = this.getPlayer(i).getPlayerResponse();
+						if (this.getPlayer(i).checkUserPong(resp)) {
 							this.setGameState(GameState.PONG);
-							this.playerTurn = i;
+							this.setPlayerTurn(i);
 							this.resetPlayerInput();
 							return false;
 						}
 					}
 				}
 				// check for Chow - Penultimate priority
-				for (int i=0; i<this.numPlayers; i++) {
-					if (i == next_player && this.player.get(i).checkChowResponseOpportunity()) {
-						ResponseReceivedType resp = this.player.get(i).getPlayerResponse();
-						if (this.player.get(i).checkUserChow(resp)) {
+				for (int i=0; i<this.getNumPlayers(); i++) {
+					if (i == next_player && this.getPlayer(i).checkChowResponseOpportunity()) {
+						ResponseReceivedType resp = this.getPlayer(i).getPlayerResponse();
+						if (this.getPlayer(i).checkUserChow(resp)) {
 							this.setGameState(GameState.CHOW);
-							this.playerTurn = i;
+							this.setPlayerTurn(i);
 							this.resetPlayerInput();
 							return false;
 						}
@@ -210,24 +209,24 @@ public class Game {
 				}
 				// check for Draw tile or Tse or drawing new tile - Lowest priority, only vald after a time has passed
 				ResponseReceivedType nextPlayerResp = this.player.get(next_player).getPlayerResponse();
-				if (this.player.get(next_player).checkUserDraw(nextPlayerResp) || this.player.get(next_player).checkUserTse(nextPlayerResp)) {
+				if (this.getPlayer(next_player).checkUserDraw(nextPlayerResp) || this.getPlayer(next_player).checkUserTse(nextPlayerResp)) {
 					// start timer if next player input received for draw or tse, and it was not started already
-					if (!this.tseOrDrawCalled) {
-						this.tseOrDrawCalled = true;
+					if (!this.getTseOrDrawCalled()) {
+						this.setTseOrDrawCalled(true);
 						this.setTseCalledTime();
 						Log.d("timer analysis", "Time started at : " + this.getTseCalledTime() + " milliseconds.");
 					}
-					Log.d("timer analysis", "Time elapsed : " +this.getTseTimeElapsed() + " milliseconds.");
+					Log.d("timer analysis", "Time elapsed : " + this.getTseTimeElapsed() + " milliseconds.");
 					// n milliseconds after next player input for another player to have chance to interrupt
 					long ACCEPTING_RESPONSE_TIME_MS = 1000;
 					if (this.getTseTimeElapsed() >= ACCEPTING_RESPONSE_TIME_MS) {
-						if (this.player.get(next_player).checkUserDraw(nextPlayerResp)) {
+						if (this.getPlayer(next_player).checkUserDraw(nextPlayerResp)) {
 							this.setGameState(GameState.DRAWING_TILE);
-							this.playerTurn = next_player;
+							this.setPlayerTurn(next_player);
 							this.resetPlayerInput();
-						} else if (this.player.get(next_player).checkUserTse(nextPlayerResp)) {
+						} else if (this.getPlayer(next_player).checkUserTse(nextPlayerResp)) {
 							this.setGameState(GameState.TSE);
-							this.playerTurn = next_player;
+							this.setPlayerTurn(next_player);
 							this.resetPlayerInput();
 						}
 					}
@@ -235,94 +234,92 @@ public class Game {
 				break;
 
 			case MAHJONG:
-				this.gameState = GameState.GAME_OVER;
-				this.winnerIdx = this.playerTurn;
-				this.gameOutput = "Player " + this.playerTurn + ": Mahjong!";
+				this.setGameState(GameState.GAME_OVER);
+				this.setWinnerIdx(this.playerTurn);
+				this.setGameOutput("Player " + this.playerTurn + ": Mahjong!");
 				break;
 
 			case KONG:
-				this.player.get(this.playerTurn).kong(this.latestDiscard);
-				this.gameOutput = "Player " + this.playerTurn + ": Kong!";
-				this.gameState = GameState.DRAWING_TILE;
+				this.getPlayer(this.getPlayerTurn()).kong(this.getLatestDiscard());
+				this.setGameOutput("Player " + this.playerTurn + ": Kong!");
+				this.setGameState(GameState.DRAWING_TILE);
 				break;
 
 			case PONG:
-				this.player.get(this.playerTurn).pong(this.latestDiscard);
-				this.gameOutput = "Player " + this.playerTurn + ": Pong!";
-				this.gameState = GameState.DISCARD_OPTIONS;
+				this.getPlayer(this.getPlayerTurn()).pong(this.getLatestDiscard());
+				this.setGameOutput("Player " + this.playerTurn + ": Pong!");
+				this.setGameState(GameState.DISCARD_OPTIONS);
 				break;
 
 			case CHOW:
 				// by this stage the chosenChowIdx has been set in player class by user input
-				this.player.get(this.playerTurn).chow(this.latestDiscard);
-				this.gameOutput = "Player " + this.playerTurn + ": Chow!";
-				this.gameState = GameState.DISCARD_OPTIONS;
+				this.getPlayer(this.getPlayerTurn()).chow(this.getLatestDiscard());
+				this.setGameOutput("Player " + this.getPlayerTurn() + ": Chow!");
+				this.setGameState(GameState.DISCARD_OPTIONS);
 				break;
 
 			case TSE:
-				this.gameOutput = "Tse!";
-				this.player.get(this.playerTurn).tse(this.latestDiscard);
-				this.gameState = GameState.DISCARD_OPTIONS;
+				this.setGameOutput("Tse!");
+				this.getPlayer(this.getPlayerTurn()).tse(this.getLatestDiscard());
+				this.setGameState(GameState.DISCARD_OPTIONS);
 				break;
 
 			case DRAWING_TILE:
-				this.gameOutput = "Player " + this.playerTurn + ": drawing tile";
+				this.setGameOutput("Player " + this.getPlayerTurn() + ": drawing tile");
 				// last tile drawn
-				Tile tile_drawn = this.wall.revealWallTile();
+				Tile tile_drawn = this.getWall().revealWallTile();
 				// check if any more tiles to draw
 				if (!tile_drawn.checkRealTile()) {
-					this.gameOutput = "No hidden tiles in deck left to uncover. Please restart the game";
-					this.gameState = GameState.GAME_OVER;
+					this.setGameOutput("No hidden tiles in deck left to uncover. Please restart the game");
+					this.setGameState(GameState.GAME_OVER);
 				} else {
 					// check hand for a Mahjong
-					if (this.player.get(this.playerTurn).checkHandMahjong(tile_drawn)) {
-						this.gameOutput = "Player " + this.playerTurn + ": Mahjong By Your Own Hand!";
-						this.player.get(this.playerTurn).Mahjong(tile_drawn);
-						this.gameState = GameState.MAHJONG;
+					if (this.getPlayer(this.getPlayerTurn()).checkHandMahjong(tile_drawn)) {
+						this.setGameOutput("Player " + this.getPlayerTurn() + ": Mahjong By Your Own Hand!");
+						this.getPlayer(this.getPlayerTurn()).Mahjong(tile_drawn);
+						this.setGameState(GameState.MAHJONG);
 					} else {
 						// add tile to hand MJ or not
-						//TODO: DEBUG
-						Log.d("Game", "Game: DEBUG " + tile_drawn.getDescriptor());
-						if (this.player.get(this.playerTurn).addToHand(tile_drawn) == HandStatus.ADD_SUCCESS) {
-							this.gameState = GameState.DISCARD_OPTIONS;
+						if (this.getPlayer(this.playerTurn).addToHand(tile_drawn) == HandStatus.ADD_SUCCESS) {
+							this.setGameState(GameState.DISCARD_OPTIONS);
 						}
 					}
 				}
 				break;
 
 			case DISCARD_OPTIONS:
-				System.out.println("Player " + this.playerTurn + ": discard a hidden tile");
+				this.setGameOutput("Player " + this.getPlayerTurn() + ": discard a hidden tile");
 				// set request response for the player discarding to be true
 				ArrayList<ResponseRequestType> resp_options = new ArrayList<>();
 				resp_options.add(ResponseRequestType.DISCARD);
-				this.player.get(this.playerTurn).setResponseOpportunities(resp_options);
-				this.gameState = GameState.DISCARDING_TILE;
+				this.getPlayer(this.getPlayerTurn()).setResponseOpportunities(resp_options);
+				this.setGameState(GameState.DISCARDING_TILE);
 				// allow players to send responses to Game from MultiplayerActivity
 				this.setAcceptingResponses(true);
 				break;
 
 			// Discard a tile
 			case DISCARDING_TILE:
-				ResponseReceivedType discard_resp = this.player.get(this.playerTurn).getPlayerResponse();
+				ResponseReceivedType discard_resp = this.getPlayer(this.getPlayerTurn()).getPlayerResponse();
 				// if there is response
-				int discard_idx = this.player.get(this.playerTurn).checkValidDiscardResponse(discard_resp);
+				int discard_idx = this.getPlayer(this.getPlayerTurn()).checkValidDiscardResponse(discard_resp);
 				if (discard_idx != -1) {
-					this.latestDiscard = this.player.get(this.playerTurn).discardTile(discard_idx);
-					this.wall.addUncoveredTile(this.latestDiscard);
-					//System.out.println("Player " + this.playerTurn + " discarded " + this.latestDiscard.getDescriptor());
-					this.gameState = GameState.CHECKING_HAND;
+					this.setLatestDiscard(this.getPlayer(this.getPlayerTurn()).discardTile(discard_idx));
+					this.wall.addUncoveredTile(this.getLatestDiscard());
+					this.setGameOutput("Player " + this.getPlayerTurn() + " discarded " + this.latestDiscard.getDescriptor());
+					this.setGameState(GameState.CHECKING_HAND);
 					this.resetPlayerInput();
 				}
 				break;
 
 			case GAME_OVER:
-				System.out.println("Game over!\n");
+				this.setGameOutput("Game over!");
 				this.setGameStatus(GameStatus.FINISHED);
 				return true;
 
 			default:
-				System.out.println("ERROR: Game should not have reached this state.");
-				this.gameState = GameState.GAME_OVER;
+				System.err.println("ERROR: Game should not have reached this state.");
+				this.setGameState(GameState.GAME_OVER);
 				return true;
 		}
 		return false;
@@ -332,9 +329,9 @@ public class Game {
 		Reset these values once a user input has been received
 	 */
 	private void resetPlayerInput() {
-		for (int i=0; i<this.numPlayers; i++) {
-			this.player.get(i).clearResponseOpportunites();
-			this.player.get(i).setPlayerResponse(ResponseReceivedType.NONE);
+		for (int i=0; i<this.getNumPlayers(); i++) {
+			this.getPlayer(i).clearResponseOpportunites();
+			this.getPlayer(i).setPlayerResponse(ResponseReceivedType.NONE);
 			this.setTseOrDrawCalled(false);
 			this.setAcceptingResponses(false);
 		}
@@ -345,10 +342,10 @@ public class Game {
 	 */
 	public Boolean gameExists() { return !this.getGameID().equals("NaN"); }
 	private long getTseTimeElapsed() { return System.currentTimeMillis() - this.tseCalledTime; }
-	public void setPlayerResponse(int player_idx, ResponseReceivedType resp) { this.player.get(player_idx).setPlayerResponse(resp); }
-	public String getGameMessage(int player_idx) { return this.player.get(player_idx).getGameMessage(); }
-	public void setGameMessage(int player_idx, String msg) { this.player.get(player_idx).setGameMessage(msg); }
-	public void setPlayerPlayingStatus(boolean status, int playerIdx) { this.player.get(playerIdx).setPlayerPlaying(status); }
+	public void setPlayerResponse(int player_idx, ResponseReceivedType resp) { this.getPlayer(player_idx).setPlayerResponse(resp); }
+	public String getGameMessage(int player_idx) { return this.getPlayer(player_idx).getGameMessage(); }
+	public void setGameMessage(int player_idx, String msg) { this.getPlayer(player_idx).setGameMessage(msg); }
+	public void setPlayerPlayingStatus(boolean status, int playerIdx) { this.getPlayer(playerIdx).setPlayerPlaying(status); }
 
 	/*
 		Handling empty ArrayLists in Firebase
@@ -357,9 +354,9 @@ public class Game {
 		Tile emptyTile = new Tile();
 		ArrayList<Tile> emptyTileArrayList = new ArrayList<>();
 		emptyTileArrayList.add(emptyTile);
-		for (int i=0; i<this.numPlayers; i++) {
+		for (int i=0; i<this.getNumPlayers(); i++) {
 			// hand items hiddenHand and revealedHand
-			Hand playerHand = this.player.get(i).getHand();
+			Hand playerHand = this.getPlayer(i).getHand();
 			if (playerHand.getHiddenHand().isEmpty()) {
 				playerHand.setHiddenHand(emptyTileArrayList);
 			}
@@ -368,11 +365,11 @@ public class Game {
 			}
 		}
 		// hidden and uncovered Tiles?
-		if (wall.getHiddenTiles().isEmpty()) {
-			wall.setHiddenTiles(emptyTileArrayList);
+		if (this.getWall().getHiddenTiles().isEmpty()) {
+			this.getWall().setHiddenTiles(emptyTileArrayList);
 		}
-		if (wall.getUncoveredTiles().isEmpty()) {
-			wall.setUncoveredTiles(emptyTileArrayList);
+		if (this.getWall().getUncoveredTiles().isEmpty()) {
+			this.getWall().setUncoveredTiles(emptyTileArrayList);
 		}
 	}
 
@@ -382,9 +379,9 @@ public class Game {
 		// empty arraylist to set items to be
 		ArrayList<Tile> emptyTileArrayList = new ArrayList<>();
 		// empty arraylist pattern to find
-		for (int i=0; i<this.numPlayers; i++) {
+		for (int i=0; i<this.getNumPlayers(); i++) {
 			// hand items hiddenHand and revealedHand
-			Hand playerHand = this.player.get(i).getHand();
+			Hand playerHand = this.getPlayer(i).getHand();
 			// if empty match
 			if (checkEmptyArrayList(playerHand.getHiddenHand())) {
 				Log.d("Game", "Game: Removing empty ArrayList placeholder for hidden tiles");
@@ -399,11 +396,11 @@ public class Game {
 		// hidden and uncovered Tiles?
 		if (checkEmptyArrayList(this.wall.getHiddenTiles())) {
 			Log.d("Game", "Game: Removing empty wall placeholder for hidden tiles");
-			this.wall.getHiddenTiles().clear();
+			this.getWall().getHiddenTiles().clear();
 		}
 		if (checkEmptyArrayList(this.wall.getUncoveredTiles())) {
 			Log.d("Game", "Game: Removing empty wall placeholder for revealed tiles");
-			this.wall.getUncoveredTiles().clear();
+			this.getWall().getUncoveredTiles().clear();
 		}
 	}
 
@@ -423,7 +420,7 @@ public class Game {
 	 */
 
 	public ArrayList<Tile> getFlowersCollected(int p){
-		return this.player.get(p).getFlowersCollected();
+		return this.getPlayer(p).getFlowersCollected();
 	}
 
 	public String getFlowersCollectedString(int p) {
@@ -437,11 +434,11 @@ public class Game {
 	}
 
 	public String getLatestFlowersCollectedDescriptorResource(int p){
-		return this.player.get(p).getLatestFlowersCollectedDescriptor().toLowerCase().replace(" ", "_");
+		return this.getPlayer(p).getLatestFlowersCollectedDescriptor().toLowerCase().replace(" ", "_");
 	}
 
 	public int getFlowersCount(int playerIdx) {
-		return this.player.get(playerIdx).getFlowersCount();
+		return this.getPlayer(playerIdx).getFlowersCount();
 	}
 
 	@Exclude
@@ -451,12 +448,12 @@ public class Game {
 
 	@Exclude
 	public ArrayList<String> getRevealedDescriptors() {
-		return this.player.get(playerTurn).getRevealedDescriptors();
+		return this.getPlayer(this.getPlayerTurn()).getRevealedDescriptors();
 	}
 
 	@Exclude
 	public ArrayList<String> getHiddenDescriptors() {
-		return this.player.get(this.playerTurn).getHiddenDescriptors();
+		return this.getPlayer(this.getPlayerTurn()).getHiddenDescriptors();
 	}
 
 	public ArrayList<String> descriptorToDrawablePath(ArrayList<String> descriptors) {
@@ -476,9 +473,9 @@ public class Game {
 
 	public String namePlayersPlaying() {
 		ArrayList<String> names = new ArrayList<>();
-		for (int i=0; i<this.numPlayers; i++) {
-			if (this.player.get(i).getPlayerPlaying()) {
-				names.add(this.player.get(i).getPlayerUname());
+		for (int i=0; i<this.getNumPlayers(); i++) {
+			if (this.getPlayer(i).getPlayerPlaying()) {
+				names.add(this.getPlayer(i).getPlayerUname());
 			}
 		}
 		if (names.size() == 0) {
@@ -493,9 +490,9 @@ public class Game {
 
 	public String namePlayersNotPlaying() {
 		ArrayList<String> names = new ArrayList<>();
-		for (int i=0; i<this.numPlayers; i++) {
-			if (!this.player.get(i).getPlayerPlaying()) {
-				names.add(this.player.get(i).getPlayerUname());
+		for (int i=0; i<this.getNumPlayers(); i++) {
+			if (!this.getPlayer(i).getPlayerPlaying()) {
+				names.add(this.getPlayer(i).getPlayerUname());
 			}
 		}
 		if (names.size() == 0) {
@@ -509,11 +506,11 @@ public class Game {
 	}
 
 	public Boolean allPlayersPlaying() {
-		if (this.maxPlayers != this.numPlayers) {
+		if (this.getMaxPlayers() != this.getNumPlayers()) {
 			return false;
 		} else {
-			for (int i=0; i<this.maxPlayers; i++) {
-				if (!this.player.get(i).getPlayerPlaying()) {
+			for (int i=0; i<this.getMaxPlayers(); i++) {
+				if (!this.getPlayer(i).getPlayerPlaying()) {
 					return false;
 				}
 			}
@@ -523,8 +520,8 @@ public class Game {
 
 	public int countNumPlayersPlaying() {
 		int num_playing = 0;
-		for (int i=0; i<this.numPlayers; i++) {
-			if (this.player.get(i).getPlayerPlaying()) {
+		for (int i=0; i<this.getNumPlayers(); i++) {
+			if (this.getPlayer(i).getPlayerPlaying()) {
 				num_playing++;
 			}
 		}
@@ -532,16 +529,16 @@ public class Game {
 	}
 
 	public Boolean allPlayersJoined() {
-		return this.maxPlayers == this.numPlayers;
+		return this.getMaxPlayers() == this.getNumPlayers();
 	}
 
 	private int getRandomPlayerID() {
 		// this way of generating random number may not be truly random...
 		Random rand = new Random();
-		int max = this.numPlayers;
+		int max = this.getNumPlayers();
 		int min = 0;
 		int nextPlayerIdx = rand.nextInt((max - min) + 1) + min;
-		if (nextPlayerIdx == this.numPlayers) {
+		if (nextPlayerIdx == this.getNumPlayers()) {
 			nextPlayerIdx--;
 		}
 		return nextPlayerIdx;
@@ -554,19 +551,18 @@ public class Game {
 		}
 		StringBuilder s = new StringBuilder();
 		for (int i=0; i<this.player.size(); i++) {
-			Log.e(String.valueOf(1),i + " " + this.player.get(i).getPlayerUname() + " ADDED NAME");
-			s.append(this.player.get(i).getPlayerUname()).append("  ");
+			Log.e(String.valueOf(1),i + " " + this.getPlayer(i).getPlayerUname() + " ADDED NAME");
+			s.append(this.getPlayer(i).getPlayerUname()).append("  ");
 		}
 		return s.toString();
 	}
 
-	public void addPlayer(String name, String uid) {
+	public Boolean addPlayer(String name, String uid) {
 		// check player does not already exist in game
 		ArrayList<Tile> start_tiles = new ArrayList<>();
 		for (int i=0; i<this.player.size(); i++) {
-			if (this.player.get(i).getPlayerUname().equals(name) || this.player.get(i).getPlayerUid().equals(uid)) {
-				System.out.println("Cannot add player " + name + ", player already exists!");
-				return;
+			if (this.getPlayer(i).getPlayerUname().equals(name) || this.getPlayer(i).getPlayerUid().equals(uid)) {
+				return false;
 			}
 		}
 		for (int j = 0; j < 13; j++) {
@@ -574,13 +570,14 @@ public class Game {
 		}
 		this.player.add(new Player(name, uid, this.numPlayers, start_tiles));
 		this.numPlayers++;
+		return true;
 	}
 
 	public int getPlayerIdx(String uid) {
 		// return index of player that matches name
 		for (int i=0; i<this.player.size(); i++) {
-			if (uid.equals(this.player.get(i).getPlayerUid())) {
-				return this.player.get(i).getPlayerIdx();   // -1 to account for "names" as first value in ArrayList
+			if (uid.equals(this.getPlayer(i).getPlayerUid())) {
+				return this.getPlayer(i).getPlayerIdx();   // -1 to account for "names" as first value in ArrayList
 			}
 		}
 		return -1;
@@ -589,7 +586,7 @@ public class Game {
 	public Boolean checkPlayerJoined(String uid) {
 		// check that a player has joined the game
 		for (int i=0; i<this.player.size(); i++) {
-			if (this.player.get(i).getPlayerUid().equals(uid)) {
+			if (this.getPlayer(i).getPlayerUid().equals(uid)) {
 				Log.i("Game", "Game: Game player idx was found");
 				return true;
 			}
@@ -598,7 +595,7 @@ public class Game {
 	}
 
 	public ArrayList<ResponseRequestType> getPlayersResponsesOpportunities(int p) {
-		return this.player.get(p).getResponseOpportunities();
+		return this.getPlayer(p).getResponseOpportunities();
 	}
 
 }

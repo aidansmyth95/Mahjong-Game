@@ -1,4 +1,4 @@
-package com.example.mahjong;
+package com.aidansmyth95.mahjong;
 
 import android.content.Intent;
 import android.media.MediaPlayer;
@@ -69,11 +69,13 @@ public class LoginActivity extends AppCompatActivity {
                 public void onComplete(@NonNull Task<AuthResult> task) {
                     if (task.isSuccessful()) {
                         Toast.makeText(getApplicationContext(), "Login successful!", Toast.LENGTH_LONG).show();
+                        Log.i(TAG, TAG+": Login successful!");
                         Intent intent = new Intent(LoginActivity.this, CreateJoinGameActivity.class);
                         startActivity(intent);
                     }
                     else {
                         Toast.makeText(getApplicationContext(), "Login failed! Please try again later", Toast.LENGTH_LONG).show();
+                        Log.e(TAG, TAG+": Login failed!");
                         loginButton.setEnabled(true);
                     }
                 }

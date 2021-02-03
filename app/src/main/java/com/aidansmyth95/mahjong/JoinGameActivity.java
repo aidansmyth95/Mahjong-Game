@@ -1,17 +1,15 @@
-package com.example.mahjong;
+package com.aidansmyth95.mahjong;
 
 import android.content.Intent;
 import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TableLayout;
 import android.widget.TableRow;
@@ -37,7 +35,6 @@ import mahjong_package.Game;
 import mahjong_package.User;
 
 import static mahjong_package.FirebaseRepository.addUserLastGameIDFirebase;
-import static mahjong_package.FirebaseRepository.createNewMultiplayerGameRef;
 import static mahjong_package.FirebaseRepository.getCurrUserDetailsFirebase;
 import static mahjong_package.FirebaseRepository.getModifiedMultiplayerGameFromFirebase;
 import static mahjong_package.FirebaseRepository.getPausedGameFromFirebase;
@@ -211,7 +208,7 @@ public class JoinGameActivity extends AppCompatActivity implements LifecycleObse
                         Toast.makeText(getApplicationContext(), "Maximum number of players joined. Please join another Game.", Toast.LENGTH_LONG).show();
                         return false;
                     } else {
-                        // add player to game if not already joined
+                        // add player to game if not already joined - we don't care if they have joined before or not
                         gameJoined.addPlayer(curr_user.getUname(), uid);
                         // update Firebase to reflect this change in game object by updating child
                         updateMultiplayerGame(gameJoined);

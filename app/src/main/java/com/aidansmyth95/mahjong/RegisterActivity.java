@@ -1,4 +1,4 @@
-package com.example.mahjong;
+package com.aidansmyth95.mahjong;
 
 import android.content.Intent;
 import android.media.MediaPlayer;
@@ -17,7 +17,6 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseUser;
 
 import mahjong_package.FirebaseRepository;

@@ -1,4 +1,4 @@
-package com.example.mahjong;
+package com.aidansmyth95.mahjong;
 
 import android.content.Intent;
 import android.media.MediaPlayer;
@@ -105,6 +105,7 @@ public class CreateGameActivity extends AppCompatActivity {
 
     // initialize the UI components and their listeners
     private void initializeUI() {
+        Log.i(TAG, TAG+": initUI");
         final MediaPlayer mp = MediaPlayer.create(this, R.raw.button_sound);
         new_game = findViewById(R.id.create_game_name);
         radioPlayersGroup = findViewById(R.id.radioGroup);
@@ -112,6 +113,7 @@ public class CreateGameActivity extends AppCompatActivity {
         create_button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 if (curr_user.userExists()) {
+                    Log.d(TAG, TAG+": We have our user");
                     mp.start();
                     int selectedId= radioPlayersGroup.getCheckedRadioButtonId();
                     radioPlayersButton = findViewById(selectedId);
@@ -120,6 +122,8 @@ public class CreateGameActivity extends AppCompatActivity {
                         Intent intent = new Intent(CreateGameActivity.this, WaitingRoomActivity.class);
                         startActivity(intent);
                     }
+                } else {
+                    Log.d(TAG, TAG+": No user yet");
                 }
             }
         });
@@ -148,8 +152,13 @@ public class CreateGameActivity extends AppCompatActivity {
         Game new_game = new Game(max_players);
         if (userRef != null) {
             // create game ID unique to others created, add it and name
+            Log.d(TAG, TAG+": Creating a new game");
             String game_ID = createNewMultiplayerGameRef();
-            new_game.addPlayer(curr_user.getUname(), curr_user.getUid());
+            Log.d(TAG, TAG+": Created game "+game_ID);
+            if (!new_game.addPlayer(curr_user.getUname(), curr_user.getUid())) {
+                Toast.makeText(getApplicationContext(), "Failed to add player that is already playing game.", Toast.LENGTH_LONG).show();
+                return false;
+            }
             new_game.setGameName(new_game_name);
             new_game.setGameID(game_ID);
             // update games.
@@ -167,12 +176,16 @@ public class CreateGameActivity extends AppCompatActivity {
     // add a listener for users database that updates dynamic table with users
     private void setCurrUserListener() {
         dbRef = FirebaseDatabase.getInstance().getReference();
+        Log.i(TAG,TAG+": Setting up User listener for Firebase auth user with UID " + userRef.getUid());
         usersListener = dbRef.child("users").child(userRef.getUid()).addValueEventListener(new ValueEventListener() {
 
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Log.i(dataSnapshot.getKey(),TAG+":" + dataSnapshot.getChildrenCount() + " child nodes changed for user");
                 curr_user = getCurrUserDetailsFirebase(dataSnapshot);
+                Log.i(TAG,TAG+":" + curr_user.getUid() + " updated via ValueEventListener");
+                Log.i(TAG,TAG+": Name is" + curr_user.getUname() + " updated via ValueEventListener");
+
             }
 
             @Override

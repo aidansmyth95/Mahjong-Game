@@ -82,6 +82,7 @@ public final class FirebaseRepository {
             user.setUname(nameText);
             user.setProviderId(userAuth.getProviderId());
             user.setEmail(userAuth.getEmail());
+            user.setWinTallies(0);
             DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference().child("users").child(user.getUid());
             // This will NOT work unless you have getters and setters.
             usersRef.setValue(user);
@@ -205,12 +206,20 @@ public final class FirebaseRepository {
 
     // update User based on Firebase Listener
     public static User getCurrUserDetailsFirebase(DataSnapshot dataSnapshot) {
+
+        for(DataSnapshot singleSnapshot : dataSnapshot.getChildren()){
+            Log.d(TAG,TAG + ": " + singleSnapshot.getKey());
+        }
+
         User u = dataSnapshot.getValue(User.class);
         if (u == null) {
-            Log.e(TAG,TAG + ": Game is null");
+            Log.e(TAG,TAG + ": User is null");
         } else {
             // clean Game object empty ArrayList placeholders for Firebase if any
-            Log.d(TAG,TAG + ": Game " + u.getUid() + " was successfully read");
+            Log.d(TAG,TAG + ": User of uid '" + u.getUid() + "' was successfully read");
+            Log.d(TAG,TAG + ": User email: " + u.getEmail());
+            Log.d(TAG,TAG + ": User providerID: " + u.getProviderId());
+            Log.d(TAG,TAG + ": User userStatus: " + u.getUserStatus());
         }
         return u;
     }

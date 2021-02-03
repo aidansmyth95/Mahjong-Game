@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.example.mahjong">
+    package="com.aidansmyth95.mahjong">
 
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -12,20 +12,18 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".CreateGameActivity"></activity>
-        <activity android:name=".CreateJoinGameActivity" />
-        <activity android:name=".RulebookActivity" />
-        <activity android:name=".PausedGameActivity" />
-        <activity android:name=".MultiplayerActivity" />
-        <activity android:name=".WaitingRoomActivity" />
-        <activity android:name=".JoinGameActivity" />
-        <activity android:name=".GameModeActivity" />
-        <activity android:name=".LoginActivity" />
-        <activity android:name=".RegisterActivity" />
-        <activity android:name=".WelcomeActivity">
+        <activity android:name="com.aidansmyth95.mahjong.CreateGameActivity" />
+        <activity android:name="com.aidansmyth95.mahjong.CreateJoinGameActivity" />
+        <activity android:name="com.aidansmyth95.mahjong.RulebookActivity" />
+        <activity android:name="com.aidansmyth95.mahjong.PausedGameActivity" />
+        <activity android:name="com.aidansmyth95.mahjong.MultiplayerActivity" />
+        <activity android:name="com.aidansmyth95.mahjong.WaitingRoomActivity" />
+        <activity android:name="com.aidansmyth95.mahjong.JoinGameActivity" />
+        <activity android:name="com.aidansmyth95.mahjong.LoginActivity" />
+        <activity android:name="com.aidansmyth95.mahjong.RegisterActivity" />
+        <activity android:name="com.aidansmyth95.mahjong.WelcomeActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
